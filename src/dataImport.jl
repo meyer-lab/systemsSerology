@@ -97,3 +97,31 @@ function createCube()
 
     return Cube
 end
+
+"Get factor matrices of the serology tensor (temporary)"
+function getFactors()
+    dataDir = joinpath(dirname(pathof(FcgR)), "..", "data")
+    antigen_factors = transpose(h5read(joinpath(dataDir, "alter-MSB", "factors_10.h5"), "antigens"))
+    detection_factors = transpose(h5read(joinpath(dataDir, "alter-MSB", "factors_10.h5"), "detections"))
+    patient_factors = transpose(h5read(joinpath(dataDir, "alter-MSB", "factors_10.h5"), "patients"))
+    return (antigen_factors, detection_factors, patient_factors)
+end
+
+"Run Parafac Factorization with Mask"
+function perform_decomposition(rank::Int64=5)
+    # Init
+    decomps = pyimport("tensorly.decomposition")
+    cube = createCube()
+    
+    # Create Mask/Zero Out Data
+    mask = .!(cube .=== nothing)
+    cube[cube .=== nothing] .= 0
+    
+    # Convert Data Types
+    cube = convert(Array{Float64,3}, cube)
+    mask = convert(Array{Bool,3}, mask)
+    
+    # Run Factorizaton
+    weights, factors = decomps.parafac(cube, rank, mask=mask)
+    return factors
+end
