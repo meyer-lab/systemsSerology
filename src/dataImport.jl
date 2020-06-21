@@ -1,6 +1,5 @@
 using DataFrames
 using CSV
-using HDF5
 using PyCall
 
 """ Subset systems serology dataset for HIV1.p66 """
@@ -98,15 +97,6 @@ function createCube()
     end
 
     return Cube
-end
-
-"Get factor matrices of the serology tensor (temporary)"
-function getFactors()
-    dataDir = joinpath(dirname(pathof(FcgR)), "..", "data")
-    antigen_factors = transpose(h5read(joinpath(dataDir, "alter-MSB", "factors_10.h5"), "antigens"))
-    detection_factors = transpose(h5read(joinpath(dataDir, "alter-MSB", "factors_10.h5"), "detections"))
-    patient_factors = transpose(h5read(joinpath(dataDir, "alter-MSB", "factors_10.h5"), "patients"))
-    return (antigen_factors, detection_factors, patient_factors)
 end
 
 "Run Parafac Factorization with Mask"
