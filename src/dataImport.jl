@@ -131,6 +131,7 @@ function r2x(recon::Any, orig::Any)
     return (1.0 - var(itr_resid)/var(itr_orig))
 end
 
+"Re-compose tensor from CP decomposition"
 function cp_reconstruct(factors::Array)
     lambdas = ones(1, size(factors[1], 2))
     lambdas = vec(lambdas)
