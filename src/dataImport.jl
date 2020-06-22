@@ -130,3 +130,12 @@ function r2x(recon::Any, orig::Any)
     itr_orig = skipmissing(orig)
     return (1.0 - var(itr_resid)/var(itr_orig))
 end
+
+function cp_reconstruct(factors::Array)
+    lambdas = ones(1, size(factors[1], 2))
+    lambdas = vec(lambdas)
+    cube = systemsSerology.createCube()
+    tup = (factors[1], factors[2], factors[3])
+    dest = ones(181, 22, 41)
+    compose!(dest, tup, lambdas)
+end
