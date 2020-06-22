@@ -1,6 +1,7 @@
 using DataFrames
 using CSV
 using PyCall
+using Statistics
 
 """ Subset systems serology dataset for HIV1.p66 """
 function HIV1p66sub()
@@ -99,6 +100,8 @@ function createCube()
     return Cube
 end
 
+
+########################################################## TENSOR STUFF ############################################################
 "Run Parafac Factorization with Mask"
 function perform_decomposition(rank::Int64=5)
     # Init
@@ -116,4 +119,14 @@ function perform_decomposition(rank::Int64=5)
     # Run Factorizaton
     weights, factors = decomps.parafac(cube, rank, mask=mask)
     return factors
+end
+
+"Calculate reconstruction error of two tensors with missing values"
+function r2x(recon::Any, orig::Any)
+    recon = replace(recon, nothing=>missing)
+    orig = replace(recon, nothing=>missing)
+    resid = recon .- orig
+    itr_resid = skipmissing(resid)
+    itr_orig = skipmissing(orig)
+    return (1.0 - var(itr_resid)/var(itr_orig))
 end
