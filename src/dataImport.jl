@@ -2,6 +2,7 @@ using DataFrames
 using CSV
 using PyCall
 using Statistics
+using TensorDecompositions
 
 """ Subset systems serology dataset for HIV1.p66 """
 function HIV1p66sub()
@@ -124,7 +125,7 @@ end
 "Calculate reconstruction error of two tensors with missing values"
 function r2x(recon::Any, orig::Any)
     recon = replace(recon, nothing=>missing)
-    orig = replace(recon, nothing=>missing)
+    orig = replace(orig, nothing=>missing)
     resid = recon .- orig
     itr_resid = skipmissing(resid)
     itr_orig = skipmissing(orig)
