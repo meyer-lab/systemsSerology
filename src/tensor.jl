@@ -50,7 +50,7 @@ function cp_reconstruct(factors::Array)
 end
 
 "Re-compose tensor from Tucker decomposition"
-function tucker_reconstruct(output::Any)
+function tucker_reconstruct(output)
     decomp = Tucker(output[2], output[1])
     dest = ones(181, 22, 41)
     reconstruct = compose!(dest, decomp)
@@ -58,7 +58,7 @@ function tucker_reconstruct(output::Any)
 end
 
 "Calculate reconstruction error of two tensors with missing values"
-function r2x(recon::Any, orig::Any)
+function r2x(recon, orig)
     recon = replace(recon, nothing=>missing)
     orig = replace(orig, nothing=>missing)
     resid = recon .- orig
