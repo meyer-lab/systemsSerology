@@ -2,6 +2,7 @@ using DataFrames
 using CSV
 using PyCall
 
+
 """ Subset systems serology dataset for HIV1.p66 """
 function HIV1p66sub()
     df = importAlterMSB()
@@ -99,21 +100,3 @@ function createCube()
     return Cube
 end
 
-"Run Parafac Factorization with Mask"
-function perform_decomposition(rank::Int64=5)
-    # Init
-    decomps = pyimport("tensorly.decomposition")
-    cube = createCube()
-    
-    # Create Mask/Zero Out Data
-    mask = .!(cube .=== nothing)
-    cube[cube .=== nothing] .= 0
-    
-    # Convert Data Types
-    cube = convert(Array{Float64,3}, cube)
-    mask = convert(Array{Bool,3}, mask)
-    
-    # Run Factorizaton
-    weights, factors = decomps.parafac(cube, rank, mask=mask)
-    return factors
-end
