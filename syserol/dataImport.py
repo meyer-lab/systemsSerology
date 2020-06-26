@@ -54,6 +54,17 @@ def getAxes():
     return subjects, detections, antigen
 
 
+def importFunction():
+    """ Import functional data. """
+    subjects, _, _ = getAxes()
+    df = load_file("data-function")
+    df_a = pd.DataFrame({'subject' : subjects})
+
+    df = df_a.merge(df, on='subject', how='left')
+
+    return df
+
+
 def createCube():
     """ Import the data and assemble the antigen cube. """
     subjects, detections, antigen = getAxes()
