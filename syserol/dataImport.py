@@ -22,6 +22,12 @@ def importLuminex(antigen=None):
         df = df[df["variable"].str.contains(antigen)]
         df["variable"] = df["variable"].str.replace("." + antigen, "")
 
+        # Filter out bad antigen matches
+        df = df[~df["variable"].str.contains("235")]
+        df = df[~df["variable"].str.contains("244")]
+        df = df[~df["variable"].str.contains("Kif")]
+        df = df[~df["variable"].str.contains("delta3711")]
+
     return df
 
 
@@ -70,7 +76,7 @@ def createCube():
         subjLumx = IGG[IGG["subject"] == curSubj]
 
         for _, row in subjLumx.iterrows():
-            k = detections.index(row["variable"])
+            k = antigen.index(row["variable"])
             cube[i, -1, k] = row["value"]
 
     return cube
