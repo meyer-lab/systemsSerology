@@ -19,7 +19,7 @@ class TestModel(unittest.TestCase):
         self.assertTrue(R2X(tensor, tensor) == 1.0)
 
         arr = []
-        for i in range(1, 4):
+        for i in range(1, 8):
             factors = perform_decomposition(tensor, i)
             arr.append(find_R2X(tensor, factors))
 
