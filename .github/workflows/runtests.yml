@@ -12,6 +12,7 @@ jobs:
         os: [ubuntu-latest]
 
     steps:
+      - run: pip3 install tensorly
       - uses: actions/checkout@v1.0.0
       - uses: julia-actions/setup-julia@latest
         with:
