@@ -17,17 +17,15 @@ function CP_decomposition(rank::Int64=5)
     mask = convert(Array{Bool,3}, mask)
     
     # Run Factorizaton
-    weights, factors = decomps.parafac(cube, rank, mask=mask, init="random")
+    weights, factors = decomps.parafac(cube, rank, mask=mask, orthogonalise=true, init="random")
     return factors
 end
 
 "Re-compose tensor from CP decomposition"
 function cp_reconstruct(factors::Array)
-    lambdas = ones(1, size(factors[1], 2))
-    lambdas = vec(lambdas)
+    lambdas = ones(size(factors[1], 2))
     tup = (factors[1], factors[2], factors[3])
-    dest = ones(181, 22, 41)
-    compose!(dest, tup, lambdas)
+    return compose(tup, lambdas)
 end
 
 "Calculate reconstruction error of two tensors with missing values"

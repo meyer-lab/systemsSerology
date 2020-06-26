@@ -32,7 +32,7 @@ end
 
 function importLuminex()  #nearly same as importAlterMSB but does not separate into multiple columns
     dfL = CSV.read(joinpath(dataDir, "alter-MSB", "data-luminex.csv"))
-    df = melt(dfL, view = true)
+    df = stack(dfL, view = true)
     rename!(df, [:Subject, :ColNames, :Value])
 
     # Convert FC column to strings
