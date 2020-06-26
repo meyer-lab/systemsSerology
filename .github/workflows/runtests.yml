@@ -13,7 +13,7 @@ jobs:
 
     steps:
       - run: sudo apt install python3-setuptools
-      - run: pip3 install tensorly
+      - run: pip3 install git+https://github.com/tensorly/tensorly.git@master
       - uses: actions/checkout@v1.0.0
       - uses: julia-actions/setup-julia@latest
         with:
