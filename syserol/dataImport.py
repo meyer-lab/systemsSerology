@@ -57,7 +57,7 @@ def getAxes():
 def createCube():
     """ Import the data and assemble the antigen cube. """
     subjects, detections, antigen = getAxes()
-    cube = np.full([len(subjects), len(detections) + 1, len(antigen)], np.nan)
+    cube = np.full([len(subjects), len(detections), len(antigen)], np.nan)
 
     IGG = importIGG()
 
@@ -78,5 +78,12 @@ def createCube():
         for _, row in subjLumx.iterrows():
             k = antigen.index(row["variable"])
             cube[i, -1, k] = row["value"]
+
+    print("Missingness fraction: " + str(np.mean(np.isnan(cube))))
+
+    # Check that there are no slices with completely missing data
+    assert ~np.any(np.all(np.isnan(cube), axis=(0, 1)))
+    assert ~np.any(np.all(np.isnan(cube), axis=(0, 2)))
+    assert ~np.any(np.all(np.isnan(cube), axis=(1, 2)))
 
     return cube
