@@ -17,7 +17,7 @@ function CP_decomposition(rank::Int64=5)
     mask = convert(Array{Bool,3}, mask)
     
     # Run Factorizaton
-    weights, factors = decomps.parafac(cube, rank, mask=mask)
+    weights, factors = decomps.parafac(cube, rank, mask=mask, init="random")
     return factors
 end
 
@@ -36,7 +36,7 @@ function tucker_decomposition(rank::Tuple=(2,2,2))
     mask = convert(Array{Bool,3}, mask)
     
     # Run Factorizaton
-    core, factors = decomps.tucker(cube, rank, mask=mask)
+    core, factors = decomps.tucker(cube, rank, mask=mask, init="random")
     return (core, factors)
 end
 
