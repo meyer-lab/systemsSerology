@@ -14,13 +14,14 @@ def R2X(reconstructed, original):
 def perform_decomposition(tensor, r, weightFactor=2):
     """ Perform PARAFAC decomposition. """
     tensor = np.copy(tensor)
-    mask = ~np.isnan(tensor)
+    mask = np.isfinite(tensor).astype(int)
+    tensor[mask == 0] = 0.0
 
-    weights, factors = parafac(tensor, r, tol=1.0e-10, n_iter_max=6000, mask=mask, orthogonalise=True, init="random")
-    factors[weightFactor] *= weights[np.newaxis, :]  # Put weighting in designated factor
-
-    print(factors[0])
+    weights, factors = parafac(tensor, r, mask=mask, tol=1.0e-10, n_iter_max=6000, orthogonalise=True, init="random")
     assert np.all(np.isfinite(factors[0]))
+    assert np.all(np.isfinite(weights))
+
+    factors[weightFactor] *= weights[np.newaxis, :]  # Put weighting in designated factor
 
     return factors
 
