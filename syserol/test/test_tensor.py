@@ -12,14 +12,14 @@ class TestModel(unittest.TestCase):
 
     def test_R2X(self):
         """ Test to ensure R2X for higher components is larger. """
-        tensor = np.random.rand(12, 10, 15)
+        tensor = np.random.rand(5, 5, 5)
         tensor[1, 3, 2] = np.nan
 
         self.assertTrue(np.isfinite(R2X(tensor, tensor)))
         self.assertTrue(R2X(tensor, tensor) == 1.0)
 
         arr = []
-        for i in range(1, 8):
+        for i in range(1, 4):
             factors = perform_decomposition(tensor, i)
             arr.append(find_R2X(tensor, factors))
 

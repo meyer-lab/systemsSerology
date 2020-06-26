@@ -15,7 +15,7 @@ if __name__ == "__main__":
 
     start = time.time()
 
-    exec("from msresist.figures." + nameOut + " import makeFigure")
+    exec("from syserol.figures." + nameOut + " import makeFigure")
     ff = makeFigure()
     ff.savefig(fdir + nameOut + ".svg", dpi=ff.dpi, bbox_inches="tight", pad_inches=0)
 
