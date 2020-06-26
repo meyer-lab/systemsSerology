@@ -21,7 +21,7 @@ def importLuminex(antigen = None):
 
 	if antigen is not None:
 		df = df[df['variable'].str.contains(antigen)]
-		df['variable'] = df['variable'].str.replace(antigen, '')
+		df['variable'] = df['variable'].str.replace("." + antigen, '')
 
 	return df
 
@@ -52,6 +52,6 @@ def createCube():
 
 			for j, curDet in enumerate(detections):
 				if subjLumx['variable'].isin([curDet]).any():
-					cube[i, j, k] = subjLumx[subjLumx['variable'] == curDet]
+					cube[i, j, k] = subjLumx.loc[subjLumx['variable'] == curDet, "value"]
 
 	return cube
