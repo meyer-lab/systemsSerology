@@ -13,45 +13,45 @@ def load_file(name):
     return data
 
 
-def importLuminex(antigen = None):
-	""" Import the Luminex measurements. Subset if only a specific antigen is needed. """
-	df = load_file("data-luminex")
+def importLuminex(antigen=None):
+    """ Import the Luminex measurements. Subset if only a specific antigen is needed. """
+    df = load_file("data-luminex")
 
-	df = pd.melt(df, id_vars=['subject'])
+    df = pd.melt(df, id_vars=["subject"])
 
-	if antigen is not None:
-		df = df[df['variable'].str.contains(antigen)]
-		df['variable'] = df['variable'].str.replace("." + antigen, '')
+    if antigen is not None:
+        df = df[df["variable"].str.contains(antigen)]
+        df["variable"] = df["variable"].str.replace("." + antigen, "")
 
-	return df
+    return df
 
 
 def getAxes():
-	""" Get each of the axes over which the data is measured. """
-	subjects = load_file("meta-subjects")
-	detections = load_file("meta-detections")
-	antigen = load_file("meta-antigens")
+    """ Get each of the axes over which the data is measured. """
+    subjects = load_file("meta-subjects")
+    detections = load_file("meta-detections")
+    antigen = load_file("meta-antigens")
 
-	subjects = subjects['subject']
-	detections = detections['detection']
-	antigen = antigen['antigen']
+    subjects = subjects["subject"]
+    detections = detections["detection"]
+    antigen = antigen["antigen"]
 
-	return subjects, detections, antigen
+    return subjects, detections, antigen
 
 
 def createCube():
-	""" Import the data and assemble the antigen cube. """
-	subjects, detections, antigen = getAxes()
-	cube = np.full([len(subjects), len(detections), len(antigen)], np.nan)
+    """ Import the data and assemble the antigen cube. """
+    subjects, detections, antigen = getAxes()
+    cube = np.full([len(subjects), len(detections), len(antigen)], np.nan)
 
-	for k, curAnti in enumerate(antigen):
-		lumx = importLuminex(curAnti)
+    for k, curAnti in enumerate(antigen):
+        lumx = importLuminex(curAnti)
 
-		for i, curSubj in enumerate(subjects):
-			subjLumx = lumx[lumx['subject'] == curSubj]
+        for i, curSubj in enumerate(subjects):
+            subjLumx = lumx[lumx["subject"] == curSubj]
 
-			for j, curDet in enumerate(detections):
-				if subjLumx['variable'].isin([curDet]).any():
-					cube[i, j, k] = subjLumx.loc[subjLumx['variable'] == curDet, "value"]
+            for j, curDet in enumerate(detections):
+                if subjLumx["variable"].isin([curDet]).any():
+                    cube[i, j, k] = subjLumx.loc[subjLumx["variable"] == curDet, "value"]
 
-	return cube
+    return cube
