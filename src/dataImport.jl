@@ -37,7 +37,7 @@ function antigenTables(s::String)
     for i = size(df, 1):-1:1
         m = match(Regex(s), df.Fc[i], length(df.Fc[i]) - length(s) + 1)  #match only after index where the antigen name must start
         if m === nothing
-            deleterows!(df, i)  #delete all the rows that are not for this specific antigen
+            delete!(df, i)  #delete all the rows that are not for this specific antigen
         end
     end
 
@@ -54,7 +54,7 @@ function antigenTables(s::String)
     ADCC = rename!(ADCConly, [:Subject, :ADCC]) #Subjects were called "Column1" before
 
     #join ADCC data with antigen receptor data
-    allAntigen = join(rec, ADCC, on = :Subject, kind = :inner)
+    allAntigen = innerjoin(rec, ADCC, on = :Subject)
 
     return allAntigen
 end
