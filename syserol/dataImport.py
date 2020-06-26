@@ -41,9 +41,9 @@ def getAxes():
     detections = load_file("meta-detections")
     antigen = load_file("meta-antigens")
 
-    subjects = subjects["subject"]
-    detections = detections["detection"]
-    antigen = antigen["antigen"]
+    subjects = subjects["subject"].to_list()
+    detections = detections["detection"].to_list()
+    antigen = antigen["antigen"].to_list()
 
     return subjects, detections, antigen
 
@@ -61,16 +61,16 @@ def createCube():
         for i, curSubj in enumerate(subjects):
             subjLumx = lumx[lumx["subject"] == curSubj]
 
-            for j, curDet in enumerate(detections):
-                if subjLumx["variable"].isin([curDet]).any():
-                    cube[i, j, k] = subjLumx.loc[subjLumx["variable"] == curDet, "value"]
+            for _, row in subjLumx.iterrows():
+                j = detections.index(row["variable"])
+                cube[i, j, k] = row["value"]
 
     # Add IgG data on the end as another detection
     for i, curSubj in enumerate(subjects):
         subjLumx = IGG[IGG["subject"] == curSubj]
 
-        for k, curAnti in enumerate(antigen):
-            if subjLumx["variable"].isin([curAnti]).any():
-                cube[i, -1, k] = subjLumx.loc[subjLumx["variable"] == curAnti, "value"]
+        for _, row in subjLumx.iterrows():
+            k = detections.index(row["variable"])
+            cube[i, -1, k] = row["value"]
 
     return cube

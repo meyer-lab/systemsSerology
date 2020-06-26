@@ -10,7 +10,7 @@ test: venv
 
 testprofile: venv
 	. venv/bin/activate && python3 -m cProfile -o profile /usr/local/bin/pytest
-	. venv/bin/activate && gprof2dot -f pstats --node-thres=5.0 profile | dot -Tsvg -o profile.svg
+	. venv/bin/activate && python3 -m gprof2dot -f pstats --node-thres=5.0 profile | dot -Tsvg -o profile.svg
 
 pylint.log: venv
 	. venv/bin/activate && (pylint --rcfile=./common/pylintrc syserol > pylint.log || echo "pylint exited with $?")
