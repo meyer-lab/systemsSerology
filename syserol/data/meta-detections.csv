@@ -14,10 +14,10 @@ IgG1,IgG1
 IgG2,IgG2
 IgG3,IgG3
 IgG4,IgG4
-# LCA,lectin
+LCA,lectin
 MBL,lectin
-# PNA,lectin
-# SNA,lectin
-# VVL,lectin # high missingness > 0.8
+PNA,lectin
+SNA,lectin
+VVL,lectin
 C1q,C1q
 IgG,IgG

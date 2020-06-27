@@ -27,11 +27,6 @@ def importLuminex(antigen=None):
         df = df[~df["variable"].str.contains("244")]
         df = df[~df["variable"].str.contains("Kif")]
         df = df[~df["variable"].str.contains("delta3711")]
-        # Remove because it's commented out
-        df = df[~df["variable"].str.contains("VVL")]
-        df = df[~df["variable"].str.contains("SNA")]
-        df = df[~df["variable"].str.contains("PNA")]
-        df = df[~df["variable"].str.contains("LCA")]
 
     return df
 
@@ -114,7 +109,8 @@ def createCube():
             cube[i, -1, k] = row["value"]
 
     # We probably want to do some sort of normalization, but I'm not sure what yet
-    # cube = cube / np.nanstd(cube, axis=(0, 2))[np.newaxis, :, np.newaxis]
+    cube = cube - np.nanmean(cube, axis=(0, 2))[np.newaxis, :, np.newaxis]
+    cube = cube / np.nanstd(cube, axis=(0, 2))[np.newaxis, :, np.newaxis]
 
     print("Missingness fraction: " + str(np.mean(np.isnan(cube))))
 
