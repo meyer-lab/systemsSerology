@@ -17,13 +17,13 @@ def perform_decomposition(tensor, r, weightFactor=2):
     mask = np.isfinite(tensor).astype(int)
     tensor[mask == 0] = 0.0
 
-    weights, factors = parafac(tensor, r, mask=mask, orthogonalise=10, tol=1e-09, normalize_factors=False, init="random")
+    weights, factors = parafac(tensor, r, mask=mask, orthogonalise=True, n_iter_max=4000, normalize_factors=True, init="random", verbose=True)
     assert np.all(np.isfinite(factors[0]))
     assert np.all(np.isfinite(weights))
 
     factors[weightFactor] *= weights[np.newaxis, :]  # Put weighting in designated factor
     
-    print("Compression factor: " + str(tensor.size / (factors[0].size + factors[1].size + factors[2].size)))
+    print("R2X: " + str(find_R2X(tensor, factors)))
 
     return factors
 

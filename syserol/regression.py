@@ -10,25 +10,15 @@ from .tensor import perform_decomposition, find_R2X
 
 def patientComponents(nComp = 1):
     """ Generate factorization on cross-validation. """
-    cube, glyCube = createCube()
+    cube, _ = createCube()
 
     factors = perform_decomposition(cube, nComp)
-    
-    for ii in range(3):
-        factors_new = perform_decomposition(cube, nComp)
-        print(find_R2X(cube, factors))
-        
-        if find_R2X(cube, factors_new) > find_R2X(cube, factors):
-            print("Improved decomposition on second run.")
-            factors = factors_new
 
     Y = importFunction()['ADCC']
 
     idxx = np.isfinite(Y)
-    idxx = np.logical_and(idxx, np.all(np.isfinite(glyCube), axis=1))
     Y = Y[idxx]
-    X = np.concatenate((factors[0][idxx, :], glyCube[idxx, :]), axis=1)
-    Y = sp.stats.zscore(Y)
+    X = factors[0][idxx, :]
     Y_pred = np.empty(Y.shape)
     
     Y_pred = cross_val_predict(ElasticNetCV(normalize=True), X, Y, cv=len(Y))
