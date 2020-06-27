@@ -24,15 +24,15 @@ gp140.BR29,gp140/SOSIP
 gp140.Clade.B,gp140/SOSIP
 gp140.CN54,gp140/SOSIP
 gp140.Du151,gp140/SOSIP
-gp140.HXBc2,gp140/SOSIP
+# gp140.HXBc2,gp140/SOSIP # high missingness > 0.9
 gp140.UG21,gp140/SOSIP
 SOSIP,gp140/SOSIP
 gp41.HXBc2,gp41
-gp41.MN,gp41
+# gp41.MN,gp41 # high missingness > 0.85
 HIV1.Integrase,HIV-other
 HIV1.Nef,HIV-other
 HIV1.Rev,HIV-other
-HIV1.Gag,HIV-other
+# HIV1.Gag,HIV-other # high missingness > 0.9
 HIV1.Vif,HIV-other
 HIV1.p7,HIV-other
 IIIb.pr55.Gag,HIV-other
