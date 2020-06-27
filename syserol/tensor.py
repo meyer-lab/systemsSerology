@@ -3,7 +3,6 @@ Tensor decomposition methods
 """
 import numpy as np
 import tensorly as tl
-from tensorly.random import random_kruskal
 from tensorly.decomposition import parafac
 
 
