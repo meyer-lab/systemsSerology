@@ -8,7 +8,7 @@ path_here = dirname(dirname(__file__))
 
 def load_file(name):
     """ Return a requested data file. """
-    data = pd.read_csv(join(path_here, "syserol/data/" + name + ".csv"), delimiter=",")
+    data = pd.read_csv(join(path_here, "syserol/data/" + name + ".csv"), delimiter=",", comment="#")
 
     return data
 
@@ -29,6 +29,17 @@ def importLuminex(antigen=None):
         df = df[~df["variable"].str.contains("delta3711")]
 
     return df
+
+
+def importGlycan():
+    """ Import the glycan measurements. """
+    df = load_file("data-glycan-gp120")
+    dfAxis = load_file("meta-glycans")
+    df = pd.melt(df, id_vars=["subject"])
+    
+    glycan = dfAxis["glycan"].to_list()
+    
+    return glycan, df
 
 
 def importIGG():
@@ -54,18 +65,36 @@ def getAxes():
     return subjects, detections, antigen
 
 
+def importFunction():
+    """ Import functional data. """
+    subjects, _, _ = getAxes()
+    df = load_file("data-function")
+    df_a = pd.DataFrame({'subject' : subjects})
+
+    df = df_a.merge(df, on='subject', how='left')
+
+    return df
+
+
 def createCube():
     """ Import the data and assemble the antigen cube. """
     subjects, detections, antigen = getAxes()
     cube = np.full([len(subjects), len(detections), len(antigen)], np.nan)
 
     IGG = importIGG()
+    glycan, dfGlycan = importGlycan()
+    glyCube = np.full([len(subjects), len(glycan)], np.nan)
 
     for k, curAnti in enumerate(antigen):
         lumx = importLuminex(curAnti)
 
         for i, curSubj in enumerate(subjects):
             subjLumx = lumx[lumx["subject"] == curSubj]
+            subjGly = dfGlycan[dfGlycan["subject"] == curSubj]
+            
+            for _, row in subjGly.iterrows():
+                j = glycan.index(row["variable"])
+                glyCube[i, j] = row["value"]
 
             for _, row in subjLumx.iterrows():
                 j = detections.index(row["variable"])
@@ -79,6 +108,10 @@ def createCube():
             k = antigen.index(row["variable"])
             cube[i, -1, k] = row["value"]
 
+    # We probably want to do some sort of normalization, but I'm not sure what yet
+    cube = cube - np.nanmean(cube, axis=(0, 2))[np.newaxis, :, np.newaxis]
+    cube = cube / np.nanstd(cube, axis=(0, 2))[np.newaxis, :, np.newaxis]
+
     print("Missingness fraction: " + str(np.mean(np.isnan(cube))))
 
     # Check that there are no slices with completely missing data
@@ -86,4 +119,4 @@ def createCube():
     assert ~np.any(np.all(np.isnan(cube), axis=(0, 2)))
     assert ~np.any(np.all(np.isnan(cube), axis=(1, 2)))
 
-    return cube
+    return cube, glyCube

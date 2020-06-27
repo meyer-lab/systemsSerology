@@ -17,11 +17,13 @@ def perform_decomposition(tensor, r, weightFactor=2):
     mask = np.isfinite(tensor).astype(int)
     tensor[mask == 0] = 0.0
 
-    weights, factors = parafac(tensor, r, mask=mask, tol=1.0e-10, n_iter_max=6000, orthogonalise=True, normalize_factors=True, init="random")
+    weights, factors = parafac(tensor, r, mask=mask, orthogonalise=True, n_iter_max=4000, normalize_factors=True, init="random")
     assert np.all(np.isfinite(factors[0]))
     assert np.all(np.isfinite(weights))
 
     factors[weightFactor] *= weights[np.newaxis, :]  # Put weighting in designated factor
+    
+    print("R2X: " + str(find_R2X(tensor, factors)))
 
     return factors
 
@@ -29,3 +31,11 @@ def perform_decomposition(tensor, r, weightFactor=2):
 def find_R2X(values, factors):
     """Compute R2X from CP. Note that the inputs values and factors are in numpy."""
     return R2X(tl.kruskal_to_tensor((np.ones(factors[0].shape[1]), factors)), values)
+
+
+def impute(tensor, r):
+    """ Decompose and then reconstruct tensor without missingness. """
+    factors = perform_decomposition(tensor, r)
+    recon = tl.kruskal_to_tensor((np.ones(factors[0].shape[1]), factors))
+
+    return recon
