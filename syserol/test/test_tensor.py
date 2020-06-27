@@ -4,7 +4,8 @@ Unit test file.
 import unittest
 import numpy as np
 import tensorly as tl
-from ..tensor import find_R2X, perform_decomposition, R2X
+from ..dataImport import createCube
+from ..tensor import find_R2X, perform_decomposition, R2X, perform_CMTF
 
 
 class TestModel(unittest.TestCase):
@@ -29,3 +30,12 @@ class TestModel(unittest.TestCase):
         # confirm R2X is >= 0 and <=1
         self.assertGreaterEqual(tl.min(arr), 0)
         self.assertLessEqual(tl.max(arr), 1)
+
+    def test_CMTF(self):
+        """ Test combined matrix-tensor factorization. """
+        cube, glyCube = createCube()
+
+        facT, facM = perform_CMTF(cube, glyCube, 2)
+
+        self.assertTrue(np.all(np.isfinite(facT[0])))
+        self.assertTrue(np.allclose(facT[1][0], facM[1][0]))

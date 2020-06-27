@@ -3,7 +3,7 @@ Tensor decomposition methods
 """
 import numpy as np
 import tensorly as tl
-from tensorly.decomposition import parafac
+from tensorly.decomposition import parafac, coupled_matrix_tensor_3d_factorization
 
 
 def R2X(reconstructed, original):
@@ -26,6 +26,21 @@ def perform_decomposition(tensor, r, weightFactor=2):
     print("R2X: " + str(find_R2X(tensor, factors)))
 
     return factors
+
+
+def perform_CMTF(tensor, matrix, r):
+    """ Perform CMTF decomposition. """
+    tensor = np.copy(tensor)
+    mask = np.isfinite(tensor).astype(int)
+    tensor[mask == 0] = 0.0
+
+    matrix = np.copy(matrix)
+    mask_matrix = np.isfinite(matrix).astype(int)
+    matrix[mask_matrix == 0] = 0.0
+
+    tensorFac, matrixFac = coupled_matrix_tensor_3d_factorization(tensor, matrix, r, mask_3d=mask, mask_matrix=mask_matrix, init="random")
+
+    return tensorFac, matrixFac
 
 
 def find_R2X(values, factors):
