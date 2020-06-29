@@ -120,3 +120,16 @@ def createCube():
     assert ~np.any(np.all(np.isnan(cube), axis=(1, 2)))
 
     return cube, glyCube
+
+def funcRegImport():
+    df = importLuminex()
+    
+    df1 = df[df["variable"].str.contains("IgG1")].pivot(index="subject", columns="variable")
+    df2 = df[df["variable"].str.contains("IgG2")].pivot(index="subject", columns="variable")
+    df3 = df[df["variable"].str.contains("IgG3")].pivot(index="subject", columns="variable")
+    df4 = df[df["variable"].str.contains("IgG4")].pivot(index="subject", columns="variable")
+    df_total = pd.concat([df1, df2, df3, df4], axis=1)
+    
+    df_funct = importFunction()["ADCD"]
+    df_funct.fillna(value=0, inplace=True)
+    return df_total.values, df_funct.values
