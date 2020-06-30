@@ -1,8 +1,11 @@
 """ Evaluate the ability of CP to impute data. """
 
 import numpy as np
+import random as rd
+from statistics import mean 
 from .dataImport import createCube
-from .tensor import impute
+from .tensor import perform_decomposition, impute, R2X
+
 
 
 def evalMissing(nComp = 1, numSample = 100):
