@@ -42,7 +42,7 @@ def evaluate_missing():
 
         Diff = np.absolute(orig - recon)
         Avg = np.mean(Diff)
-        Sum = sum(Diff)
+        Sum = np.sum(Diff)
         print(f"The average difference for {comp} components is: {Avg} and the Sum is: {Sum}")
         Averages.append(Avg)
         Sums.append(Sum)
