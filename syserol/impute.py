@@ -1,33 +1,50 @@
 """ Evaluate the ability of CP to impute data. """
 
 import numpy as np
+import random as rd
+from statistics import mean 
 from .dataImport import createCube
-from .tensor import impute
+from .tensor import perform_decomposition, impute, R2X
 
 
-def evalMissing(nComp = 1, numSample = 100):
+def evalMissing(cube, nComp = 1, numSample = 100):
     """ Evaluate how well factorization imputes missing values. """
-    cube = createCube()
-
+    cube = np.copy(cube)
     orig = []
     recon = []
 
+    indices = list()
     idxs = np.argwhere(np.isfinite(cube))
 
     for ii in range(numSample):
         i, j, k = idxs[np.random.choice(idxs.shape[0], 1)][0]
 
+        indices.append((i, j, k))
         orig.append(cube[i, j, k])
-        cubeTemp = np.copy(cube)
-        cubeTemp[i, j, k] = np.nan
+        cube[i, j, k] = np.nan
 
-        tensorR = impute(cubeTemp, nComp)
+    tensorR = impute(cube, nComp)
+    
+    for ii in range(len(indices)):
+        recon.append(tensorR[indices[ii][0], indices[ii][1], indices[ii][2]])
 
-        recon.append(tensorR[i, j, k])
-        print(len(recon))
-        print(np.corrcoef(orig, recon)[0, 1])
+    return np.array(orig), np.array(recon)
 
-        if len(recon) > 100:
-            break
 
-    return orig, recon
+def evaluate_missing():
+    Cube, GlyCube = createCube()
+    
+    #check differences between original and recon values for different number of components
+    Averages = list()
+    Sums = list()
+    for comp in np.arange(1,10):
+        orig, recon = evalMissing(Cube, nComp = comp, numSample = 100)
+
+        Diff = np.absolute(orig - recon)
+        Avg = np.mean(Diff)
+        Sum = np.sum(Diff)
+        print(f"The average difference for {comp} components is: {Avg} and the Sum is: {Sum}")
+        Averages.append(Avg)
+        Sums.append(Sum)
+
+    return Averages, Sums
