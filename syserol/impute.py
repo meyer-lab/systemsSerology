@@ -25,7 +25,7 @@ def evalMissing(cube, nComp = 1, numSample = 100):
 
     tensorR = impute(cube, nComp)
     
-    for ii in range(indices):
+    for ii in range(len(indices)):
         recon.append(tensorR[indices[ii][0], indices[ii][1], indices[ii][2]])
 
     return np.array(orig), np.array(recon)
