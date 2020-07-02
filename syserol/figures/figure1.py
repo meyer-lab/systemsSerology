@@ -14,7 +14,7 @@ def makeFigure():
     ax, f = getSetup((10, 10), (1, 1))
 
     cube, _ = createCube()
-    comps = np.arange(1, 12)
+    comps = np.array([1, 2, 4, 6, 8, 10, 12, 14])
 
     arr = []
     for i in comps:
@@ -24,6 +24,7 @@ def makeFigure():
     ax[0].plot(comps, arr)
     ax[0].set_ylabel("R2X")
     ax[0].set_xlabel("Number of Components")
+    ax[0].set_ylim(0, 1)
 
     # Add subplot labels
     subplotLabel(ax)
