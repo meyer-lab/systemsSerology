@@ -11,13 +11,13 @@ def R2X(reconstructed, original):
     return 1.0 - np.nanvar(reconstructed - original) / np.nanvar(original)
 
 
-def perform_decomposition(tensorIn, r, weightFactor=2, iter_max=200, **kwargs):
+def perform_decomposition(tensorIn, r, weightFactor=2, **kwargs):
     """ Perform PARAFAC decomposition. """
     tensor = np.copy(tensorIn)
     mask = np.isfinite(tensor).astype(int)
     tensor[mask == 0] = 0.0
 
-    weights, factors = parafac(tensor, r, mask=mask, orthogonalise=True, n_iter_max=iter_max, normalize_factors=True, init="random", **kwargs)
+    weights, factors = parafac(tensor, r, mask=mask, orthogonalise=True, normalize_factors=True, init="random", **kwargs)
     assert np.all(np.isfinite(factors[0]))
     assert np.all(np.isfinite(weights))
 
@@ -40,7 +40,7 @@ def perform_CMTF(tensorIn, matrixIn, r):
     mask_matrix = np.isfinite(matrix).astype(int)
     matrix[mask_matrix == 0] = 0.0
 
-    CPfac = perform_decomposition(tensorIn, r, iter_max=10000)
+    CPfac = perform_decomposition(tensorIn, r, n_iter_max=100)
     init = (np.ones(CPfac[0].shape[1]), CPfac)
 
     tensorFac, matrixFac = coupled_matrix_tensor_3d_factorization(tensor, matrix, r, mask_3d=mask, mask_matrix=mask_matrix, init=init)
@@ -52,7 +52,7 @@ def perform_CMTF(tensorIn, matrixIn, r):
 
     print("CMTF R2X: " + str(R2XX))
 
-    return tensorFac, matrixFac
+    return tensorFac, matrixFac, R2XX
 
 
 def find_R2X(values, factors):
