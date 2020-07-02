@@ -40,7 +40,7 @@ def perform_CMTF(tensorIn, matrixIn, r):
     mask_matrix = np.isfinite(matrix).astype(int)
     matrix[mask_matrix == 0] = 0.0
 
-    CPfac = perform_decomposition(tensorIn, r, n_iter_max=100)
+    CPfac = perform_decomposition(tensorIn, r, n_iter_max=200)
     init = (np.ones(CPfac[0].shape[1]), CPfac)
 
     tensorFac, matrixFac = coupled_matrix_tensor_3d_factorization(tensor, matrix, r, mask_3d=mask, mask_matrix=mask_matrix, init=init)
