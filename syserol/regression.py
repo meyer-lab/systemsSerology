@@ -29,3 +29,38 @@ def patientComponents(nComp = 1):
     print(np.sqrt(r2_score(Y, Y_pred)))
     
     return Y, Y_pred
+
+def function_elastic_net(function='ADCC'):
+    #Import Luminex, Luminex-IGG, Function, and Glycan into DF
+    df = importLuminex()
+    lum = df.pivot(index='subject', columns = 'variable', values = 'value')
+    glycan, df2 = importGlycan()
+    glyc = df2.pivot(index='subject', columns = 'variable', values = 'value')
+    func = importFunction()
+    igg = importIGG()
+    igg = igg.pivot(index='subject', columns = 'variable', values = 'value')
+    data_frames = [lum, glyc, func, igg]
+    df_merged = reduce(lambda  left,right: pd.merge(left,right,on=['subject'],
+                                                how='inner'), data_frames)
+    df_merged = df_merged.dropna()
+
+    #Z score
+    df_merged = df_merged.apply(zscore) ##Do we want to Zscore while function values are still in the dataframe?
+
+    #separate dataframes
+    df_func = df_merged[["ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"]]
+    df_variables = df_merged.drop(['subject','ADCD', 'ADCC', 'ADNP', 'CD107a', 'IFNy', 'MIP1b'], axis = 1)
+
+    #perform regression
+    Y = df_func[function]
+    X = df_variables
+    Y_pred = np.empty(Y.shape)
+
+    Y_pred = cross_val_predict(ElasticNetCV(normalize=True), X, Y, cv=len(Y))
+
+    model = ElasticNetCV(normalize=True).fit(X, Y)
+
+    print(model.coef_)
+    print(np.sqrt(r2_score(Y, Y_pred)))
+    
+    return np.sqrt(r2_score(Y, Y_pred))
