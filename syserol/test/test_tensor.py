@@ -20,7 +20,7 @@ class TestModel(unittest.TestCase):
 
         arr = []
         for i in range(1, 4):
-            factors = perform_decomposition(self.cube, i, iter_max=100)
+            factors = perform_decomposition(self.cube, i)
             arr.append(find_R2X(self.cube, factors))
 
         for j in range(len(arr) - 1):
