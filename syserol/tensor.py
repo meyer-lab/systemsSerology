@@ -22,7 +22,7 @@ def perform_decomposition(tensorIn, r, weightFactor=2, iter_max=1000, **kwargs):
     assert np.all(np.isfinite(weights))
 
     factors[weightFactor] *= weights[np.newaxis, :]  # Put weighting in designated factor
-    
+
     print("R2X: " + str(find_R2X(tensorIn, factors)))
 
     return factors

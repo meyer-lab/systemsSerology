@@ -36,9 +36,9 @@ def importGlycan():
     df = load_file("data-glycan-gp120")
     dfAxis = load_file("meta-glycans")
     df = pd.melt(df, id_vars=["subject"])
-    
+
     glycan = dfAxis["glycan"].to_list()
-    
+
     return glycan, df
 
 
@@ -69,9 +69,9 @@ def importFunction():
     """ Import functional data. """
     subjects, _, _ = getAxes()
     df = load_file("data-function")
-    df_a = pd.DataFrame({'subject' : subjects})
+    df_a = pd.DataFrame({"subject": subjects})
 
-    df = df_a.merge(df, on='subject', how='left')
+    df = df_a.merge(df, on="subject", how="left")
 
     return df
 
@@ -91,7 +91,7 @@ def createCube():
         for i, curSubj in enumerate(subjects):
             subjLumx = lumx[lumx["subject"] == curSubj]
             subjGly = dfGlycan[dfGlycan["subject"] == curSubj]
-            
+
             for _, row in subjGly.iterrows():
                 j = glycan.index(row["variable"])
                 glyCube[i, j] = row["value"]

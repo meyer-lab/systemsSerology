@@ -5,7 +5,7 @@ from .dataImport import createCube
 from .tensor import impute
 
 
-def evalMissing(cube, nComp = 1, numSample = 100):
+def evalMissing(cube, nComp=1, numSample=100):
     """ Evaluate how well factorization imputes missing values. """
     cube = np.copy(cube)
     orig = []
@@ -22,7 +22,7 @@ def evalMissing(cube, nComp = 1, numSample = 100):
         cube[i, j, k] = np.nan
 
     tensorR = impute(cube, nComp)
-    
+
     for ii in range(len(indices)):
         recon.append(tensorR[indices[ii][0], indices[ii][1], indices[ii][2]])
 
@@ -31,12 +31,12 @@ def evalMissing(cube, nComp = 1, numSample = 100):
 
 def evaluate_missing():
     Cube, GlyCube = createCube()
-    
-    #check differences between original and recon values for different number of components
+
+    # check differences between original and recon values for different number of components
     Averages = list()
     Sums = list()
-    for comp in np.arange(1,10):
-        orig, recon = evalMissing(Cube, nComp = comp, numSample = 100)
+    for comp in np.arange(1, 10):
+        orig, recon = evalMissing(Cube, nComp=comp, numSample=100)
 
         Diff = np.absolute(orig - recon)
         Avg = np.mean(Diff)
