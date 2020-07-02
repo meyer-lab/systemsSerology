@@ -14,12 +14,8 @@ def makeFigure():
     ax, f = getSetup((10, 10), (1, 1))
 
     cube, _ = createCube()
-    comps = np.array([1, 2, 4, 6, 8, 10, 12, 14])
-
-    arr = []
-    for i in comps:
-        factors = perform_decomposition(cube, i)
-        arr.append(find_R2X(cube, factors))
+    comps = np.array([1, 2, 4, 6, 8, 10, 12, 14, 16, 18])
+    arr = [find_R2X(cube, perform_decomposition(cube, i)) for i in comps]
 
     ax[0].plot(comps, arr)
     ax[0].set_ylabel("R2X")

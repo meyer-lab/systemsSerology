@@ -11,7 +11,7 @@ def R2X(reconstructed, original):
     return 1.0 - np.nanvar(reconstructed - original) / np.nanvar(original)
 
 
-def perform_decomposition(tensorIn, r, weightFactor=2, iter_max=300, **kwargs):
+def perform_decomposition(tensorIn, r, weightFactor=2, iter_max=200, **kwargs):
     """ Perform PARAFAC decomposition. """
     tensor = np.copy(tensorIn)
     mask = np.isfinite(tensor).astype(int)
