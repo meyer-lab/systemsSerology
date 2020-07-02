@@ -13,7 +13,7 @@ def evalMissing(cube, nComp=1, numSample=100):
     indices = list()
     idxs = np.argwhere(np.isfinite(cube))
 
-    for ii in range(numSample):
+    for _ in range(numSample):
         i, j, k = idxs[np.random.choice(idxs.shape[0], 1)][0]
 
         indices.append((i, j, k))
@@ -27,9 +27,9 @@ def evalMissing(cube, nComp=1, numSample=100):
 
 
 def evaluate_missing():
+    """ check differences between original and recon values for different number of components. """
     Cube, _ = createCube()
 
-    # check differences between original and recon values for different number of components
     Averages = list()
     Sums = list()
     for comp in np.arange(1, 10):
