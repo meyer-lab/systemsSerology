@@ -1,11 +1,10 @@
 """ Regression methods. """
 import numpy as np
-import scipy as sp
 from sklearn.linear_model import ElasticNetCV
 from sklearn.model_selection import cross_val_predict
 from sklearn.metrics import r2_score
 from .dataImport import createCube, importFunction
-from .tensor import perform_decomposition, find_R2X
+from .tensor import perform_decomposition
 
 
 def patientComponents(nComp = 1):

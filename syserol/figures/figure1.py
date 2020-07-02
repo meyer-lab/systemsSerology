@@ -13,7 +13,7 @@ def makeFigure():
     # Get list of axis objects
     ax, f = getSetup((10, 10), (1, 1))
 
-    cube = createCube()
+    cube, _ = createCube()
     comps = np.arange(1, 8)
 
     arr = []
