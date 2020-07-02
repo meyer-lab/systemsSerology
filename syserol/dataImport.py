@@ -111,6 +111,8 @@ def createCube():
     # We probably want to do some sort of normalization, but I'm not sure what yet
     cube = cube - np.nanmean(cube, axis=(0, 2))[np.newaxis, :, np.newaxis]
     cube = cube / np.nanstd(cube, axis=(0, 2))[np.newaxis, :, np.newaxis]
+    glyCube = glyCube - np.nanmean(glyCube, axis=0)[np.newaxis, :]
+    glyCube = glyCube / np.nanstd(glyCube, axis=0)[np.newaxis, :]
 
     print("Missingness fraction: " + str(np.mean(np.isnan(cube))))
 
