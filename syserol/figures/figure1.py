@@ -14,7 +14,7 @@ def makeFigure():
     ax, f = getSetup((10, 10), (1, 1))
 
     cube, _ = createCube()
-    comps = np.arange(1, 8)
+    comps = np.arange(1, 12)
 
     arr = []
     for i in comps:
