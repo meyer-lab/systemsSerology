@@ -44,9 +44,6 @@ def function_elastic_net(function='ADCC'):
                                                 how='inner'), data_frames)
     df_merged = df_merged.dropna()
 
-    #Z score
-    df_merged = df_merged.apply(zscore) ##Do we want to Zscore while function values are still in the dataframe?
-
     #separate dataframes
     df_func = df_merged[["ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"]]
     df_variables = df_merged.drop(['subject','ADCD', 'ADCC', 'ADNP', 'CD107a', 'IFNy', 'MIP1b'], axis = 1)
