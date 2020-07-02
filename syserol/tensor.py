@@ -48,9 +48,9 @@ def perform_CMTF(tensorIn, matrixIn, r):
     tensorErr = np.nanvar(tl.kruskal_to_tensor(tensorFac) - tensorIn)
     matrixErr = np.nanvar(tl.kruskal_to_tensor(matrixFac) - matrixIn)
 
-    R2X = 1.0 - (tensorErr + matrixErr) / (np.nanvar(tensorIn) + np.nanvar(matrixIn))
+    R2XX = 1.0 - (tensorErr + matrixErr) / (np.nanvar(tensorIn) + np.nanvar(matrixIn))
 
-    print("CMTF R2X: " + str(R2X))
+    print("CMTF R2X: " + str(R2XX))
 
     return tensorFac, matrixFac
 
