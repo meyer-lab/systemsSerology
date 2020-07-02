@@ -6,8 +6,8 @@ venv/bin/activate: requirements.txt
 	. venv/bin/activate && pip install --prefer-binary -Uqr requirements.txt
 	touch venv/bin/activate
 
-figure%.svg: venv genFigures.py syserol/figures/figure%.py
-	. venv/bin/activate && ./genFigures.py $*
+figure%.svg: venv genFigure.py syserol/figures/figure%.py
+	. venv/bin/activate && ./genFigure.py $*
 
 test: venv
 	. venv/bin/activate && pytest
