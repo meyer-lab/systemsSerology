@@ -1,0 +1,27 @@
+pipeline {
+  agent { label 'docker' }
+  options {
+    timeout(time: 1, unit: 'HOURS')
+  }
+  stages {
+    stage('Clean/Setup') {
+      steps {
+        sh 'git submodule update --init --recursive && make clean'
+        sh 'make venv'
+      }
+    }
+    stage('Test/Build/Lint') {
+      steps {
+        sh 'make all -j 3'
+        archiveArtifacts artifacts: 'output/*.svg', onlyIfSuccessful: true
+        recordIssues qualityGates: [[threshold: 50, type: 'TOTAL', unstable: true]], tools: [pyLint(pattern: 'pylint.log')]
+        publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'output', reportFiles: 'manuscript.html', reportName: 'Manuscript'])
+      }
+    }
+  }
+  post {
+    always {
+      cleanWs cleanWhenFailure: false, cleanWhenNotBuilt: false, cleanWhenUnstable: false
+    }
+  }
+}
