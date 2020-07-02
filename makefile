@@ -7,7 +7,7 @@ venv/bin/activate: requirements.txt
 	touch venv/bin/activate
 
 figure%.svg: venv genFigure.py syserol/figures/figure%.py
-	. venv/bin/activate && ./genFigure.py $*
+	. venv/bin/activate && python3 genFigure.py $*
 
 test: venv
 	. venv/bin/activate && pytest
