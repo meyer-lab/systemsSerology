@@ -1,9 +1,13 @@
+all: pylint.log figure1.svg figure2.svg figure3.svg figure4.svg
 venv: venv/bin/activate
 
 venv/bin/activate: requirements.txt
 	test -d venv || virtualenv venv
 	. venv/bin/activate && pip install --prefer-binary -Uqr requirements.txt
 	touch venv/bin/activate
+
+figure%.svg: venv genFigure.py syserol/figures/figure%.py
+	. venv/bin/activate && ./genFigure.py $*
 
 test: venv
 	. venv/bin/activate && pytest

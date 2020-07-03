@@ -20,7 +20,7 @@ class TestModel(unittest.TestCase):
 
         arr = []
         for i in range(1, 4):
-            factors = perform_decomposition(self.cube, i, iter_max=100)
+            factors = perform_decomposition(self.cube, i)
             arr.append(find_R2X(self.cube, factors))
 
         for j in range(len(arr) - 1):
@@ -32,7 +32,7 @@ class TestModel(unittest.TestCase):
 
     def test_CMTF(self):
         """ Test combined matrix-tensor factorization. """
-        facT, facM = perform_CMTF(self.cube, self.glyCube, 4)
+        facT, facM, _ = perform_CMTF(self.cube, self.glyCube, 4)
 
         self.assertTrue(np.all(np.isfinite(facT[0])))
         self.assertTrue(np.allclose(facT[1][0], facM[1][0]))
