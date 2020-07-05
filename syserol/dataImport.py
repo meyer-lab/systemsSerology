@@ -1,4 +1,5 @@
 """ Data import and processing. """
+from functools import lru_cache
 from os.path import join, dirname
 import numpy as np
 import pandas as pd
@@ -76,6 +77,7 @@ def importFunction():
     return df
 
 
+@lru_cache()
 def createCube():
     """ Import the data and assemble the antigen cube. """
     subjects, detections, antigen = getAxes()
