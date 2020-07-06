@@ -5,7 +5,7 @@ This creates Figure 2.
 from .common import subplotLabel, getSetup
 
 def makeFigure(function):
-     """Make Alter Model Prediction Figure for given Function"""
+    """Make Alter Model Prediction Figure for given Function"""
     # Get list of axis objects
     ax, f = getSetup((10, 10), (1, 1))
     
