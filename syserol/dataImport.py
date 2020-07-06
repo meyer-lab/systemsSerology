@@ -1,4 +1,5 @@
 """ Data import and processing. """
+from functools import lru_cache
 from os.path import join, dirname
 import numpy as np
 import pandas as pd
@@ -36,9 +37,9 @@ def importGlycan():
     df = load_file("data-glycan-gp120")
     dfAxis = load_file("meta-glycans")
     df = pd.melt(df, id_vars=["subject"])
-    
+
     glycan = dfAxis["glycan"].to_list()
-    
+
     return glycan, df
 
 
@@ -69,13 +70,14 @@ def importFunction():
     """ Import functional data. """
     subjects, _, _ = getAxes()
     df = load_file("data-function")
-    df_a = pd.DataFrame({'subject' : subjects})
+    df_a = pd.DataFrame({"subject": subjects})
 
-    df = df_a.merge(df, on='subject', how='left')
+    df = df_a.merge(df, on="subject", how="left")
 
     return df
 
 
+@lru_cache()
 def createCube():
     """ Import the data and assemble the antigen cube. """
     subjects, detections, antigen = getAxes()
@@ -91,7 +93,7 @@ def createCube():
         for i, curSubj in enumerate(subjects):
             subjLumx = lumx[lumx["subject"] == curSubj]
             subjGly = dfGlycan[dfGlycan["subject"] == curSubj]
-            
+
             for _, row in subjGly.iterrows():
                 j = glycan.index(row["variable"])
                 glyCube[i, j] = row["value"]
