@@ -1,9 +1,11 @@
 """ Regression methods. """
 import numpy as np
+import pandas as pd
 from sklearn.linear_model import ElasticNetCV
 from sklearn.model_selection import cross_val_predict
 from sklearn.metrics import r2_score
-from .dataImport import createCube, importFunction
+from functools import reduce 
+from .dataImport import createCube, importFunction, importLuminex, importGlycan, importIGG
 from .tensor import perform_decomposition
 
 
@@ -52,11 +54,11 @@ def function_elastic_net(function='ADCC'):
     X = df_variables
     Y_pred = np.empty(Y.shape)
 
-    Y_pred = cross_val_predict(ElasticNetCV(normalize=True), X, Y, cv=len(Y))
+    Y_pred = cross_val_predict(ElasticNetCV(normalize=True, max_iter=10000), X, Y, cv=len(Y))
 
     model = ElasticNetCV(normalize=True).fit(X, Y)
 
     print(model.coef_)
     print(np.sqrt(r2_score(Y, Y_pred)))
     
-    return np.sqrt(r2_score(Y, Y_pred))
+    return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))
