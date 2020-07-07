@@ -80,7 +80,7 @@ def two_way_classifications():
     #Subset, Z score
     df_class = df_merged[["class.cp", "class.nv"]]
     df_variables = df_merged.drop(['subject','class.etuv', 'class.cp', 'class.nv'], axis = 1)
-    df_variables = df_variables.apply(zscore) #Logistic Regression doesn't have normalization
+    df_variables = df_variables.apply(zscore) #Logistic Regression doesn't have normalization?
 
     """Predict Controller vs. Progressor"""
     Y1 = df_class['class.cp']
@@ -92,9 +92,10 @@ def two_way_classifications():
     model1 = LogisticRegressionCV().fit(X1, Y1)
 
     print(model1.coef_)
-    accuracyCvP = np.sum(Y_pred1 == Y1)/len(Y1)
-    print(f"Accuracy score Controller vs. Progressor: {accuracyCvP} \n")
+    accuracyCvP = confusion_matrix(Y1, Y_pred1)
+    print(f"Confusion Matrix Controller vs. Progressor: {accuracyCvP} \n")
 
+    
     """Predict Viremic vs. Nonviremic"""
     Y2 = df_class['class.nv']
     Y2 = (Y2 == 'viremic').astype(int) #viremic = 1, nonviremic = 0
@@ -105,8 +106,8 @@ def two_way_classifications():
     model2 = LogisticRegressionCV().fit(X2, Y2)
 
     print(model2.coef_)
-    accuracyVvN = np.sum(Y_pred2 == Y2)/len(Y2)
-    print(f"Accuracy score Viremic vs. Nonviremic: {accuracyVvN} \n")
+    accuracyVvN = confusion_matrix(Y2, Y_pred2)
+    print(f"Confusion Matrix Viremic vs. Nonviremic: {accuracyVvN} \n")
     
     return accuracyCvP, accuracyVvN
 
