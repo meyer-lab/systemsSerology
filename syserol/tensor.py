@@ -17,7 +17,7 @@ def perform_decomposition(tensorIn, r, weightFactor=2, **kwargs):
     mask = np.isfinite(tensor).astype(int)
     tensor[mask == 0] = 0.0
 
-    weights, factors = parafac(tensor, r, mask=mask, orthogonalise=True, normalize_factors=False, svd_mask_repeats=100, **kwargs)
+    weights, factors = parafac(tensor, r, mask=mask, orthogonalise=True, normalize_factors=False, **kwargs)
     assert np.all(np.isfinite(factors[0]))
     assert np.all(np.isfinite(weights))
 
