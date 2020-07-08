@@ -3,6 +3,7 @@ This creates Figure 2.
 """
 
 from .common import subplotLabel, getSetup
+from syserol.regression import function_elastic_net
 
 def makeFigure():
     """Make Alter Model Prediction Figure for given Function"""
