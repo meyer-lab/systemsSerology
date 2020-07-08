@@ -54,9 +54,9 @@ def function_elastic_net(function='ADCC'):
     X = df_variables
     Y_pred = np.empty(Y.shape)
 
-    Y_pred = cross_val_predict(ElasticNetCV(normalize=True, max_iter=10000), X, Y, cv=len(Y))
-
-    model = ElasticNetCV(normalize=True).fit(X, Y)
+    regr = ElasticNetCV(normalize=True, max_iter = 10000)
+    model = regr.fit(X, Y)
+    Y_pred = cross_val_predict(ElasticNet(alpha = regr.alpha_, normalize = True, max_iter = 10000), X, Y, cv = 10)
 
     print(model.coef_)
     print(np.sqrt(r2_score(Y, Y_pred)))
