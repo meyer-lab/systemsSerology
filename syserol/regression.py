@@ -1,7 +1,7 @@
 """ Regression methods. """
 import numpy as np
 import pandas as pd
-from sklearn.linear_model import ElasticNetCV
+from sklearn.linear_model import ElasticNetCV, ElasticNet
 from sklearn.model_selection import cross_val_predict
 from sklearn.metrics import r2_score
 from functools import reduce 
