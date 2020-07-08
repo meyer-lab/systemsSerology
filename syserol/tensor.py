@@ -17,7 +17,7 @@ def perform_decomposition(tensorIn, r, weightFactor=2, **kwargs):
     mask = np.isfinite(tensor).astype(int)
     tensor[mask == 0] = 0.0
 
-    weights, factors = parafac(tensor, r, mask=mask, orthogonalise=True, normalize_factors=False, svd_mask_repeats=100, **kwargs)
+    weights, factors = parafac(tensor, r, mask=mask, orthogonalise=True, normalize_factors=False, **kwargs)
     assert np.all(np.isfinite(factors[0]))
     assert np.all(np.isfinite(weights))
 
@@ -40,7 +40,7 @@ def perform_CMTF(tensorIn, matrixIn, r):
     mask_matrix = np.isfinite(matrix).astype(int)
     matrix[mask_matrix == 0] = 0.0
 
-    CPfac = perform_decomposition(tensorIn, r, n_iter_max=200)
+    CPfac = perform_decomposition(tensorIn, r, n_iter_max=500)
     init = (np.ones(CPfac[0].shape[1]), CPfac)
 
     tensorFac, matrixFac = coupled_matrix_tensor_3d_factorization(tensor, matrix, r, mask_3d=mask, mask_matrix=mask_matrix, init=init)
