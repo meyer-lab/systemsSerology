@@ -11,7 +11,7 @@ def makeFigure():
     # Get list of axis objects
     ax, f = getSetup((10, 10), (1, 1))
     
-    Averages, Sums, Sumsqs = evaluate_missing()
+    Sumsqs = evaluate_missing()
     
     x = np.arange(1,10)
     ax[0].plot(x, Sumsqs)
