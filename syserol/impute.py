@@ -29,19 +29,10 @@ def evaluate_missing():
     """ check differences between original and recon values for different number of components. """
     Cube, _ = createCube()
 
-    Averages = list()
-    Sums = list()
     Sumsqs = list()
     for comp in np.arange(1, 10):
         orig, recon = evalMissing(Cube, nComp=comp, numSample=100)
 
-        Diff = np.absolute(orig - recon)
-        Avg = np.mean(Diff)
-        Sum = np.sum(Diff)
-        Sumsq = np.sum(Diff*Diff)
-        print(f"The average difference for {comp} components is: {Avg} and the Sum is: {Sum}")
-        Averages.append(Avg)
-        Sums.append(Sum)
-        Sumsqs.append(Sumsq)
+        Sumsqs.append(np.sum(np.square(orig - recon)))
 
-    return Averages, Sums, Sumsqs
+    return Sumsqs
