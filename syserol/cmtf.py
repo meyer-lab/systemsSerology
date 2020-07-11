@@ -14,7 +14,7 @@ from tensorly.decomposition.candecomp_parafac import initialize_kruskal
 
 def solve_least_squares(A, B):
      # solve ||B-AX||^2 (AX = B -> X = A^+ @ B), with A^+: pseudo inverse
-     return np.transpose(np.linalg.lstsq(A, B, rcond=None)[0])
+     return np.transpose(np.linalg.lstsq(A, B, rcond = -1)[0])
 
 
 def coupled_matrix_tensor_3d_factorization(tensor_3d, matrix, rank, mask_3d=None, mask_matrix=None, init='svd', verbose=False, svd_mask_repeats=10):
@@ -99,6 +99,7 @@ def coupled_matrix_tensor_3d_factorization(tensor_3d, matrix, rank, mask_3d=None
     gamma = tl.ones(rank)
 
     error_old = np.linalg.norm(X - tl.kruskal_tensor.kruskal_to_tensor((lambda_, [A, B, C]))) + np.linalg.norm(Y - tl.kruskal_tensor.kruskal_to_tensor((gamma, [A, V])))
+    error_old /= np.linalg.norm(X) + np.linalg.norm(Y)
 
     # alternating least squares
     # note that the order of the khatri rao product is reversed since tl.unfold has another order
@@ -112,29 +113,45 @@ def coupled_matrix_tensor_3d_factorization(tensor_3d, matrix, rank, mask_3d=None
         A /= norm_A
         lambda_ *= norm_A
         gamma *= norm_A
+
+        # A affects both
+        if mask_3d is not None:
+                X = X*mask_3d + tl.kruskal_tensor.kruskal_to_tensor((lambda_, [A, B, C]), mask=1-mask_3d)
+        if mask_matrix is not None:
+                Y = Y*mask_matrix + tl.kruskal_tensor.kruskal_to_tensor((gamma, [A, V]), mask=1-mask_matrix)
+
         B = solve_least_squares(np.dot(khatri_rao([A, C]), np.diag(lambda_)), np.transpose(tl.unfold(X, 1)))
         norm_B = np.linalg.norm(B)
         B /= norm_B
         lambda_ *= norm_B
+
+        # B affects just 3D
+        if mask_3d is not None:
+                X = X*mask_3d + tl.kruskal_tensor.kruskal_to_tensor((lambda_, [A, B, C]), mask=1-mask_3d)
+
         C = solve_least_squares(np.dot(khatri_rao([A, B]), np.diag(lambda_)), np.transpose(tl.unfold(X, 2)))
         norm_C = np.linalg.norm(C)
         C /= norm_C
         lambda_ *= norm_C
+
+        # C affects just 3D
+        if mask_3d is not None:
+                X = X*mask_3d + tl.kruskal_tensor.kruskal_to_tensor((lambda_, [A, B, C]), mask=1-mask_3d)
+
         V = solve_least_squares(np.dot(A, np.diag(gamma)), Y)
         norm_V = np.linalg.norm(V)
         V /= norm_V
         gamma *= norm_V
 
-        if mask_3d is not None:
-                X = X*mask_3d + tl.kruskal_tensor.kruskal_to_tensor((lambda_, [A, B, C]), mask=1-mask_3d)
-
+        # V affects just 2D
         if mask_matrix is not None:
                 Y = Y*mask_matrix + tl.kruskal_tensor.kruskal_to_tensor((gamma, [A, V]), mask=1-mask_matrix)
 
         error_new = np.linalg.norm(X - tl.kruskal_tensor.kruskal_to_tensor((lambda_, [A, B, C]))) + np.linalg.norm(Y - tl.kruskal_tensor.kruskal_to_tensor((gamma, [A, V])))
-        decr = (error_old - error_new) / error_old
+        error_new /= np.linalg.norm(X) + np.linalg.norm(Y)
+        decr = (error_old - error_new)
 
-        if verbose:
+        if verbose and iteration % 10 == 0:
             print("iteration {}, reconstruction error: {}, decrease = {}".format(iteration, error_new, decr))
 
         if iteration > 0 and (tl.abs(decr) <= 1e-8 or error_new < 1e-5):
