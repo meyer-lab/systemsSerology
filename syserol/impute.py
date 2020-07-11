@@ -23,7 +23,7 @@ def evalMissing(cube, glyCube, nComp, numSample=100):
         cube[i, j, k] = np.nan
 
     factors, _, _ = perform_CMTF(cube, glyCube, nComp)
-    tensorR = tl.kruskal_to_tensor((np.ones(factors[0].shape[1]), factors))
+    tensorR = tl.kruskal_to_tensor(factors)
 
     recon = [tensorR[indx[0], indx[1], indx[2]] for indx in indices]
 
