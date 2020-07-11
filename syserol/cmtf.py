@@ -53,33 +53,13 @@ def coupled_matrix_tensor_3d_factorization(tensor_3d, matrix, rank, mask_3d=None
     -------
     tensor_3d_pred, matrix_pred : Kruskal tensors
         tensor_3d_pred = [[lambda; A,B,C]], matrix_pred = [[gamma; A,V]]
-
-    Examples
-    --------
-    A = tl.tensor([[1, 2], [3, 4]])
-    B = tl.tensor([[1, 0], [0, 2]])
-    C = tl.tensor([[2, 0], [0, 1]])
-    V = tl.tensor([[2, 0], [0, 1]])
-    R = 2
-
-    X = (None, [A, B, C])
-    Y = (None, [A, V])
-
-    tensor_3d_pred, matrix_pred = cmtf_als_for_third_order_tensor(X, Y, R)
-
     """
 
-    if tl.is_tensor(tensor_3d):
-        X = tensor_3d
-    else:
-        _, _ = tl.kruskal_tensor._validate_kruskal_tensor(tensor_3d)  # this will fail if it isn't a valid tuple or KruskalTensor
-        X = tl.kruskal_tensor.kruskal_to_tensor(tensor_3d)
+    assert tl.is_tensor(tensor_3d):
+    X = tensor_3d
 
-    if tl.is_tensor(matrix):
-        Y = matrix
-    else:
-        _, _ = tl.kruskal_tensor._validate_kruskal_tensor(matrix)  # this will fail if it isn't a valid tuple or KruskalTensor
-        Y = tl.kruskal_tensor.kruskal_to_tensor(matrix)
+    assert tl.is_tensor(matrix):
+    Y = matrix
 
     # initialize values
     _, (A, B, C) = initialize_kruskal(X.astype(float), rank, init=init)
