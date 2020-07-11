@@ -7,28 +7,6 @@ from tensorly.decomposition import parafac
 from .cmtf import coupled_matrix_tensor_3d_factorization
 
 
-def R2X(reconstructed, original):
-    """ Calculates R2X of two tensors. Missing values should be indicated as nan. """
-    return 1.0 - np.nanvar(reconstructed - original) / np.nanvar(original)
-
-
-def perform_decomposition(tensorIn, r, weightFactor=2):
-    """ Perform PARAFAC decomposition. """
-    tensor = np.copy(tensorIn)
-    mask = np.isfinite(tensor).astype(int)
-    tensor[mask == 0] = 0.0
-
-    weights, factors = parafac(tensor, r, mask=mask, orthogonalise=True, normalize_factors=False, n_iter_max=200, tol=1e-9, linesearch=True)
-    assert np.all(np.isfinite(factors[0]))
-    assert np.all(np.isfinite(weights))
-
-    factors[weightFactor] *= weights[np.newaxis, :]  # Put weighting in designated factor
-
-    print("R2X: " + str(find_R2X(tensorIn, factors)))
-
-    return factors
-
-
 def perform_CMTF(tensorIn, matrixIn, r):
     """ Perform CMTF decomposition. """
     tensor = np.copy(tensorIn)
@@ -40,8 +18,8 @@ def perform_CMTF(tensorIn, matrixIn, r):
     matrix[mask_matrix == 0] = 0.0
 
     # Initialize by running PARAFAC on the 3D tensor
-    kruskal = parafac(tensor, r, mask=mask, orthogonalise=True, normalize_factors=False, n_iter_max=200, tol=1e-9, linesearch=True)
-    tensor = tensor*mask + tl.kruskal_tensor.kruskal_to_tensor(kruskal, mask=1 - mask)
+    kruskal = parafac(tensor, r, mask=mask, orthogonalise=True, normalize_factors=False, linesearch=True)
+    tensor = tensor*mask + tl.kruskal_to_tensor(kruskal, mask=1 - mask)
     assert np.all(np.isfinite(tensor))
 
     # Now run CMTF
@@ -55,16 +33,3 @@ def perform_CMTF(tensorIn, matrixIn, r):
     print("CMTF R2X: " + str(R2XX))
 
     return tensorFac, matrixFac, R2XX
-
-
-def find_R2X(values, factors):
-    """Compute R2X from CP. Note that the inputs values and factors are in numpy."""
-    return R2X(tl.kruskal_to_tensor((np.ones(factors[0].shape[1]), factors)), values)
-
-
-def impute(tensor, r):
-    """ Decompose and then reconstruct tensor without missingness. """
-    factors = perform_decomposition(tensor, r)
-    recon = tl.kruskal_to_tensor((np.ones(factors[0].shape[1]), factors))
-
-    return recon

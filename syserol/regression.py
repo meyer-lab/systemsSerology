@@ -7,14 +7,14 @@ from sklearn.metrics import r2_score, confusion_matrix
 from functools import reduce
 from scipy.stats import zscore
 from .dataImport import createCube, importFunction, importLuminex, importGlycan, importIGG, load_file
-from .tensor import perform_decomposition
+from .tensor import perform_CMTF
 
 
 def patientComponents(nComp=1):
     """ Generate factorization on cross-validation. """
-    cube, _ = createCube()
+    cube, glyCube = createCube()
 
-    factors = perform_decomposition(cube, nComp)
+    factors = perform_CMTF(cube, glyCube, nComp)
 
     Y = importFunction()["ADCC"]
 
