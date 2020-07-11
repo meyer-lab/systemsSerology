@@ -25,5 +25,5 @@ class TestModel(unittest.TestCase):
             self.assertTrue(arr[j] < arr[j + 1])
 
         # confirm R2X is >= 0 and <=1
-        self.assertGreaterEqual(np.minimum(arr), 0)
-        self.assertLessEqual(np.maximum(arr), 1)
+        self.assertGreaterEqual(np.min(arr), 0)
+        self.assertLessEqual(np.max(arr), 1)
