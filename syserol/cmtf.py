@@ -55,10 +55,10 @@ def coupled_matrix_tensor_3d_factorization(tensor_3d, matrix, rank, mask_3d=None
         tensor_3d_pred = [[lambda; A,B,C]], matrix_pred = [[gamma; A,V]]
     """
 
-    assert tl.is_tensor(tensor_3d):
+    assert tl.is_tensor(tensor_3d)
     X = tensor_3d
 
-    assert tl.is_tensor(matrix):
+    assert tl.is_tensor(matrix)
     Y = matrix
 
     # initialize values
