@@ -39,7 +39,13 @@ def perform_CMTF(tensorIn, matrixIn, r):
     mask_matrix = np.isfinite(matrix).astype(int)
     matrix[mask_matrix == 0] = 0.0
 
-    tensorFac, matrixFac = coupled_matrix_tensor_3d_factorization(tensor, matrix, r, mask_3d=mask, mask_matrix=mask_matrix)
+    # Initialize by running PARAFAC on the 3D tensor
+    kruskal = parafac(tensor, r, mask=mask, orthogonalise=True, normalize_factors=False, n_iter_max=200, tol=1e-9, linesearch=True)
+    tensor = tensor*mask + tl.kruskal_tensor.kruskal_to_tensor(kruskal, mask=1 - mask)
+    assert np.all(np.isfinite(tensor))
+
+    # Now run CMTF
+    tensorFac, matrixFac = coupled_matrix_tensor_3d_factorization(tensor, matrix, r, mask_3d=mask, mask_matrix=mask_matrix, init=kruskal)
 
     tensorErr = np.nanvar(tl.kruskal_to_tensor(tensorFac) - tensorIn)
     matrixErr = np.nanvar(tl.kruskal_to_tensor(matrixFac) - matrixIn)

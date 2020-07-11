@@ -16,7 +16,7 @@ def solve_least_squares(A, B):
     return np.transpose(np.linalg.lstsq(A, B, rcond=-1)[0])
 
 
-def coupled_matrix_tensor_3d_factorization(tensor_3d, matrix, rank, mask_3d=None, mask_matrix=None, init="svd", verbose=False, svd_mask_repeats=10):
+def coupled_matrix_tensor_3d_factorization(tensor_3d, matrix, rank, mask_3d=None, mask_matrix=None, init="svd", verbose=False):
     """
     Calculates a coupled matrix and tensor factorization of 3rd order tensor and matrix which are
     coupled in first mode.
@@ -84,15 +84,15 @@ def coupled_matrix_tensor_3d_factorization(tensor_3d, matrix, rank, mask_3d=None
     # initialize values
     _, (A, B, C) = initialize_kruskal(X.astype(float), rank, init=init)
 
-    if mask_3d is not None and init == "svd":
-        for _ in range(svd_mask_repeats):
-            tensor_3d = tensor_3d * mask_3d + tl.kruskal_to_tensor((None, [A, B, C]), mask=1 - mask_3d)
-
-            _, (A, B, C) = initialize_kruskal(tensor_3d, rank, init=init)
-
     V = solve_least_squares(A, Y)
     lambda_ = tl.ones(rank)
     gamma = tl.ones(rank)
+
+    # Mask both based on starting point
+    if mask_3d is not None:
+        X = X * mask_3d + tl.kruskal_tensor.kruskal_to_tensor((lambda_, [A, B, C]), mask=1 - mask_3d)
+    if mask_matrix is not None:
+        Y = Y * mask_matrix + tl.kruskal_tensor.kruskal_to_tensor((gamma, [A, V]), mask=1 - mask_matrix)
 
     error_old = np.linalg.norm(X - tl.kruskal_tensor.kruskal_to_tensor((lambda_, [A, B, C]))) + np.linalg.norm(Y - tl.kruskal_tensor.kruskal_to_tensor((gamma, [A, V])))
     error_old /= np.linalg.norm(X) + np.linalg.norm(Y)
