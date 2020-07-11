@@ -13,7 +13,7 @@ def makeFigure():
     
     Sumsqs = evaluate_missing()
     
-    x = np.arange(1,10)
+    x = np.arange(1, 8)
     ax[0].plot(x, Sumsqs)
     ax[0].set_ylabel("Normalized Reconstruction Error")
     ax[0].set_xlabel("# Components")

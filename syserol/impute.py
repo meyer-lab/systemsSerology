@@ -35,7 +35,7 @@ def evaluate_missing():
     Cube, glyCube = createCube()
 
     Sumsqs = list()
-    for comp in np.arange(1, 10):
+    for comp in np.arange(1, 8):
         orig, recon = evalMissing(Cube, glyCube, nComp=comp, numSample=100)
 
         Sumsqs.append(np.linalg.norm(orig - recon) / np.linalg.norm(orig))
