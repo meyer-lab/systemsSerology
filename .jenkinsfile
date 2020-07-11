@@ -6,6 +6,7 @@ pipeline {
   stages {
     stage('Clean/Setup') {
       steps {
+        sh 'git reset --hard && git clean -ffdx'
         sh 'git submodule update --init --recursive && make clean'
         sh 'make venv'
       }
