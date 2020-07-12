@@ -130,7 +130,7 @@ def coupled_matrix_tensor_3d_factorization(tensor_3d, matrix, rank, mask_3d=None
         if verbose and iteration % 10 == 0:
             print("iteration {}, reconstruction error: {}, decrease = {}".format(iteration, error_new, decr))
 
-        if iteration > 0 and (tl.abs(decr) <= 1e-8 or error_new < 1e-5):
+        if iteration > 0 and (tl.abs(decr) <= 1e-9 or error_new < 1e-5):
             break
 
         error_old = error_new
