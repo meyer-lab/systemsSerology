@@ -45,7 +45,11 @@ def perform_CMTF(tensorIn, matrixIn, r):
     cache = load_cache(r)
     if cache is not None:
         tensorFac, matrixFac, R2Xcache = cache
-        R2XX = calcR2X(tensorIn, matrixIn, tensorFac, matrixFac)
+
+        try:
+            R2XX = calcR2X(tensorIn, matrixIn, tensorFac, matrixFac)
+        except:
+            R2XX = -1
         
         if np.isclose(R2XX, R2Xcache):
             print("Cache hit.")
