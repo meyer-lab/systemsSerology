@@ -14,7 +14,7 @@ def makeFigure():
     ax, f = getSetup((10, 10), (1, 1))
 
     cube, glyCube = createCube()
-    comps = np.arange(1, 12)
+    comps = np.arange(1, 13)
     arr = [perform_CMTF(cube, glyCube, i)[2] for i in comps]
 
     ax[0].plot(comps, arr)
