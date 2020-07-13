@@ -65,7 +65,7 @@ def coupled_matrix_tensor_3d_factorization(tensor_3d, matrix, rank, mask_3d=None
     _, (A, B, C) = initialize_kruskal(X.astype(float), rank, init=init)
 
     V = solve_least_squares(A, Y)
-    gamma = np.linalg.norm(V)
+    gamma = np.linalg.norm(V, axis=0)
     V /= gamma
     lambda_ = tl.ones(rank)
 
@@ -91,17 +91,17 @@ def coupled_matrix_tensor_3d_factorization(tensor_3d, matrix, rank, mask_3d=None
         gamma *= norm_A
 
         B = solve_least_squares(np.dot(khatri_rao([A, C]), np.diag(lambda_)), np.transpose(tl.unfold(X, 1)))
-        norm_B = np.linalg.norm(B)
+        norm_B = np.linalg.norm(B, axis=0)
         B /= norm_B
         lambda_ *= norm_B
 
         C = solve_least_squares(np.dot(khatri_rao([A, B]), np.diag(lambda_)), np.transpose(tl.unfold(X, 2)))
-        norm_C = np.linalg.norm(C)
+        norm_C = np.linalg.norm(C, axis=0)
         C /= norm_C
         lambda_ *= norm_C
 
         V = solve_least_squares(np.dot(A, np.diag(gamma)), Y)
-        norm_V = np.linalg.norm(V)
+        norm_V = np.linalg.norm(V, axis=0)
         V /= norm_V
         gamma *= norm_V
 
