@@ -85,7 +85,9 @@ def createCube():
 
     IGG = importIGG()
     glycan, dfGlycan = importGlycan()
-    glyCube = np.full([len(subjects), len(glycan)], np.nan)
+    func = importFunction()
+    classes = load_file("meta-subjects")
+    glyCube = np.full([len(subjects), len(glycan)+8], np.nan)
 
     for k, curAnti in enumerate(antigen):
         lumx = importLuminex(curAnti)
@@ -93,10 +95,25 @@ def createCube():
         for i, curSubj in enumerate(subjects):
             subjLumx = lumx[lumx["subject"] == curSubj]
             subjGly = dfGlycan[dfGlycan["subject"] == curSubj]
+            subjFunc = func[func["subject"] == curSubj]
+            subjClass = classes[classes["subject"] == curSubj]
 
             for _, row in subjGly.iterrows():
                 j = glycan.index(row["variable"])
                 glyCube[i, j] = row["value"]
+            
+            subjFunc = subjFunc.drop(["subject"], axis = 1)
+            subjClass = subjClass.drop(["subject", "class.etuv"], axis = 1)
+            viremic = subjClass["class.nv"]
+            viremic = (viremic == "viremic").astype(int)
+            controller = subjClass["class.cp"]
+            controller = (controller == "controller").astype(int)
+            
+            j = len(glycan)
+            for pos, function in enumerate(subjFunc):
+                glyCube[i, j+pos] = subjFunc[function]
+            glyCube[i, j + len(subjFunc.columns)] = controller
+            glyCube[i, j + len(subjFunc.columns) + 1] = viremic
 
             for _, row in subjLumx.iterrows():
                 j = detections.index(row["variable"])
