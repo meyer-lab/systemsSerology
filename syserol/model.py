@@ -1,12 +1,13 @@
 """ Regression methods using Factorized Data. """
 import pandas as pd
 import numpy as np
-from syserol.tensor import impute, perform_decomposition
-from syserol.dataImport import createCube, importFunction, load_file
+from syserol.tensor import perform_CMTF
+from syserol.dataImport import createCube, importFunction, load_file, importGlycan
 from sklearn.linear_model import ElasticNetCV, ElasticNet, LogisticRegressionCV
 from sklearn.model_selection import cross_val_predict
 from sklearn.metrics import r2_score, confusion_matrix
 from scipy.stats import zscore
+from tensorly.kruskal_tensor import kruskal_to_tensor
 
 
 def function_predictions(function = 'ADCD'):
@@ -73,3 +74,26 @@ def subject_predictions():
     print(f"Confusion Matrix Viremic vs. Nonviremic: {accuracyVvN} \n")
 
     return accuracyCvP, accuracyVvN
+
+
+def test_predictions(function = 'ADCD'):
+    cube, glyCube = createCube()
+    df, mapped = importFunction()
+    glycan, dfGlycan = importGlycan()
+    corr = list()
+    
+    for comp in np.arange(1, 16):
+        tensorFac, matrixFac, R2XX = perform_CMTF(cube, glyCube, comp)
+        reconMatrix = kruskal_to_tensor(matrixFac)
+        x = mapped[function]
+        j = len(glycan) + x
+        orig = list()
+        recon = list()
+        for i in range(len(glyCube)):
+            if (np.isfinite(glyCube[i,j])):
+                orig.append(glyCube[i,j])
+                recon.append(reconMatrix[i,j])
+        corr.append(np.sqrt(r2_score(orig, recon)))
+        print(f"Correlation for component {comp}: {np.sqrt(r2_score(orig, recon))}")
+    
+    return corr

@@ -75,7 +75,11 @@ def importFunction():
 
     df = df_a.merge(df, on="subject", how="left")
 
-    return df
+    functions = ['ADCD', 'ADCC', 'ADNP', 'CD107a', 'IFNy', 'MIP1b']
+    idnum = [0, 1, 2, 3, 4, 5]
+    mapped = dict(zip(functions, idnum))
+    
+    return df, mapped
 
 
 @lru_cache()
@@ -87,7 +91,7 @@ def createCube():
     IGG = importIGG()
     glycan, dfGlycan = importGlycan()
     dfGlycan = dfGlycan.pivot(index="subject", columns="variable", values="value")
-    func = importFunction()
+    func, _ = importFunction()
     classes = load_file("meta-subjects")
     classes = classes.drop(["class.etuv"], axis = 1)
     classes = classes.replace(to_replace=["controller", "progressor", "viremic", "nonviremic"], value = [1, 0, 1, 0])
