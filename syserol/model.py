@@ -14,7 +14,7 @@ def function_predictions(function = 'ADCD'):
     """ Predict Function using Factorized Antigen Data"""
     cube, glyCube = createCube()
     factors = perform_decomposition(cube, 16)
-    func = importFunction()
+    func, _ = importFunction()
         
     df = pd.DataFrame(factors[0])
     df = df.join(func, how = 'inner')

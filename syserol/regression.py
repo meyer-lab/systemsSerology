@@ -16,7 +16,7 @@ def patientComponents(nComp=1):
 
     factors = perform_CMTF(cube, glyCube, nComp)
 
-    Y = importFunction()["ADCC"]
+    Y, _ = importFunction()["ADCC"]
 
     idxx = np.isfinite(Y)
     Y = Y[idxx]
@@ -39,7 +39,7 @@ def function_elastic_net(function="ADCC"):
     lum = df.pivot(index="subject", columns="variable", values="value")
     glycan, df2 = importGlycan()
     glyc = df2.pivot(index="subject", columns="variable", values="value")
-    func = importFunction()
+    func, _ = importFunction()
     igg = importIGG()
     igg = igg.pivot(index="subject", columns="variable", values="value")
     data_frames = [lum, glyc, func, igg]
