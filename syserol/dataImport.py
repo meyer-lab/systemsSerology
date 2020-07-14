@@ -3,6 +3,7 @@ from functools import lru_cache
 from os.path import join, dirname
 import numpy as np
 import pandas as pd
+from functools import reduce
 
 path_here = dirname(dirname(__file__))
 
@@ -85,8 +86,13 @@ def createCube():
 
     IGG = importIGG()
     glycan, dfGlycan = importGlycan()
+    dfGlycan = dfGlycan.pivot(index="subject", columns="variable", values="value")
     func = importFunction()
     classes = load_file("meta-subjects")
+    classes = classes.drop(["class.etuv"], axis = 1)
+    classes = classes.replace(to_replace=["controller", "progressor", "viremic", "nonviremic"], value = [1, 0, 1, 0])
+    data_frames = [dfGlycan, func, classes]
+    df_merged = reduce(lambda left, right: pd.merge(left, right, on=["subject"], how="outer"), data_frames)
     glyCube = np.full([len(subjects), len(glycan)+8], np.nan)
 
     for k, curAnti in enumerate(antigen):
@@ -94,26 +100,11 @@ def createCube():
 
         for i, curSubj in enumerate(subjects):
             subjLumx = lumx[lumx["subject"] == curSubj]
-            subjGly = dfGlycan[dfGlycan["subject"] == curSubj]
-            subjFunc = func[func["subject"] == curSubj]
-            subjClass = classes[classes["subject"] == curSubj]
+            subjGly = df_merged[df_merged["subject"] == curSubj]
+            subjGly = subjGly.drop(["subject"], axis = 1)
 
-            for _, row in subjGly.iterrows():
-                j = glycan.index(row["variable"])
-                glyCube[i, j] = row["value"]
-            
-            subjFunc = subjFunc.drop(["subject"], axis = 1)
-            subjClass = subjClass.drop(["subject", "class.etuv"], axis = 1)
-            viremic = subjClass["class.nv"]
-            viremic = (viremic == "viremic").astype(int)
-            controller = subjClass["class.cp"]
-            controller = (controller == "controller").astype(int)
-            
-            j = len(glycan)
-            for pos, function in enumerate(subjFunc):
-                glyCube[i, j+pos] = subjFunc[function]
-            glyCube[i, j + len(subjFunc.columns)] = controller
-            glyCube[i, j + len(subjFunc.columns) + 1] = viremic
+            for j, col in enumerate(subjGly):
+                glyCube[i, j] = subjGly[col]
 
             for _, row in subjLumx.iterrows():
                 j = detections.index(row["variable"])
