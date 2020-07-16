@@ -1,5 +1,5 @@
 """
-This creates Figure 4.
+This creates Figure 5.
 """
 from .common import subplotLabel, getSetup
 from syserol.dataImport import importFunction
