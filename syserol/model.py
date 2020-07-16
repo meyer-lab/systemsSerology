@@ -13,7 +13,7 @@ from tensorly.kruskal_tensor import kruskal_to_tensor
 def function_predictions(function = 'ADCD'):
     """ Predict Function using Factorized Antigen Data"""
     cube, glyCube = createCube()
-    factors = perform_CMTF(cube, 16)
+    factors = perform_CMTF(cube, glyCube, 16)
     func, _ = importFunction()
         
     df = pd.DataFrame(factors[0])
@@ -36,7 +36,7 @@ def function_predictions(function = 'ADCD'):
 def subject_predictions():
     """ Predict Subject Classifications using Factorized Antigen Data"""
     cube, glyCube = createCube()
-    factors = perform_CMTF(cube, 16)
+    factors = perform_CMTF(cube, glyCube, 16)
     
     #Assemble data
     df = pd.DataFrame(factors[0])
