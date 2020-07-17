@@ -13,10 +13,10 @@ from tensorly.kruskal_tensor import kruskal_to_tensor
 def function_predictions(function = 'ADCD'):
     """ Predict Function using Factorized Antigen Data"""
     cube, glyCube = createCube()
-    factors = perform_CMTF(cube, glyCube, 16)
+    tensorFac, matrixFac, R2XX = perform_CMTF(cube, glyCube, 16)
     func, _ = importFunction()
         
-    df = pd.DataFrame(factors[0])
+    df = pd.DataFrame(tensorFac[1][0]) #subjects x components matrix
     df = df.join(func, how = 'inner')
     df = df.dropna()
     df_func = df[["ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"]]
@@ -36,10 +36,10 @@ def function_predictions(function = 'ADCD'):
 def subject_predictions():
     """ Predict Subject Classifications using Factorized Antigen Data"""
     cube, glyCube = createCube()
-    factors = perform_CMTF(cube, glyCube, 16)
+    tensorFac, matrixFac, R2XX = perform_CMTF(cube, glyCube, 16)
     
     #Assemble data
-    df = pd.DataFrame(factors[0])
+    df = pd.DataFrame(tensorFac[1][0]) #subjects x components matrix
     subj = load_file('meta-subjects')
     df = df.join(subj, how = 'inner')
     df = df.dropna()
@@ -54,7 +54,7 @@ def subject_predictions():
     Y1 = (Y1 == 'controller').astype(int) #controllers are 1s, progressors are 0s 
     X1 = df_variables
 
-    Y_pred1  = cross_val_predict(LogisticRegressionCV(), X1, Y1)
+    Y_pred1  = cross_val_predict(LogisticRegressionCV(max_iter = 10000), X1, Y1)
     model1 = LogisticRegressionCV().fit(X1, Y1)
 
     print(model1.coef_)
@@ -66,7 +66,7 @@ def subject_predictions():
     Y2 = (Y2 == 'viremic').astype(int) #viremic = 1, nonviremic = 0
     X2 = df_variables 
 
-    Y_pred2  = cross_val_predict(LogisticRegressionCV(), X2, Y2)
+    Y_pred2  = cross_val_predict(LogisticRegressionCV(max_iter = 10000), X2, Y2)
     model2 = LogisticRegressionCV().fit(X2, Y2)
 
     print(model2.coef_)
