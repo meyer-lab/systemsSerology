@@ -17,7 +17,6 @@ def evalMissing(cube, glyCube, nComp, numSample=100):
     for _ in range(numSample):
         idxs = np.argwhere(np.isfinite(cube))
         i, j, k = idxs[np.random.choice(idxs.shape[0], 1)][0]
-
         indices.append((i, j, k))
         orig.append(cube[i, j, k])
         cube[i, j, k] = np.nan

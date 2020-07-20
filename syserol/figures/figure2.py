@@ -4,7 +4,6 @@ This creates Figure 2.
 
 from .common import subplotLabel, getSetup
 
-
 def makeFigure():
     """Get a list of the axis objects and create a figure"""
     # Get list of axis objects

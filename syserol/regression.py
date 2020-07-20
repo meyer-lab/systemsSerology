@@ -1,21 +1,18 @@
 """ Regression methods. """
+from functools import reduce
 import numpy as np
 import pandas as pd
 from sklearn.linear_model import ElasticNetCV, LogisticRegressionCV
 from sklearn.model_selection import cross_val_predict
 from sklearn.metrics import r2_score, confusion_matrix
-from functools import reduce
 from scipy.stats import zscore
 from .dataImport import createCube, importFunction, importLuminex, importGlycan, importIGG, load_file
 from .tensor import perform_CMTF
 
-
 def patientComponents(nComp=1):
     """ Generate factorization on cross-validation. """
     cube, glyCube = createCube()
-
     factors = perform_CMTF(cube, glyCube, nComp)
-
     Y, _ = importFunction()["ADCC"]
 
     idxx = np.isfinite(Y)
@@ -32,12 +29,11 @@ def patientComponents(nComp=1):
 
     return Y, Y_pred
 
-
 def function_elastic_net(function="ADCC"):
     # Import Luminex, Luminex-IGG, Function, and Glycan into DF
     df = importLuminex()
     lum = df.pivot(index="subject", columns="variable", values="value")
-    glycan, df2 = importGlycan()
+    _, df2 = importGlycan()
     glyc = df2.pivot(index="subject", columns="variable", values="value")
     func, _ = importFunction()
     igg = importIGG()
@@ -63,7 +59,6 @@ def function_elastic_net(function="ADCC"):
     print(np.sqrt(r2_score(Y, Y_pred)))
 
     return np.sqrt(r2_score(Y, Y_pred))
-
 
 def two_way_classifications():
     """Predict classifications of subjects by progression (EC/VC vs TP/UP) or by viremia (EC/TP vs VC/UP)"""

@@ -1,9 +1,9 @@
 """
 This creates Figure 5.
 """
-from .common import subplotLabel, getSetup
 from syserol.dataImport import importFunction
 from syserol.model import test_predictions
+from .common import subplotLabel, getSetup
 import numpy as np
 
 def makeFigure():
