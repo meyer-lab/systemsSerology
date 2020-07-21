@@ -13,7 +13,8 @@ def patientComponents(nComp=1):
     """ Generate factorization on cross-validation. """
     cube, glyCube = createCube()
     factors = perform_CMTF(cube, glyCube, nComp)
-    Y, _ = importFunction()["ADCC"]
+    Y, _ = importFunction()
+    Y = Y["ADCC"]
 
     idxx = np.isfinite(Y)
     Y = Y[idxx]
