@@ -9,7 +9,7 @@ import numpy as np
 
 def makeFigure():
     cube, glyCube = createCube()
-    tensorFac, matrixFac, R2XX = perform_CMTF(cube, glyCube, 10)
+    tensorFac, matrixFac, _ = perform_CMTF(cube, glyCube, 10)
     
     size = 5
     ax, f = getSetup((10, 10), (5, 2))

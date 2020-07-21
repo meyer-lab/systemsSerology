@@ -13,7 +13,7 @@ def function_predictions(function = 'ADCD'):
     """ Predict Function using Factorized Antigen Data"""
     #import
     cube, glyCube = createCube()
-    tensorFac, matrixFac, R2XX = perform_CMTF(cube, glyCube, 16)
+    tensorFac, _, _ = perform_CMTF(cube, glyCube, 16)
     func, _ = importFunction()
     
     #arrange
@@ -38,7 +38,7 @@ def function_predictions(function = 'ADCD'):
 def subject_predictions():
     """ Predict Subject Classifications using Factorized Antigen Data"""
     cube, glyCube = createCube()
-    tensorFac, matrixFac, R2XX = perform_CMTF(cube, glyCube, 16)
+    tensorFac, _, _ = perform_CMTF(cube, glyCube, 16)
 
     #Assemble data
     df = pd.DataFrame(tensorFac[1][0]) #subjects x components matrix
@@ -80,12 +80,12 @@ def subject_predictions():
 
 def test_predictions(function = 'ADCD'):
     cube, glyCube = createCube()
-    df, mapped = importFunction()
-    glycan, dfGlycan = importGlycan()
+    _, mapped = importFunction()
+    glycan, _ = importGlycan()
     corr = list()
 
     for comp in np.arange(1, 16):
-        tensorFac, matrixFac, R2XX = perform_CMTF(cube, glyCube, comp)
+        tensorFac, matrixFac, _ = perform_CMTF(cube, glyCube, comp)
         reconMatrix = kruskal_to_tensor(matrixFac)
         x = mapped[function]
         j = len(glycan) + x

@@ -7,7 +7,7 @@ from .common import subplotLabel, getSetup
 import numpy as np
 
 def makeFigure():
-    df, mapped = importFunction()
+    _, mapped = importFunction()
     ax, f = getSetup((10, 10), (3, 2))
     
     for i, func in enumerate(mapped):
