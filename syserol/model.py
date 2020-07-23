@@ -1,6 +1,8 @@
 """ Regression methods using Factorized Data. """
 import pandas as pd
 import numpy as np
+import tensorly as tl
+from sklearn.model_selection import KFold
 from sklearn.linear_model import ElasticNetCV, ElasticNet, LogisticRegressionCV
 from sklearn.model_selection import cross_val_predict
 from sklearn.metrics import r2_score, confusion_matrix
@@ -99,3 +101,30 @@ def test_predictions(function = 'ADCD'):
         print(f"Correlation for component {comp}: {np.sqrt(r2_score(orig, recon))}")
 
     return corr
+
+
+def cross_validation():
+    cube, glyCube = createCube()
+    _, mapped = importFunction()
+    glycan, _ = importGlycan()
+
+    X = glyCube
+    index = []
+    original = []
+    predicted = []
+    kf = KFold(n_splits = 10, shuffle = True)
+    for train_index, test_index in kf.split(X):
+        for i in test_index:
+            for j, _ in enumerate(mapped):
+                index.append((i, j))
+                original.append(glyCube[i][len(glycan)+j])
+                glyCube[i][len(glycan)+j] = np.nan
+        _, matrixFac, _ = perform_CMTF(cube, glyCube, 2)
+        pred_matrix = tl.kruskal_to_tensor(matrixFac)
+        for i in test_index:
+            for j, _ in enumerate(mapped):
+                predicted.append(pred_matrix[i, len(glycan)+j])
+    map1 = dict(zip(original, predicted))
+    map2 = dict(zip(index, original))
+    
+    return map1, map2
