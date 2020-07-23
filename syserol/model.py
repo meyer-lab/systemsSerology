@@ -87,7 +87,7 @@ def test_predictions(function = 'ADCD'):
     corr = list()
 
     for comp in np.arange(1, 16):
-        tensorFac, matrixFac, _ = perform_CMTF(cube, glyCube, comp)
+        _, matrixFac, _ = perform_CMTF(cube, glyCube, comp)
         reconMatrix = kruskal_to_tensor(matrixFac)
         x = mapped[function]
         j = len(glycan) + x
@@ -102,8 +102,8 @@ def test_predictions(function = 'ADCD'):
 
     return corr
 
-
 def cross_validation():
+    "10 Fold Cross Validation to Test Predictive Abilities"
     cube, glyCube = createCube()
     _, mapped = importFunction()
     glycan, _ = importGlycan()
@@ -116,7 +116,7 @@ def cross_validation():
     for train_index, test_index in kf.split(X):
         for i in test_index:
             for j, _ in enumerate(mapped):
-                index.append((i, j))
+                index.append((i, len(glycan)+j))
                 original.append(glyCube[i][len(glycan)+j])
                 glyCube[i][len(glycan)+j] = np.nan
         _, matrixFac, _ = perform_CMTF(cube, glyCube, 2)
@@ -128,3 +128,13 @@ def cross_validation():
     map2 = dict(zip(index, original))
     
     return map1, map2
+
+def evaluate_diff():
+    "Determine Difference Squared for all Predicted Values from Cross Validation, and their Average"
+    Sumsqs = list()
+    map1, _ = cross_validation()
+    for orig in map1:
+        if np.isfinite(orig):
+            Sumsqs.append((orig-map1[orig])**2)
+    Avg = np.mean(Sumsqs)
+    return Sumsqs, Avg
