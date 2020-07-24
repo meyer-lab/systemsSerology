@@ -132,10 +132,3 @@ def createCube():
     assert ~np.any(np.all(np.isnan(cube), axis=(1, 2)))
 
     return cube, glyCube
-
-def funcRegImport():
-    df = importLuminex()
-    df_total = df[df["variable"].str.contains("IgG[1-4]")].pivot(index="subject", columns="variable")
-    df_funct = importFunction()["ADCD"]
-    df_funct.fillna(value=0, inplace=True)
-    return df_total, df_funct.values
