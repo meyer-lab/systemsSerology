@@ -1,13 +1,15 @@
 """ Regression methods. """
 import numpy as np
 import pandas as pd
-from sklearn.linear_model import ElasticNetCV, LogisticRegressionCV
+
+from sklearn.linear_model import ElasticNetCV, ElasticNet, LogisticRegressionCV
 from sklearn.model_selection import cross_val_predict
 from sklearn.metrics import r2_score, confusion_matrix
 from functools import reduce
 from scipy.stats import zscore
 from .dataImport import createCube, importFunction, importLuminex, importGlycan, importIGG, load_file
 from .tensor import perform_CMTF
+
 
 
 def patientComponents(nComp=1):
@@ -34,6 +36,7 @@ def patientComponents(nComp=1):
 
 
 def function_elastic_net(function="ADCC"):
+    """ Predict functions using elastic net according to Alter methods"""
     # Import Luminex, Luminex-IGG, Function, and Glycan into DF
     df = importLuminex()
     lum = df.pivot(index="subject", columns="variable", values="value")
@@ -55,19 +58,19 @@ def function_elastic_net(function="ADCC"):
     X = df_variables
     Y_pred = np.empty(Y.shape)
 
-    Y_pred = cross_val_predict(ElasticNetCV(normalize=True), X, Y, cv=len(Y))
 
-    model = ElasticNetCV(normalize=True).fit(X, Y)
+    regr = ElasticNetCV(normalize=True, max_iter = 10000)
+    model = regr.fit(X, Y)
+    Y_pred = cross_val_predict(ElasticNet(alpha = regr.alpha_, normalize = True, max_iter = 10000), X, Y, cv = 10)
 
     print(model.coef_)
     print(np.sqrt(r2_score(Y, Y_pred)))
 
-    return np.sqrt(r2_score(Y, Y_pred))
+    return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))
 
 
 def two_way_classifications():
-    """Predict classifications of subjects by progression (EC/VC vs TP/UP) or by viremia (EC/TP vs VC/UP)"""
-
+     """ Predict classifications of subjects by progression (EC/VC vs TP/UP) or by viremia (EC/TP vs VC/UP) - Alter methods"""
     # Import Luminex, Luminex-IGG, Subject group pairs, and Glycan into DF
     df = importLuminex()
     lum = df.pivot(index="subject", columns="variable", values="value")
