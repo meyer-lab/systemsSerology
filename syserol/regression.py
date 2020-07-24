@@ -34,8 +34,8 @@ def patientComponents(nComp=1):
 
     return Y, Y_pred
 
-
 def function_elastic_net(function="ADCC"):
+    """ Predict functions using elastic net according to Alter methods"""
     # Import Luminex, Luminex-IGG, Function, and Glycan into DF
     df = importLuminex()
     lum = df.pivot(index="subject", columns="variable", values="value")
@@ -67,11 +67,8 @@ def function_elastic_net(function="ADCC"):
 
     return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))
 
-
-
 def two_way_classifications():
-    """Predict classifications of subjects by progression (EC/VC vs TP/UP) or by viremia (EC/TP vs VC/UP)"""
-
+     """ Predict classifications of subjects by progression (EC/VC vs TP/UP) or by viremia (EC/TP vs VC/UP) - Alter methods"""
     # Import Luminex, Luminex-IGG, Subject group pairs, and Glycan into DF
     df = importLuminex()
     lum = df.pivot(index="subject", columns="variable", values="value")
