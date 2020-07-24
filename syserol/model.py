@@ -12,8 +12,8 @@ from syserol.tensor import perform_CMTF
 from syserol.dataImport import createCube, importFunction, load_file, importGlycan
 
 
-def function_predictions(function="ADCD"):
-    """ Predict Function using Factorized Antigen Data"""
+def CMTF_elastic_function_predictions(function="ADCD"):
+    """ Predict Function using CMTF Decomposed Antigen Data"""
     # import
     cube, glyCube = createCube()
     tensorFac, _, _ = perform_CMTF(cube, glyCube, 16)
@@ -39,8 +39,8 @@ def function_predictions(function="ADCD"):
     return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))
 
 
-def subject_predictions():
-    """ Predict Subject Classifications using Factorized Antigen Data"""
+def CMTF_logistic_subject_predictions():
+    """ Predict Subject Classifications using CMTF Decomposed Antigen Data"""
     cube, glyCube = createCube()
     tensorFac, _, _ = perform_CMTF(cube, glyCube, 16)
 
@@ -83,6 +83,7 @@ def subject_predictions():
 
 
 def test_predictions(function="ADCD"):
+    """ Test correlation between original glyCube matrix and CMTF decomposed/reconstructed matrix"""
     cube, glyCube = createCube()
     _, mapped = importFunction()
     glycan, _ = importGlycan()
@@ -106,7 +107,7 @@ def test_predictions(function="ADCD"):
 
 
 def cross_validation():
-    "10 Fold Cross Validation to Test Predictive Abilities"
+    """ 10 Fold Cross Validation to Test Predictive Abilities"""
     cube, glyCube = createCube()
     _, mapped = importFunction()
     glycan, _ = importGlycan()
@@ -115,8 +116,8 @@ def cross_validation():
     index = []
     original = []
     predicted = []
-    kf = KFold(n_splits=10, shuffle=True)
-    for train_index, test_index in kf.split(X):
+    kf = KFold(n_splits=10, shuffle=True) # split into 10 folds
+    for train_index, test_index in kf.split(X): # run cross validation
         for i in test_index:
             for j, _ in enumerate(mapped):
                 index.append((i, len(glycan) + j))
@@ -134,7 +135,7 @@ def cross_validation():
 
 
 def evaluate_diff():
-    "Determine Difference Squared for all Predicted Values from Cross Validation, and their Average"
+    """ Determine Difference Squared for all Predicted Values from Cross Validation, and their Average"""
     Sumsqs = list()
     map1, _ = cross_validation()
     for orig in map1:

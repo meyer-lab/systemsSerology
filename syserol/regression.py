@@ -33,6 +33,7 @@ def patientComponents(nComp=1):
 
 
 def function_elastic_net(function="ADCC"):
+    """Predict functions using elastic net according to Alter methods"""
     # Import Luminex, Luminex-IGG, Function, and Glycan into DF
     df = importLuminex()
     lum = df.pivot(index="subject", columns="variable", values="value")
@@ -65,13 +66,14 @@ def function_elastic_net(function="ADCC"):
 
 
 def two_way_classifications():
-    """Predict classifications of subjects by progression (EC/VC vs TP/UP) or by viremia (EC/TP vs VC/UP)"""
+    """Predict classifications of subjects by progression (EC/VC vs TP/UP) or by viremia (EC/TP vs VC/UP) - Alter methods"""
 
     # Import Luminex, Luminex-IGG, Subject group pairs, and Glycan into DF
     df = importLuminex()
     lum = df.pivot(index="subject", columns="variable", values="value")
     subj = load_file("meta-subjects")
     igg = importIGG()
+    
     igg = igg.pivot(index="subject", columns="variable", values="value")
     data_frames = [lum, subj, igg]
     df_merged = reduce(lambda left, right: pd.merge(left, right, on=["subject"], how="inner"), data_frames)

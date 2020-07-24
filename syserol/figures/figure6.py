@@ -8,6 +8,7 @@ from .common import subplotLabel, getSetup
 import numpy as np
 
 def makeFigure():
+    """ Plot elements contained in CMTF decomposed components by plotting Component vs. Component """
     cube, glyCube = createCube()
     tensorFac, matrixFac, _ = perform_CMTF(cube, glyCube, 10)
     

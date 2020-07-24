@@ -2,7 +2,7 @@
 This creates Figure 4.
 """
 
-from syserol.model import function_predictions
+from syserol.model import CMTF_elastic_function_predictions
 from .common import subplotLabel, getSetup
 
 def makeFigure():
@@ -12,7 +12,7 @@ def makeFigure():
 
     functions = ['ADCD', 'ADCC', 'ADNP', 'CD107a', 'IFNy', 'MIP1b']
     for i, name in enumerate(functions):
-        Measured, Y_pred, _ = function_predictions(name)
+        Measured, Y_pred, _ = CMTF_elastic_function_predictions(name)
         ax[i].scatter(Measured, Y_pred)
         ax[i].set_ylabel("Predicted", fontsize=12)
         ax[i].set_xlabel("Measured", fontsize=12)

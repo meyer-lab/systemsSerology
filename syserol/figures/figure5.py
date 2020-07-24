@@ -7,6 +7,7 @@ from .common import subplotLabel, getSetup
 import numpy as np
 
 def makeFigure():
+    """ Plot correlation for each function between original and reconstruced glycube matrix across increasing(16) components"""
     _, mapped = importFunction()
     ax, f = getSetup((10, 10), (3, 2))
     
