@@ -15,11 +15,11 @@ path_here = dirname(dirname(__file__))
 def load_cache(r):
     """ Return a requested data file. """
     path = Path(join(path_here, "syserol/data/cache/factors" + str(r) + ".p"))
-    
+
     if path.exists():
         data = pickle.load(open(path, "rb"))
         return data
-    
+
     return None
 
 
@@ -40,7 +40,7 @@ def perform_CMTF(tensorIn, matrixIn, r):
     matrix = np.copy(matrixIn)
     mask_matrix = np.isfinite(matrix).astype(int)
     matrix[mask_matrix == 0] = 0.0
-    
+
     # Check for a cache and if it matches return the result
     cache = load_cache(r)
     if cache is not None:
@@ -50,7 +50,7 @@ def perform_CMTF(tensorIn, matrixIn, r):
             R2XX = calcR2X(tensorIn, matrixIn, tensorFac, matrixFac)
         except:
             R2XX = -1
-        
+
         if np.isclose(R2XX, R2Xcache):
             print("Cache hit.")
             return tensorFac, matrixFac, R2Xcache
@@ -59,7 +59,7 @@ def perform_CMTF(tensorIn, matrixIn, r):
 
     # Initialize by running PARAFAC on the 3D tensor
     kruskal = parafac(tensor, r, mask=mask, orthogonalise=True, normalize_factors=False, n_iter_max=200, linesearch=True)
-    tensor = tensor*mask + tl.kruskal_to_tensor(kruskal, mask=1 - mask)
+    tensor = tensor * mask + tl.kruskal_to_tensor(kruskal, mask=1 - mask)
     assert np.all(np.isfinite(tensor))
 
     # Now run CMTF

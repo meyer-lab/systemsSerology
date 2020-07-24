@@ -81,3 +81,65 @@ def CMTF_logistic_subject_predictions():
 
     return accuracyCvP, accuracyVvN
 
+
+def test_predictions(function="ADCD"):
+    """ Test correlation between original glyCube matrix and CMTF decomposed/reconstructed matrix"""
+    cube, glyCube = createCube()
+    _, mapped = importFunction()
+    glycan, _ = importGlycan()
+    corr = list()
+
+    for comp in np.arange(1, 16):
+        _, matrixFac, _ = perform_CMTF(cube, glyCube, comp)
+        reconMatrix = kruskal_to_tensor(matrixFac)
+        x = mapped[function]
+        j = len(glycan) + x
+        orig = list()
+        recon = list()
+        for i in range(len(glyCube)):
+            if np.isfinite(glyCube[i, j]):
+                orig.append(glyCube[i, j])
+                recon.append(reconMatrix[i, j])
+        corr.append(np.sqrt(r2_score(orig, recon)))
+        print(f"Correlation for component {comp}: {np.sqrt(r2_score(orig, recon))}")
+
+    return corr
+
+
+def cross_validation():
+    """ 10 Fold Cross Validation to Test Predictive Abilities"""
+    cube, glyCube = createCube()
+    _, mapped = importFunction()
+    glycan, _ = importGlycan()
+
+    X = glyCube
+    index = []
+    original = []
+    predicted = []
+    kf = KFold(n_splits=10, shuffle=True) # split into 10 folds
+    for train_index, test_index in kf.split(X): # run cross validation
+        for i in test_index:
+            for j, _ in enumerate(mapped):
+                index.append((i, len(glycan) + j))
+                original.append(glyCube[i][len(glycan) + j])
+                glyCube[i][len(glycan) + j] = np.nan
+        _, matrixFac, _ = perform_CMTF(cube, glyCube, 2)
+        pred_matrix = tl.kruskal_to_tensor(matrixFac)
+        for i in test_index:
+            for j, _ in enumerate(mapped):
+                predicted.append(pred_matrix[i, len(glycan) + j])
+    map1 = dict(zip(original, predicted))
+    map2 = dict(zip(index, original))
+
+    return map1, map2
+
+
+def evaluate_diff():
+    """ Determine Difference Squared for all Predicted Values from Cross Validation, and their Average"""
+    Sumsqs = list()
+    map1, _ = cross_validation()
+    for orig in map1:
+        if np.isfinite(orig):
+            Sumsqs.append((orig - map1[orig]) ** 2)
+    Avg = np.mean(Sumsqs)
+    return Sumsqs, Avg

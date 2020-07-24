@@ -2,9 +2,8 @@
 This creates Figure 3.
 """
 import numpy as np
-from .common import subplotLabel, getSetup
 from syserol.impute import evaluate_missing
-
+from .common import subplotLabel, getSetup
 
 def makeFigure():
     """ Evaluate Handling of Missing Values in Decomposition """

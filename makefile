@@ -1,4 +1,4 @@
-all: pylint.log figure1.svg figure2.svg figure3.svg figure4.svg
+all: pylint.log figure1.svg figure2.svg figure3.svg figure4.svg figure5.svg figure6.svg
 venv: venv/bin/activate
 
 venv/bin/activate: requirements.txt

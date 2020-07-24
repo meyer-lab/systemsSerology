@@ -1,11 +1,11 @@
 """ Regression methods. """
+from functools import reduce
 import numpy as np
 import pandas as pd
 
 from sklearn.linear_model import ElasticNetCV, ElasticNet, LogisticRegressionCV
 from sklearn.model_selection import cross_val_predict
 from sklearn.metrics import r2_score, confusion_matrix
-from functools import reduce
 from scipy.stats import zscore
 from .dataImport import createCube, importFunction, importLuminex, importGlycan, importIGG, load_file
 from .tensor import perform_CMTF
@@ -15,10 +15,9 @@ from .tensor import perform_CMTF
 def patientComponents(nComp=1):
     """ Generate factorization on cross-validation. """
     cube, glyCube = createCube()
-
     factors = perform_CMTF(cube, glyCube, nComp)
-
-    Y = importFunction()["ADCC"]
+    Y, _ = importFunction()
+    Y = Y["ADCC"]
 
     idxx = np.isfinite(Y)
     Y = Y[idxx]
@@ -40,9 +39,9 @@ def function_elastic_net(function="ADCC"):
     # Import Luminex, Luminex-IGG, Function, and Glycan into DF
     df = importLuminex()
     lum = df.pivot(index="subject", columns="variable", values="value")
-    glycan, df2 = importGlycan()
+    _, df2 = importGlycan()
     glyc = df2.pivot(index="subject", columns="variable", values="value")
-    func = importFunction()
+    func, _ = importFunction()
     igg = importIGG()
     igg = igg.pivot(index="subject", columns="variable", values="value")
     data_frames = [lum, glyc, func, igg]
@@ -76,6 +75,7 @@ def two_way_classifications():
     lum = df.pivot(index="subject", columns="variable", values="value")
     subj = load_file("meta-subjects")
     igg = importIGG()
+    
     igg = igg.pivot(index="subject", columns="variable", values="value")
     data_frames = [lum, subj, igg]
     df_merged = reduce(lambda left, right: pd.merge(left, right, on=["subject"], how="inner"), data_frames)
