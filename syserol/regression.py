@@ -9,6 +9,7 @@ from scipy.stats import zscore
 from .dataImport import createCube, importFunction, importLuminex, importGlycan, importIGG, load_file
 from .tensor import perform_CMTF
 
+
 def patientComponents(nComp=1):
     """ Generate factorization on cross-validation. """
     cube, glyCube = createCube()
@@ -29,6 +30,7 @@ def patientComponents(nComp=1):
     print(np.sqrt(r2_score(Y, Y_pred)))
 
     return Y, Y_pred
+
 
 def function_elastic_net(function="ADCC"):
     # Import Luminex, Luminex-IGG, Function, and Glycan into DF
@@ -60,6 +62,7 @@ def function_elastic_net(function="ADCC"):
     print(np.sqrt(r2_score(Y, Y_pred)))
 
     return np.sqrt(r2_score(Y, Y_pred))
+
 
 def two_way_classifications():
     """Predict classifications of subjects by progression (EC/VC vs TP/UP) or by viremia (EC/TP vs VC/UP)"""

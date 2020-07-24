@@ -75,10 +75,10 @@ def importFunction():
 
     df = df_a.merge(df, on="subject", how="left")
 
-    functions = ['ADCD', 'ADCC', 'ADNP', 'CD107a', 'IFNy', 'MIP1b']
+    functions = ["ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"]
     idnum = [0, 1, 2, 3, 4, 5]
     mapped = dict(zip(functions, idnum))
-    
+
     return df, mapped
 
 
