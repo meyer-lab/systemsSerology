@@ -8,7 +8,7 @@ from sklearn.metrics import r2_score, confusion_matrix
 from functools import reduce
 from scipy.stats import zscore
 from .dataImport import createCube, importFunction, importLuminex, importGlycan, importIGG, load_file
-from .tensor import perform_decomposition, perform_CMTF
+from .tensor import perform_CMTF
 
 
 
