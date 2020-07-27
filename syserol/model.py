@@ -107,41 +107,41 @@ def test_predictions(function="ADCD"):
     return corr
 
 
-@lru_cache()
 def cross_validation():
     """ 10 Fold Cross Validation to Test Predictive Abilities"""
     cube, glyCube = createCube()
-    _, mapped = importFunction()
+    _, mapped = importFunction() 
     glycan, _ = importGlycan()
 
     X = glyCube
+    copy = glyCube #copy glyCube
     index = []
     original = []
     predicted = []
     kf = KFold(n_splits=10, shuffle=True) # split into 10 folds
     for train_index, test_index in kf.split(X): # run cross validation
-        for i in test_index:
+        glyCube = copy # restore original values at start of each cross validation fold
+        for i in test_index: # for all the selected test indices 
             for j, _ in enumerate(mapped):
-                index.append((i, len(glycan) + j))
-                original.append(glyCube[i][len(glycan) + j])
-                glyCube[i][len(glycan) + j] = np.nan
-        _, matrixFac, _ = perform_CMTF(cube, glyCube, 2)
+                index.append((i, len(glycan) + j)) # store their values and index
+                original.append(glyCube[i][len(glycan) + j]) 
+                glyCube[i][len(glycan) + j] = np.nan # artificially make the value NaN
+                
+        _, matrixFac, _ = perform_CMTF(cube, glyCube, 2) # run decomposition on new matrix
         pred_matrix = tl.kruskal_to_tensor(matrixFac)
         for i in test_index:
             for j, _ in enumerate(mapped):
-                predicted.append(pred_matrix[i, len(glycan) + j])
-    map1 = dict(zip(original, predicted))
-    map2 = dict(zip(index, original))
+                predicted.append(pred_matrix[i, len(glycan) + j]) # store recreated (predicted) values
 
-    return map1, map2
+    return np.array(original), np.array(predicted), np.array(index)
 
 
 def evaluate_diff():
     """ Determine Difference Squared for all Predicted Values from Cross Validation, and their Average"""
-    Sumsqs = list()
-    map1, _ = cross_validation()
-    for orig in map1:
-        if np.isfinite(orig):
-            Sumsqs.append((orig - map1[orig]) ** 2)
+    Sumsqs = []
+    original, predicted, _ = cross_validation()
+    idx = np.isfinite(original) & np.isfinite(predicted)
+    Sumsqs.append((original[idx] - predicted[idx]) ** 2) # Squared Difference
     Avg = np.mean(Sumsqs)
-    return Sumsqs, Avg
+    
+    return Sumsqs[0], Avg # return array of squared differences & their average

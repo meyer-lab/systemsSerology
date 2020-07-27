@@ -7,18 +7,22 @@ from syserol.figures.common import subplotLabel, getSetup
 from syserol.model import cross_validation, evaluate_diff
 
 def makeFigure():
-    map1, _ = cross_validation()
+    """ Analyze Prediction Accuracy of 10 Fold Cross Validation Strategy"""
+    x, y, _ = cross_validation()
     Sumsqs, Avg = evaluate_diff()
     ax, f = getSetup((10, 10), (2, 1))
-
-    x = map1.keys()
-    y = map1.values()
+    
+    # Plot original values vs CMTF reconstructed values (after original->NaN)
     ax[0].scatter(x, y)
-    ax[0].set_ylabel("Original Values", fontsize=12)
-    ax[0].set_xlabel("Reconstructed Values", fontsize=12)
+    ax[0].set_ylabel("Reconstructed Values", fontsize=12)
+    ax[0].set_xlabel("Original Values", fontsize=12)
     ax[0].set_title("Comparison of Original and Reconstructed Values from 10 Fold Cross Validation Methods", fontsize=15)
-    ax[0].plot([min(y), max(y)], [min(y), max(y)], 'k--', lw=4)
+    idx = np.isfinite(x) & np.isfinite(y)
+    m, b = np.polyfit(x[idx], y[idx], 1) # line of best fit
+    ax[0].plot(x, m*x + b, 'k--', color='black')
 
+    # Plot the Difference Squared for each pair of original&reconstructed values
+    # Overlay Average Difference Squared across all pairs
     ax[1].plot(Sumsqs)
     ax[1].axhline(y=Avg, linestyle='-', color="red", label="mean")
     ax[1].set_xlabel("# Values Predicted", fontsize=12)
