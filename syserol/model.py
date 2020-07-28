@@ -107,7 +107,6 @@ def test_predictions(function="ADCD"):
     return corr
 
 
-@lru_cache()
 def cross_validation():
     """ 10 Fold Cross Validation to Test Predictive Abilities"""
     cube, glyCube = createCube()
@@ -115,31 +114,16 @@ def cross_validation():
     glycan, _ = importGlycan()
 
     X = glyCube
-    cols = ["ADCD_orig", "ADCC_orig", "ADNP_orig", "CD107a_orig", "IFNy_orig", "MIP1b_orig", "ADCD_pred", "ADCC_pred", "ADNP_pred", "CD107a_pred", "IFNy_pred", "MIP1b_pred"]
-    df = pd.DataFrame(0.0, index=range(181), columns=cols)
+    matrix = np.zeros([181,12])
 
     kf = KFold(n_splits=10, shuffle=True) # split into 10 folds
     for train_index, test_index in kf.split(X): # run cross validation
         copy = glyCube.copy() # copy & restore original values at start of each cross validation fold
-        for i in test_index: # for all the selected test indices 
-            for j, _ in enumerate(mapped):
-                df.iloc[i][j] = (copy[i][len(glycan) + j]) #store value in df
-                copy[i][len(glycan) + j] = np.nan # artificially make the value NaN
+        matrix[test_index, 0:6] = copy[test_index, len(glycan):len(glycan)+6] #store original value
+        copy[test_index, len(glycan):len(glycan)+6] = np.nan # artificially make the value NaN
 
         _, matrixFac, _ = perform_CMTF(cube, copy, 2) # run decomposition on new matrix
         pred_matrix = tl.kruskal_to_tensor(matrixFac)
-        for i in test_index:
-                for j, _ in enumerate(mapped):
-                    df.iloc[i][j+6] = (pred_matrix[i, len(glycan) + j]) # store recreated (predicted) values
+        matrix[test_index, 6:13] = pred_matrix[test_index, len(glycan):len(glycan)+6] # store predicted values
     
-    return df
-
-def evaluate_diff():
-    """ Determine Difference Squared for all Predicted Values from Cross Validation, and their Average"""
-    Sumsqs = []
-    original, predicted, _ = cross_validation()
-    idx = np.isfinite(original)
-    Sumsqs.append((original[idx] - predicted[idx]) ** 2) # Squared Difference
-    Avg = np.mean(Sumsqs)
-    
-    return Sumsqs[0], Avg # return array of squared differences & their average
+    return matrix
