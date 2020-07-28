@@ -107,6 +107,7 @@ def test_predictions(function="ADCD"):
     return corr
 
 
+@lru_cache()
 def cross_validation():
     """ 10 Fold Cross Validation to Test Predictive Abilities"""
     cube, glyCube = createCube()
@@ -140,7 +141,7 @@ def evaluate_diff():
     """ Determine Difference Squared for all Predicted Values from Cross Validation, and their Average"""
     Sumsqs = []
     original, predicted, _ = cross_validation()
-    idx = np.isfinite(original) & np.isfinite(predicted)
+    idx = np.isfinite(original)
     Sumsqs.append((original[idx] - predicted[idx]) ** 2) # Squared Difference
     Avg = np.mean(Sumsqs)
     
