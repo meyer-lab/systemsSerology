@@ -115,27 +115,24 @@ def cross_validation():
     glycan, _ = importGlycan()
 
     X = glyCube
-    copy = glyCube #copy glyCube
-    index = []
-    original = []
-    predicted = []
+    cols = ["ADCD_orig", "ADCC_orig", "ADNP_orig", "CD107a_orig", "IFNy_orig", "MIP1b_orig", "ADCD_pred", "ADCC_pred", "ADNP_pred", "CD107a_pred", "IFNy_pred", "MIP1b_pred"]
+    df = pd.DataFrame(0.0, index=range(181), columns=cols)
+
     kf = KFold(n_splits=10, shuffle=True) # split into 10 folds
     for train_index, test_index in kf.split(X): # run cross validation
-        glyCube = copy # restore original values at start of each cross validation fold
+        copy = glyCube.copy() # copy & restore original values at start of each cross validation fold
         for i in test_index: # for all the selected test indices 
             for j, _ in enumerate(mapped):
-                index.append((i, len(glycan) + j)) # store their values and index
-                original.append(glyCube[i][len(glycan) + j]) 
-                glyCube[i][len(glycan) + j] = np.nan # artificially make the value NaN
-                
-        _, matrixFac, _ = perform_CMTF(cube, glyCube, 2) # run decomposition on new matrix
+                df.iloc[i][j] = (copy[i][len(glycan) + j]) #store value in df
+                copy[i][len(glycan) + j] = np.nan # artificially make the value NaN
+
+        _, matrixFac, _ = perform_CMTF(cube, copy, 2) # run decomposition on new matrix
         pred_matrix = tl.kruskal_to_tensor(matrixFac)
         for i in test_index:
-            for j, _ in enumerate(mapped):
-                predicted.append(pred_matrix[i, len(glycan) + j]) # store recreated (predicted) values
-
-    return np.array(original), np.array(predicted), np.array(index)
-
+                for j, _ in enumerate(mapped):
+                    df.iloc[i][j+6] = (pred_matrix[i, len(glycan) + j]) # store recreated (predicted) values
+    
+    return df
 
 def evaluate_diff():
     """ Determine Difference Squared for all Predicted Values from Cross Validation, and their Average"""
