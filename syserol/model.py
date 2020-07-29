@@ -2,7 +2,6 @@
 import pandas as pd
 import numpy as np
 import tensorly as tl
-from functools import lru_cache
 from sklearn.model_selection import KFold
 from sklearn.linear_model import ElasticNetCV, ElasticNet, LogisticRegressionCV
 from sklearn.model_selection import cross_val_predict
