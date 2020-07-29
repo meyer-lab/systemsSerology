@@ -109,37 +109,20 @@ def test_predictions(function="ADCD"):
 def cross_validation():
     """ 10 Fold Cross Validation to Test Predictive Abilities"""
     cube, glyCube = createCube()
-    _, mapped = importFunction()
+    _, mapped = importFunction() 
     glycan, _ = importGlycan()
 
     X = glyCube
-    index = []
-    original = []
-    predicted = []
+    matrix = np.zeros([181,12])
+
     kf = KFold(n_splits=10, shuffle=True) # split into 10 folds
     for train_index, test_index in kf.split(X): # run cross validation
-        for i in test_index:
-            for j, _ in enumerate(mapped):
-                index.append((i, len(glycan) + j))
-                original.append(glyCube[i][len(glycan) + j])
-                glyCube[i][len(glycan) + j] = np.nan
-        _, matrixFac, _ = perform_CMTF(cube, glyCube, 2)
+        copy = glyCube.copy() # copy & restore original values at start of each cross validation fold
+        matrix[test_index, 0:6] = copy[test_index, len(glycan):len(glycan)+6] #store original value
+        copy[test_index, len(glycan):len(glycan)+6] = np.nan # artificially make the value NaN
+
+        _, matrixFac, _ = perform_CMTF(cube, copy, 2) # run decomposition on new matrix
         pred_matrix = tl.kruskal_to_tensor(matrixFac)
-        for i in test_index:
-            for j, _ in enumerate(mapped):
-                predicted.append(pred_matrix[i, len(glycan) + j])
-    map1 = dict(zip(original, predicted))
-    map2 = dict(zip(index, original))
-
-    return map1, map2
-
-
-def evaluate_diff():
-    """ Determine Difference Squared for all Predicted Values from Cross Validation, and their Average"""
-    Sumsqs = list()
-    map1, _ = cross_validation()
-    for orig in map1:
-        if np.isfinite(orig):
-            Sumsqs.append((orig - map1[orig]) ** 2)
-    Avg = np.mean(Sumsqs)
-    return Sumsqs, Avg
+        matrix[test_index, 6:13] = pred_matrix[test_index, len(glycan):len(glycan)+6] # store predicted values
+    
+    return matrix
