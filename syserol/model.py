@@ -5,7 +5,8 @@ import tensorly as tl
 from sklearn.model_selection import KFold
 from sklearn.linear_model import ElasticNetCV, ElasticNet, LogisticRegressionCV
 from sklearn.model_selection import cross_val_predict
-from sklearn.metrics import r2_score, confusion_matrix
+from sklearn.metrics import r2_score, confusion_matrix, accuracy_score
+from sklearn.svm import SVC
 from scipy.stats import zscore
 from tensorly.kruskal_tensor import kruskal_to_tensor
 from syserol.tensor import perform_CMTF
@@ -142,36 +143,26 @@ def class_predictions():
     subjects_matrix = tensorFac[1][0]
     
     # Controller/Progressor classification
-    # Split data into training and testing data 
-    X_train, X_test, y_train, y_test = train_test_split(subjects_matrix, cp)
-
+    X = subjects_matrix
+    Y = cp
     # Kernel = RBF
-    # Search for best RBF parameters for estimation
-    C_range = np.logspace(-2, 10, 13)
-    gamma_range = np.logspace(-9, 3, 13)
-    param_grid = dict(gamma=gamma_range, C=C_range)
-    grid = GridSearchCV(SVC(), param_grid=param_grid, cv=10) # 10 fold cross validation to find parameters
-    grid.fit(X_train, y_train) # fit model
-    # Run SVM classifier
-    y_pred = grid.predict(X_test) # call predict with best found parameters
-    cp_accuracy = metrics.accuracy_score(y_test, y_pred)
+    # Run SVM classifier model
+    clf = SVC(kernel="rbf")
+    y_pred1 = cross_val_predict(clf, X, Y, cv=10)
+    model = clf.fit(X, Y) # fit model
+    cp_accuracy = accuracy_score(Y, y_pred1)
     print("CP Prediction Accuracy:", cp_accuracy)
     
     
-    # Viremic/Nonviremic classification
-    # Split data into training and testing data 
-    X_train, X_test, y_train, y_test = train_test_split(subjects_matrix, nv)
-
+    # Viremic/Nonviremic classification 
+    X = subjects_matrix
+    Y = nv
     # Kernel = RBF
-    # Search for best RBF parameters for estimation
-    C_range = np.logspace(-2, 10, 13)
-    gamma_range = np.logspace(-9, 3, 13)
-    param_grid = dict(gamma=gamma_range, C=C_range)
-    grid = GridSearchCV(SVC(), param_grid=param_grid, cv=10) # 10 fold cross validation to find parameters
-    grid.fit(X_train, y_train) # fit model
-    # Run SVM classifier
-    y_pred = grid.predict(X_test) # call predict with best found parameters
-    nv_accuracy = metrics.accuracy_score(y_test, y_pred)
+    # Run SVM classifier model
+    clf = SVC(kernel="rbf")
+    y_pred2 = cross_val_predict(clf, X, Y, cv=10)
+    model = clf.fit(X, Y) # fit model
+    nv_accuracy = accuracy_score(Y, y_pred2)
     print("NV Accuracy:", nv_accuracy)
     
     return cp_accuracy, nv_accuracy
