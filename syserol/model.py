@@ -126,3 +126,52 @@ def cross_validation():
         matrix[test_index, 6:13] = pred_matrix[test_index, len(glycan):len(glycan)+6] # store predicted values
     
     return matrix
+
+def class_predictions():
+    """ Predict Subject Class with Support Vector Machines and Decomposed Tensor Data"""
+    # Load Data
+    cube, glyCube = createCube()
+    classes = load_file("meta-subjects")
+    classes = classes.replace(to_replace=["controller", "progressor", "viremic", "nonviremic"], value = [1, 0, 1, 0])
+    cp = np.array(classes["class.cp"])
+    nv = np.array(classes["class.nv"])
+    
+    # Run Decomposition (5 components)
+    tensorFac, matrixFac, R2XX = perform_CMTF(cube, glyCube, 5)
+    # Subject Matrix acts for model training data
+    subjects_matrix = tensorFac[1][0]
+    
+    # Controller/Progressor classification
+    # Split data into training and testing data 
+    X_train, X_test, y_train, y_test = train_test_split(subjects_matrix, cp)
+
+    # Kernel = RBF
+    # Search for best RBF parameters for estimation
+    C_range = np.logspace(-2, 10, 13)
+    gamma_range = np.logspace(-9, 3, 13)
+    param_grid = dict(gamma=gamma_range, C=C_range)
+    grid = GridSearchCV(SVC(), param_grid=param_grid, cv=10) # 10 fold cross validation to find parameters
+    grid.fit(X_train, y_train) # fit model
+    # Run SVM classifier
+    y_pred = grid.predict(X_test) # call predict with best found parameters
+    cp_accuracy = metrics.accuracy_score(y_test, y_pred)
+    print("CP Prediction Accuracy:", cp_accuracy)
+    
+    
+    # Viremic/Nonviremic classification
+    # Split data into training and testing data 
+    X_train, X_test, y_train, y_test = train_test_split(subjects_matrix, nv)
+
+    # Kernel = RBF
+    # Search for best RBF parameters for estimation
+    C_range = np.logspace(-2, 10, 13)
+    gamma_range = np.logspace(-9, 3, 13)
+    param_grid = dict(gamma=gamma_range, C=C_range)
+    grid = GridSearchCV(SVC(), param_grid=param_grid, cv=10) # 10 fold cross validation to find parameters
+    grid.fit(X_train, y_train) # fit model
+    # Run SVM classifier
+    y_pred = grid.predict(X_test) # call predict with best found parameters
+    nv_accuracy = metrics.accuracy_score(y_test, y_pred)
+    print("NV Accuracy:", nv_accuracy)
+    
+    return cp_accuracy, nv_accuracy
