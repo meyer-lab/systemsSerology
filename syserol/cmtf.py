@@ -15,7 +15,7 @@ def solve_least_squares(A, B):
     return np.transpose(np.linalg.lstsq(A, B, rcond=-1)[0])
 
 
-def coupled_matrix_tensor_3d_factorization(X, Y, rank, mask_3d=None, mask_matrix=None, init, verbose=False):
+def coupled_matrix_tensor_3d_factorization(X, Y, rank, mask_3d, mask_matrix, init, verbose=False):
     """
     Calculates a coupled matrix and tensor factorization of 3rd order tensor and matrix which are
     coupled in first mode.
@@ -26,12 +26,7 @@ def coupled_matrix_tensor_3d_factorization(X, Y, rank, mask_3d=None, mask_matrix
     This implementation only works for a coupling in the first mode.
 
     Solution is found via alternating least squares (ALS) as described in Figure 5 of
-    @article{acar2011all,
-      title={All-at-once optimization for coupled matrix and tensor factorizations},
-      author={Acar, Evrim and Kolda, Tamara G and Dunlavy, Daniel M},
-      journal={arXiv preprint arXiv:1105.3422},
-      year={2011}
-    }
+    Acar et al, arXiv, 2011.
 
     Parameters
     ----------
@@ -52,22 +47,13 @@ def coupled_matrix_tensor_3d_factorization(X, Y, rank, mask_3d=None, mask_matrix
     assert tl.is_tensor(Y)
 
     # initialize values
-    A, B, C = kruskal.factors
-
-    V = solve_least_squares(A, Y)
-
-    # Mask both based on starting point
-    if mask_3d is not None:
-        X = X * mask_3d + tl.kruskal_tensor.kruskal_to_tensor((None, [A, B, C])) * (1 - mask_3d)
-    if mask_matrix is not None:
-        Y = Y * mask_matrix + tl.kruskal_tensor.kruskal_to_tensor((None, [A, V])) * (1 - mask_matrix)
-
-    error_old = np.linalg.norm(X - tl.kruskal_tensor.kruskal_to_tensor((None, [A, B, C]))) + np.linalg.norm(Y - tl.kruskal_tensor.kruskal_to_tensor((None, [A, V])))
+    A, B, C = init.factors
 
     # alternating least squares
     # note that the order of the khatri rao product is reversed since tl.unfold has another order
     # than assumed in paper
     for iteration in range(10 ** 4):
+        V = solve_least_squares(A, Y)
         A = solve_least_squares(
             np.transpose(np.concatenate((np.transpose(khatri_rao([B, C])), np.transpose(V)), axis=1)),
             np.transpose(np.concatenate((tl.unfold(X, 0), Y), axis=1)),
@@ -75,7 +61,6 @@ def coupled_matrix_tensor_3d_factorization(X, Y, rank, mask_3d=None, mask_matrix
 
         B = solve_least_squares(khatri_rao([A, C]), np.transpose(tl.unfold(X, 1)))
         C = solve_least_squares(khatri_rao([A, B]), np.transpose(tl.unfold(X, 2)))
-        V = solve_least_squares(A, Y)
 
         # Perform masking
         if mask_3d is not None:
@@ -84,13 +69,15 @@ def coupled_matrix_tensor_3d_factorization(X, Y, rank, mask_3d=None, mask_matrix
             Y = Y * mask_matrix + tl.kruskal_tensor.kruskal_to_tensor((None, [A, V])) * (1 - mask_matrix)
 
         error_new = np.linalg.norm(X - tl.kruskal_tensor.kruskal_to_tensor((None, [A, B, C]))) + np.linalg.norm(Y - tl.kruskal_tensor.kruskal_to_tensor((None, [A, V])))
-        decr = error_old - error_new
+        
+        if iteration > 5:
+            decr = error_old - error_new
 
-        if verbose and iteration % 10 == 0:
-            print("iteration {}, reconstruction error: {}, decrease = {}".format(iteration, error_new, decr))
+            if verbose and iteration % 10 == 0:
+                print("iteration {}, reconstruction error: {}, decrease = {}".format(iteration, error_new, decr))
 
-        if iteration > 0 and (tl.abs(decr) <= 1e-9 or error_new < 1e-5):
-            break
+            if iteration > 0 and (tl.abs(decr) <= 1e-9 or error_new < 1e-5):
+                break
 
         error_old = error_new
 
