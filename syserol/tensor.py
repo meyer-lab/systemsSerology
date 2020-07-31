@@ -63,7 +63,7 @@ def perform_CMTF(tensorIn, matrixIn, r):
     assert np.all(np.isfinite(tensor))
 
     # Now run CMTF
-    tensorFac, matrixFac = coupled_matrix_tensor_3d_factorization(tensor, matrix, r, mask_3d=mask, mask_matrix=mask_matrix, init=kruskal)
+    tensorFac, matrixFac = coupled_matrix_tensor_3d_factorization(tensor, matrix, mask_3d=mask, mask_matrix=mask_matrix, init=kruskal)
 
     R2XX = calcR2X(tensorIn, matrixIn, tensorFac, matrixFac)
 

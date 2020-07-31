@@ -1,5 +1,4 @@
 """ Regression methods using Factorized Data. """
-import pandas as pd
 import numpy as np
 import tensorly as tl
 from sklearn.model_selection import KFold
@@ -10,77 +9,7 @@ from sklearn.svm import SVC
 from scipy.stats import zscore
 from tensorly.kruskal_tensor import kruskal_to_tensor
 from syserol.tensor import perform_CMTF
-from syserol.dataImport import createCube, importFunction, load_file, importGlycan
-
-
-def CMTF_elastic_function_predictions(function="ADCD"):
-    """ Predict Function using CMTF Decomposed Antigen Data"""
-    # import
-    cube, glyCube = createCube()
-    tensorFac, _, _ = perform_CMTF(cube, glyCube, 16)
-    func, _ = importFunction()
-
-    # arrange
-    df = pd.DataFrame(tensorFac[1][0])  # subjects x components matrix
-    df = df.join(func, how="inner")
-    df = df.dropna()
-    df_func = df[["ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"]]
-    df_variables = df.drop(["subject", "ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"], axis=1)
-
-    # Regression
-    X = df_variables
-    Y = df_func[function]
-    regr = ElasticNetCV(normalize=True, max_iter=10000)
-    model = regr.fit(X, Y)
-    Y_pred = cross_val_predict(ElasticNet(alpha=regr.alpha_, normalize=True, max_iter=10000), X, Y, cv=10)
-
-    print(model.coef_)
-    print(np.sqrt(r2_score(Y, Y_pred)))
-
-    return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))
-
-
-def CMTF_logistic_subject_predictions():
-    """ Predict Subject Classifications using CMTF Decomposed Antigen Data"""
-    cube, glyCube = createCube()
-    tensorFac, _, _ = perform_CMTF(cube, glyCube, 16)
-
-    # Assemble data
-    df = pd.DataFrame(tensorFac[1][0])  # subjects x components matrix
-    subj = load_file("meta-subjects")
-    df = df.join(subj, how="inner")
-    df = df.dropna()
-
-    # Subset, Z score
-    df_class = df[["class.cp", "class.nv"]]
-    df_variables = df.drop(["subject", "class.etuv", "class.cp", "class.nv"], axis=1)
-    df_variables = df_variables.apply(zscore)
-
-    # Predict Controller vs. Progressor
-    Y1 = df_class["class.cp"]
-    Y1 = (Y1 == "controller").astype(int)  # controllers are 1s, progressors are 0s
-    X1 = df_variables
-
-    Y_pred1 = cross_val_predict(LogisticRegressionCV(max_iter=10000), X1, Y1)
-    model1 = LogisticRegressionCV().fit(X1, Y1)
-
-    print(model1.coef_)
-    accuracyCvP = confusion_matrix(Y1, Y_pred1)
-    print(f"Confusion Matrix Controller vs. Progressor: {accuracyCvP} \n")
-
-    # Predict Viremic vs. Nonviremic
-    Y2 = df_class["class.nv"]
-    Y2 = (Y2 == "viremic").astype(int)  # viremic = 1, nonviremic = 0
-    X2 = df_variables
-
-    Y_pred2 = cross_val_predict(LogisticRegressionCV(max_iter=10000), X2, Y2)
-    model2 = LogisticRegressionCV().fit(X2, Y2)
-
-    print(model2.coef_)
-    accuracyVvN = confusion_matrix(Y2, Y_pred2)
-    print(f"Confusion Matrix Viremic vs. Nonviremic: {accuracyVvN} \n")
-
-    return accuracyCvP, accuracyVvN
+from syserol.dataImport import createCube, importFunction, importGlycan
 
 
 def test_predictions(function="ADCD"):
@@ -110,22 +39,22 @@ def test_predictions(function="ADCD"):
 def cross_validation():
     """ 10 Fold Cross Validation to Test Predictive Abilities"""
     cube, glyCube = createCube()
-    _, mapped = importFunction() 
+    _, mapped = importFunction()
     glycan, _ = importGlycan()
 
     X = glyCube
-    matrix = np.zeros([181,12])
+    matrix = np.zeros([181, 12])
 
-    kf = KFold(n_splits=10, shuffle=True) # split into 10 folds
-    for train_index, test_index in kf.split(X): # run cross validation
-        copy = glyCube.copy() # copy & restore original values at start of each cross validation fold
-        matrix[test_index, 0:6] = copy[test_index, len(glycan):len(glycan)+6] #store original value
-        copy[test_index, len(glycan):len(glycan)+6] = np.nan # artificially make the value NaN
+    kf = KFold(n_splits=10, shuffle=True)  # split into 10 folds
+    for train_index, test_index in kf.split(X):  # run cross validation
+        copy = glyCube.copy()  # copy & restore original values at start of each cross validation fold
+        matrix[test_index, 0:6] = copy[test_index, len(glycan) : len(glycan) + 6]  # store original value
+        copy[test_index, len(glycan) : len(glycan) + 6] = np.nan  # artificially make the value NaN
 
-        _, matrixFac, _ = perform_CMTF(cube, copy, 2) # run decomposition on new matrix
+        _, matrixFac, _ = perform_CMTF(cube, copy, 2)  # run decomposition on new matrix
         pred_matrix = tl.kruskal_to_tensor(matrixFac)
-        matrix[test_index, 6:13] = pred_matrix[test_index, len(glycan):len(glycan)+6] # store predicted values
-    
+        matrix[test_index, 6:13] = pred_matrix[test_index, len(glycan) : len(glycan) + 6]  # store predicted values
+
     return matrix
 
 def class_predictions():
