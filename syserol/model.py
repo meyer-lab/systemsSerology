@@ -35,20 +35,20 @@ def test_predictions(function="ADCD"):
 def cross_validation():
     """ 10 Fold Cross Validation to Test Predictive Abilities"""
     cube, glyCube = createCube()
-    _, mapped = importFunction() 
+    _, mapped = importFunction()
     glycan, _ = importGlycan()
 
     X = glyCube
-    matrix = np.zeros([181,12])
+    matrix = np.zeros([181, 12])
 
-    kf = KFold(n_splits=10, shuffle=True) # split into 10 folds
-    for train_index, test_index in kf.split(X): # run cross validation
-        copy = glyCube.copy() # copy & restore original values at start of each cross validation fold
-        matrix[test_index, 0:6] = copy[test_index, len(glycan):len(glycan)+6] #store original value
-        copy[test_index, len(glycan):len(glycan)+6] = np.nan # artificially make the value NaN
+    kf = KFold(n_splits=10, shuffle=True)  # split into 10 folds
+    for train_index, test_index in kf.split(X):  # run cross validation
+        copy = glyCube.copy()  # copy & restore original values at start of each cross validation fold
+        matrix[test_index, 0:6] = copy[test_index, len(glycan) : len(glycan) + 6]  # store original value
+        copy[test_index, len(glycan) : len(glycan) + 6] = np.nan  # artificially make the value NaN
 
-        _, matrixFac, _ = perform_CMTF(cube, copy, 2) # run decomposition on new matrix
+        _, matrixFac, _ = perform_CMTF(cube, copy, 2)  # run decomposition on new matrix
         pred_matrix = tl.kruskal_to_tensor(matrixFac)
-        matrix[test_index, 6:13] = pred_matrix[test_index, len(glycan):len(glycan)+6] # store predicted values
-    
+        matrix[test_index, 6:13] = pred_matrix[test_index, len(glycan) : len(glycan) + 6]  # store predicted values
+
     return matrix

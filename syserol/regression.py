@@ -11,7 +11,6 @@ from .dataImport import createCube, importFunction, importLuminex, importGlycan,
 from .tensor import perform_CMTF
 
 
-
 def patientComponents(nComp=1):
     """ Generate factorization on cross-validation. """
     cube, glyCube = createCube()
@@ -57,10 +56,9 @@ def function_elastic_net(function="ADCC"):
     X = df_variables
     Y_pred = np.empty(Y.shape)
 
-
-    regr = ElasticNetCV(normalize=True, max_iter = 10000)
+    regr = ElasticNetCV(normalize=True, max_iter=10000)
     model = regr.fit(X, Y)
-    Y_pred = cross_val_predict(ElasticNet(alpha = regr.alpha_, normalize = True, max_iter = 10000), X, Y, cv = 10)
+    Y_pred = cross_val_predict(ElasticNet(alpha=regr.alpha_, normalize=True, max_iter=10000), X, Y, cv=10)
 
     print(model.coef_)
     print(np.sqrt(r2_score(Y, Y_pred)))
@@ -75,7 +73,7 @@ def two_way_classifications():
     lum = df.pivot(index="subject", columns="variable", values="value")
     subj = load_file("meta-subjects")
     igg = importIGG()
-    
+
     igg = igg.pivot(index="subject", columns="variable", values="value")
     data_frames = [lum, subj, igg]
     df_merged = reduce(lambda left, right: pd.merge(left, right, on=["subject"], how="inner"), data_frames)
