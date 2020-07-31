@@ -92,12 +92,9 @@ def createCube():
     glycan, dfGlycan = importGlycan()
     dfGlycan = dfGlycan.pivot(index="subject", columns="variable", values="value")
     func, _ = importFunction()
-    classes = load_file("meta-subjects")
-    classes = classes.drop(["class.etuv"], axis=1)
-    classes = classes.replace(to_replace=["controller", "progressor", "viremic", "nonviremic"], value=[1, 0, 1, 0])
-    data_frames = [dfGlycan, func, classes]
+    data_frames = [dfGlycan, func]
     df_merged = reduce(lambda left, right: pd.merge(left, right, on=["subject"], how="outer"), data_frames)
-    glyCube = np.full([len(subjects), len(glycan) + 8], np.nan)
+    glyCube = np.full([len(subjects), len(glycan) + 6], np.nan)
 
     for k, curAnti in enumerate(antigen):
         lumx = importLuminex(curAnti)
