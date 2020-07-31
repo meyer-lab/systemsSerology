@@ -3,7 +3,6 @@ import numpy as np
 import tensorly as tl
 from tensorly.tenalg import khatri_rao
 from tensorly.kruskal_tensor import KruskalTensor
-from tensorly.decomposition.candecomp_parafac import initialize_kruskal
 
 
 # Authors: Isabell Lehmann <isabell.lehmann94@outlook.de>
@@ -16,7 +15,7 @@ def solve_least_squares(A, B):
     return np.transpose(np.linalg.lstsq(A, B, rcond=-1)[0])
 
 
-def coupled_matrix_tensor_3d_factorization(tensor_3d, matrix, rank, mask_3d=None, mask_matrix=None, init="svd", verbose=False):
+def coupled_matrix_tensor_3d_factorization(X, Y, rank, mask_3d=None, mask_matrix=None, init, verbose=False):
     """
     Calculates a coupled matrix and tensor factorization of 3rd order tensor and matrix which are
     coupled in first mode.
@@ -55,14 +54,11 @@ def coupled_matrix_tensor_3d_factorization(tensor_3d, matrix, rank, mask_3d=None
         tensor_3d_pred = [[lambda; A,B,C]], matrix_pred = [[gamma; A,V]]
     """
 
-    assert tl.is_tensor(tensor_3d)
-    X = tensor_3d
-
-    assert tl.is_tensor(matrix)
-    Y = matrix
+    assert tl.is_tensor(X)
+    assert tl.is_tensor(Y)
 
     # initialize values
-    _, (A, B, C) = initialize_kruskal(X.astype(float), rank, init=init)
+    A, B, C = kruskal.factors
 
     V = solve_least_squares(A, Y)
     gamma = np.linalg.norm(V, axis=0)
@@ -122,7 +118,4 @@ def coupled_matrix_tensor_3d_factorization(tensor_3d, matrix, rank, mask_3d=None
 
         error_old = error_new
 
-    tensor_3d_pred = KruskalTensor((lambda_, [A, B, C]))
-    matrix_pred = KruskalTensor((gamma, [A, V]))
-
-    return tensor_3d_pred, matrix_pred
+    return KruskalTensor((lambda_, [A, B, C])), KruskalTensor((gamma, [A, V]))
