@@ -15,7 +15,7 @@ def solve_least_squares(A, B):
     return np.transpose(np.linalg.lstsq(A, B, rcond=-1)[0])
 
 
-def coupled_matrix_tensor_3d_factorization(X, Y, rank, mask_3d=None, mask_matrix=None, init, verbose=False):
+def coupled_matrix_tensor_3d_factorization(X, Y, rank, mask_3d, mask_matrix, init, verbose=False):
     """
     Calculates a coupled matrix and tensor factorization of 3rd order tensor and matrix which are
     coupled in first mode.
