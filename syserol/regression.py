@@ -62,7 +62,6 @@ def function_elastic_net(function="ADCC"):
     model = regr.fit(X, Y)
     Y_pred = cross_val_predict(ElasticNet(alpha = regr.alpha_, normalize = True, max_iter = 10000), X, Y, cv = 10)
 
-    print(model.coef_)
     print(np.sqrt(r2_score(Y, Y_pred)))
 
     return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))
