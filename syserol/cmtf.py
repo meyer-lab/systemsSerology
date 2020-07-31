@@ -58,7 +58,7 @@ def coupled_matrix_tensor_3d_factorization(X, Y, rank, mask_3d, mask_matrix, ini
     assert tl.is_tensor(Y)
 
     # initialize values
-    A, B, C = kruskal.factors
+    A, B, C = init.factors
 
     V = solve_least_squares(A, Y)
     gamma = np.linalg.norm(V, axis=0)
