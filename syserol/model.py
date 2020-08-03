@@ -57,19 +57,13 @@ def cross_validation():
 
     return matrix
 
-def class_predictions():
+def SVM_2class_predictions(subjects_matrix):
     """ Predict Subject Class with Support Vector Machines and Decomposed Tensor Data"""
     # Load Data
-    cube, glyCube = createCube()
     classes = load_file("meta-subjects")
-    classes = classes.replace(to_replace=["controller", "progressor", "viremic", "nonviremic"], value = [1, 0, 1, 0])
+    classes = classes.replace(to_replace=["controller", "progressor", "viremic", "nonviremic"], value=[1, 0, 1, 0])
     cp = np.array(classes["class.cp"])
     nv = np.array(classes["class.nv"])
-    
-    # Run Decomposition (5 components)
-    tensorFac, matrixFac, R2XX = perform_CMTF(cube, glyCube, 5)
-    # Subject Matrix acts for model training data
-    subjects_matrix = tensorFac[1][0]
     
     # Controller/Progressor classification
     X = subjects_matrix
@@ -78,20 +72,14 @@ def class_predictions():
     # Run SVM classifier model
     clf = SVC(kernel="rbf")
     y_pred1 = cross_val_predict(clf, X, Y, cv=10)
-    model = clf.fit(X, Y) # fit model
     cp_accuracy = accuracy_score(Y, y_pred1)
-    print("CP Prediction Accuracy:", cp_accuracy)
-    
     
     # Viremic/Nonviremic classification 
-    X = subjects_matrix
     Y = nv
     # Kernel = RBF
     # Run SVM classifier model
     clf = SVC(kernel="rbf")
     y_pred2 = cross_val_predict(clf, X, Y, cv=10)
-    model = clf.fit(X, Y) # fit model
     nv_accuracy = accuracy_score(Y, y_pred2)
-    print("NV Accuracy:", nv_accuracy)
     
     return cp_accuracy, nv_accuracy
