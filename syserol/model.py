@@ -2,7 +2,11 @@
 import numpy as np
 import tensorly as tl
 from sklearn.model_selection import KFold
-from sklearn.metrics import r2_score
+from sklearn.linear_model import ElasticNetCV, ElasticNet, LogisticRegressionCV
+from sklearn.model_selection import cross_val_predict
+from sklearn.metrics import r2_score, confusion_matrix, accuracy_score
+from sklearn.svm import SVC
+from scipy.stats import zscore
 from tensorly.kruskal_tensor import kruskal_to_tensor
 from syserol.tensor import perform_CMTF
 from syserol.dataImport import createCube, importFunction, importGlycan
@@ -52,3 +56,30 @@ def cross_validation():
         matrix[test_index, 6:13] = pred_matrix[test_index, len(glycan) : len(glycan) + 6]  # store predicted values
 
     return matrix
+
+def SVM_2class_predictions(subjects_matrix):
+    """ Predict Subject Class with Support Vector Machines and Decomposed Tensor Data"""
+    # Load Data
+    classes = load_file("meta-subjects")
+    classes = classes.replace(to_replace=["controller", "progressor", "viremic", "nonviremic"], value=[1, 0, 1, 0])
+    cp = np.array(classes["class.cp"])
+    nv = np.array(classes["class.nv"])
+    
+    # Controller/Progressor classification
+    X = subjects_matrix
+    Y = cp
+    # Kernel = RBF
+    # Run SVM classifier model
+    clf = SVC(kernel="rbf")
+    y_pred1 = cross_val_predict(clf, X, Y, cv=10)
+    cp_accuracy = accuracy_score(Y, y_pred1)
+    
+    # Viremic/Nonviremic classification 
+    Y = nv
+    # Kernel = RBF
+    # Run SVM classifier model
+    clf = SVC(kernel="rbf")
+    y_pred2 = cross_val_predict(clf, X, Y, cv=10)
+    nv_accuracy = accuracy_score(Y, y_pred2)
+    
+    return cp_accuracy, nv_accuracy
