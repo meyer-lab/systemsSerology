@@ -1,7 +1,7 @@
 
 import pickle
-from syserol.model import cross_validation
+from syserol.model import Function_Prediction_10FoldCV
 
 if __name__ == "__main__":
-    matrix = cross_validation()
+    matrix = Function_Prediction_10FoldCV(components=10)
     pickle.dumb(matrix, open("crossValidationMatrix.p", "wb"))
