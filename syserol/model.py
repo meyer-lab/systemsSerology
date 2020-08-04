@@ -4,7 +4,7 @@ import tensorly as tl
 from sklearn.model_selection import KFold
 from sklearn.linear_model import ElasticNetCV, ElasticNet, LogisticRegressionCV
 from sklearn.model_selection import cross_val_predict
-from sklearn.metrics import r2_score, confusion_matrix, accuracy_score
+from sklearn.metrics import r2_score, confusion_matrix
 from sklearn.svm import SVC
 from scipy.stats import zscore
 from tensorly.kruskal_tensor import kruskal_to_tensor
@@ -37,7 +37,7 @@ def test_predictions(function="ADCD"):
 
 
 def cross_validation():
-    """ 10 Fold Cross Validation to Test Predictive Abilities"""
+    """ 10 Fold Cross Validation to Test Function Predictive Abilities"""
     cube, glyCube = createCube()
     _, mapped = importFunction()
     glycan, _ = importGlycan()
@@ -51,7 +51,7 @@ def cross_validation():
         matrix[test_index, 0:6] = copy[test_index, len(glycan) : len(glycan) + 6]  # store original value
         copy[test_index, len(glycan) : len(glycan) + 6] = np.nan  # artificially make the value NaN
 
-        _, matrixFac, _ = perform_CMTF(cube, copy, 2)  # run decomposition on new matrix
+        _, matrixFac, _ = perform_CMTF(cube, copy, 10)  # run decomposition on new matrix
         pred_matrix = tl.kruskal_to_tensor(matrixFac)
         matrix[test_index, 6:13] = pred_matrix[test_index, len(glycan) : len(glycan) + 6]  # store predicted values
 
@@ -72,7 +72,7 @@ def SVM_2class_predictions(subjects_matrix):
     # Run SVM classifier model
     clf = SVC(kernel="rbf")
     y_pred1 = cross_val_predict(clf, X, Y, cv=10)
-    cp_accuracy = accuracy_score(Y, y_pred1)
+    cp_accuracy = confusion_matrix(Y, y_pred1)
     
     # Viremic/Nonviremic classification 
     Y = nv
@@ -80,6 +80,6 @@ def SVM_2class_predictions(subjects_matrix):
     # Run SVM classifier model
     clf = SVC(kernel="rbf")
     y_pred2 = cross_val_predict(clf, X, Y, cv=10)
-    nv_accuracy = accuracy_score(Y, y_pred2)
+    nv_accuracy = confusion_matrix(Y, y_pred2)
     
     return cp_accuracy, nv_accuracy
