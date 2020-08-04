@@ -9,7 +9,7 @@ from sklearn.svm import SVC
 from scipy.stats import zscore
 from tensorly.kruskal_tensor import kruskal_to_tensor
 from syserol.tensor import perform_CMTF
-from syserol.dataImport import createCube, importFunction, importGlycan
+from syserol.dataImport import createCube, importFunction, importGlycan, load_file
 
 
 def test_predictions(function="ADCD"):
