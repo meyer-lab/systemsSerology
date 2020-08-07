@@ -97,14 +97,21 @@ def makeFigure():
     ax, f = getSetup((10, 7), (1, 2))
     sns.set()
     # Function Plot
-    a = sns.scatterplot(
-        y="Accuracy", x="Function", style="Model", hue="Model", data=functions, ax=ax[0]
+    a = sns.pointplot(
+        y="Accuracy",
+        x="Function",
+        hue="Model",
+        markers=["o", "x"],
+        join=False,
+        data=functions,
+        ax=ax[0],
     )
     # Formatting
     shades = [-0.5, 1.5, 3.5]
     for i in shades:
         a.axvspan(i, i + 1, alpha=0.1, color="grey")
     a.set_xlim(-0.5, 5.5)
+    a.set_ylim(0, 1)
     a.grid(False)
     a.xaxis.tick_top()
     a.xaxis.set_label_position("top")
@@ -120,6 +127,7 @@ def makeFigure():
     b.plot([-0.5, 5.5], [avg, avg], "--", color="green")
     b.axvspan(-0.5, 0.5, alpha=0.1, color="grey")
     b.set_xlim(-0.5, 1.5)
+    b.set_ylim(0, 1)
     b.grid(False)
     b.xaxis.tick_top()
     b.xaxis.set_label_position("top")
