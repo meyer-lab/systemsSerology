@@ -59,7 +59,7 @@ def makeFigure():
     # Function Plot
     a = sns.scatterplot(y="Accuracy", x="Function", style="Model", hue="Model", data=functions, ax=ax[0])
     # Formatting
-    a.set_title("ADCD      ADCC      ADNP     CD107a      IFNy      MIP1b")
+    a.set_title(" ADCD      ADCC     ADNP   CD107a    IFNy     MIP1b ")
     shades = [-0.5, 1.5, 3.5]
     for i in shades:
         a.axvspan(i, i+1, alpha=0.1, color='grey')
