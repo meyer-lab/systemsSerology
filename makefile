@@ -1,4 +1,4 @@
-all: pylint.log figure1.svg figure2.svg figure3.svg figure4.svg figure5.svg figure6.svg figure7.svg figure8.svg ffigure9.svg igure10.svg
+all: pylint.log figure1.svg figure2.svg figure3.svg figure4.svg figure5.svg figure6.svg figure7.svg figure8.svg figure9.svg figure10.svg
 
 venv: venv/bin/activate
 
