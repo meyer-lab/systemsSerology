@@ -5,7 +5,7 @@ import pandas as pd
 
 from sklearn.linear_model import ElasticNetCV, ElasticNet, LogisticRegressionCV
 from sklearn.model_selection import cross_val_predict
-from sklearn.metrics import r2_score, confusion_matrix
+from sklearn.metrics import r2_score, confusion_matrix, accuracy_score
 from scipy.stats import zscore
 from .dataImport import createCube, importFunction, importLuminex, importGlycan, importIGG, load_file
 from .tensor import perform_CMTF
@@ -92,8 +92,9 @@ def two_way_classifications():
     model1 = LogisticRegressionCV().fit(X1, Y1)
 
     print(model1.coef_)
-    accuracyCvP = confusion_matrix(Y1, Y_pred1)
-    print(f"Confusion Matrix Controller vs. Progressor: {accuracyCvP} \n")
+    confusionCvP = confusion_matrix(Y1, Y_pred1)
+    accuracyCvP = accuracy_score(Y1, Y_pred1)
+    print(f"Confusion Matrix Controller vs. Progressor: {confusionCvP} \n")
 
     # Predict Viremic vs. Nonviremic
     Y2 = df_class["class.nv"]
@@ -104,7 +105,8 @@ def two_way_classifications():
     model2 = LogisticRegressionCV().fit(X2, Y2)
 
     print(model2.coef_)
-    accuracyVvN = confusion_matrix(Y2, Y_pred2)
-    print(f"Confusion Matrix Viremic vs. Nonviremic: {accuracyVvN} \n")
+    confusionVvN = confusion_matrix(Y2, Y_pred2)
+    accuracyVvN = accuracy_score(Y2, Y_pred2)
+    print(f"Confusion Matrix Viremic vs. Nonviremic: {confusionVvN} \n")
 
-    return accuracyCvP, accuracyVvN
+    return accuracyCvP, accuracyVvN, confusionCvP, confusionVvN
