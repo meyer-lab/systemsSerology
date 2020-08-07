@@ -12,7 +12,7 @@ import seaborn as sns
 
 def makeFigure():
     """ Generate Figure 3 for Paper, Showing Better Interpretation of All Data from Decomposed Tensor"""
-    ax, f = getSetup((25, 25), (3, 4))
+    ax, f = getSetup((8, 8), (3, 4))
 
     cube, glyCube = createCube()
     tensorFac, matrixFac, _ = perform_CMTF(cube, glyCube, 6)
@@ -77,9 +77,9 @@ def makeFigure():
         )
         d.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
 
-    ax[0].set_title("Subjects", fontsize=20)
-    ax[1].set_title("Receptors", fontsize=20)
-    ax[2].set_title("Antigens", fontsize=20)
-    ax[3].set_title("Glycans/Functions", fontsize=20)
+    ax[0].set_title("Subjects", fontsize=15)
+    ax[1].set_title("Receptors", fontsize=15)
+    ax[2].set_title("Antigens", fontsize=15)
+    ax[3].set_title("Glycans/Functions", fontsize=15)
 
     return f
