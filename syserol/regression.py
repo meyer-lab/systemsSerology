@@ -69,6 +69,7 @@ def function_elastic_net(function="ADCC"):
     Y_pred = np.empty(Y.shape)
 
     regr = ElasticNetCV(normalize=True, max_iter=10000)
+    regr.fit(X, Y)
     Y_pred = cross_val_predict(
         ElasticNet(alpha=regr.alpha_, normalize=True, max_iter=10000), X, Y, cv=10
     )
