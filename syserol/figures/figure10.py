@@ -1,13 +1,12 @@
 """
 This creates Figure 3 for the Paper.
 """
-
-from syserol.tensor import perform_CMTF
-from syserol.dataImport import createCube, getAxes, load_file, importGlycan
-from .common import subplotLabel, getSetup
 import pandas as pd
 import numpy as np
 import seaborn as sns
+from syserol.tensor import perform_CMTF
+from syserol.dataImport import createCube, getAxes, load_file
+from .common import getSetup
 
 
 def makeFigure():
@@ -36,30 +35,60 @@ def makeFigure():
         # Subjects
         values1 = subjects[:, i]
         values2 = subjects[:, i + 1]
-        data = {f"Component {i+1} Measurement": values1, f"Component {i+2} Measurement": values2, "Groups": subjinfo["class.etuv"]}
+        data = {
+            f"Component {i+1} Measurement": values1,
+            f"Component {i+2} Measurement": values2,
+            "Groups": subjinfo["class.etuv"],
+        }
         df = pd.DataFrame(data)
         a = sns.scatterplot(
-            x=f"Component {i+1} Measurement", y=f"Component {i+2} Measurement", hue="Groups", data=df, palette="Set1", legend="brief", ax=ax[j]
+            x=f"Component {i+1} Measurement",
+            y=f"Component {i+2} Measurement",
+            hue="Groups",
+            data=df,
+            palette="Set1",
+            legend="brief",
+            ax=ax[j],
         )
         a.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
 
         # Detections
         values1 = receptors[:, i]
         values2 = receptors[:, i + 1]
-        data = {f"Component {i+1} Measurement": values1, f"Component {i+2} Measurement": values2, "Groups": detections}
+        data = {
+            f"Component {i+1} Measurement": values1,
+            f"Component {i+2} Measurement": values2,
+            "Groups": detections,
+        }
         df = pd.DataFrame(data)
         b = sns.scatterplot(
-            x=f"Component {i+1} Measurement", y=f"Component {i+2} Measurement", hue="Groups", data=df, palette="Set2", legend="brief", ax=ax[j + 1]
+            x=f"Component {i+1} Measurement",
+            y=f"Component {i+2} Measurement",
+            hue="Groups",
+            data=df,
+            palette="Set2",
+            legend="brief",
+            ax=ax[j + 1],
         )
         b.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
 
         # Antigens
         values1 = antigens[:, i]
         values2 = antigens[:, i + 1]
-        data = {f"Component {i+1} Measurement": values1, f"Component {i+2} Measurement": values2, "Groups": antigen}
+        data = {
+            f"Component {i+1} Measurement": values1,
+            f"Component {i+2} Measurement": values2,
+            "Groups": antigen,
+        }
         df = pd.DataFrame(data)
         c = sns.scatterplot(
-            x=f"Component {i+1} Measurement", y=f"Component {i+2} Measurement", hue="Groups", data=df, palette="Set3", legend="brief", ax=ax[j + 2]
+            x=f"Component {i+1} Measurement",
+            y=f"Component {i+2} Measurement",
+            hue="Groups",
+            data=df,
+            palette="Set3",
+            legend="brief",
+            ax=ax[j + 2],
         )
         c.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
 
@@ -73,7 +102,13 @@ def makeFigure():
         }
         df = pd.DataFrame(data)
         d = sns.scatterplot(
-            x=f"Component {i+1} Measurement", y=f"Component {i+2} Measurement", hue="Groups", data=df, palette="muted", legend="brief", ax=ax[j + 3]
+            x=f"Component {i+1} Measurement",
+            y=f"Component {i+2} Measurement",
+            hue="Groups",
+            data=df,
+            palette="muted",
+            legend="brief",
+            ax=ax[j + 3],
         )
         d.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
 
