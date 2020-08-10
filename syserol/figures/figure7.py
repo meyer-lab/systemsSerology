@@ -1,11 +1,10 @@
 """
 This creates Figure 7.
 """
-import matplotlib
 import numpy as np
+from sklearn.metrics import r2_score
 from syserol.figures.common import subplotLabel, getSetup
 from syserol.model import cross_validation
-from sklearn.metrics import r2_score
 
 def makeFigure():
     """ Analyze Prediction Accuracy of 10 Fold Cross Validation Strategy"""

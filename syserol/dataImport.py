@@ -1,16 +1,18 @@
 """ Data import and processing. """
 from functools import lru_cache
 from os.path import join, dirname
+from functools import reduce
 import numpy as np
 import pandas as pd
-from functools import reduce
 
 path_here = dirname(dirname(__file__))
 
 
 def load_file(name):
     """ Return a requested data file. """
-    data = pd.read_csv(join(path_here, "syserol/data/" + name + ".csv"), delimiter=",", comment="#")
+    data = pd.read_csv(
+        join(path_here, "syserol/data/" + name + ".csv"), delimiter=",", comment="#"
+    )
 
     return data
 
@@ -93,7 +95,10 @@ def createCube():
     dfGlycan = dfGlycan.pivot(index="subject", columns="variable", values="value")
     func, _ = importFunction()
     data_frames = [dfGlycan, func]
-    df_merged = reduce(lambda left, right: pd.merge(left, right, on=["subject"], how="outer"), data_frames)
+    df_merged = reduce(
+        lambda left, right: pd.merge(left, right, on=["subject"], how="outer"),
+        data_frames,
+    )
     glyCube = np.full([len(subjects), len(glycan) + 6], np.nan)
 
     for k, curAnti in enumerate(antigen):
