@@ -1,10 +1,10 @@
 """
 This creates Figure 5.
 """
+import numpy as np
 from syserol.dataImport import importFunction
 from syserol.model import test_predictions
 from .common import subplotLabel, getSetup
-import numpy as np
 
 def makeFigure():
     """ Plot correlation for each function between original and reconstruced glycube matrix across increasing(16) components"""

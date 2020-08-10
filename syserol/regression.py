@@ -7,7 +7,14 @@ from sklearn.linear_model import ElasticNetCV, ElasticNet, LogisticRegressionCV
 from sklearn.model_selection import cross_val_predict
 from sklearn.metrics import r2_score, confusion_matrix, accuracy_score
 from scipy.stats import zscore
-from .dataImport import createCube, importFunction, importLuminex, importGlycan, importIGG, load_file
+from .dataImport import (
+    createCube,
+    importFunction,
+    importLuminex,
+    importGlycan,
+    importIGG,
+    load_file,
+)
 from .tensor import perform_CMTF
 
 
@@ -44,12 +51,17 @@ def function_elastic_net(function="ADCC"):
     igg = importIGG()
     igg = igg.pivot(index="subject", columns="variable", values="value")
     data_frames = [lum, glyc, func, igg]
-    df_merged = reduce(lambda left, right: pd.merge(left, right, on=["subject"], how="inner"), data_frames)
+    df_merged = reduce(
+        lambda left, right: pd.merge(left, right, on=["subject"], how="inner"),
+        data_frames,
+    )
     df_merged = df_merged.dropna()
 
     # separate dataframes
     df_func = df_merged[["ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"]]
-    df_variables = df_merged.drop(["subject", "ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"], axis=1)
+    df_variables = df_merged.drop(
+        ["subject", "ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"], axis=1
+    )
 
     # perform regression
     Y = df_func[function]
@@ -57,8 +69,10 @@ def function_elastic_net(function="ADCC"):
     Y_pred = np.empty(Y.shape)
 
     regr = ElasticNetCV(normalize=True, max_iter=10000)
-    model = regr.fit(X, Y)
-    Y_pred = cross_val_predict(ElasticNet(alpha=regr.alpha_, normalize=True, max_iter=10000), X, Y, cv=10)
+    regr.fit(X, Y)
+    Y_pred = cross_val_predict(
+        ElasticNet(alpha=regr.alpha_, normalize=True, max_iter=10000), X, Y, cv=10
+    )
 
     print(np.sqrt(r2_score(Y, Y_pred)))
 
@@ -75,12 +89,17 @@ def two_way_classifications():
 
     igg = igg.pivot(index="subject", columns="variable", values="value")
     data_frames = [lum, subj, igg]
-    df_merged = reduce(lambda left, right: pd.merge(left, right, on=["subject"], how="inner"), data_frames)
+    df_merged = reduce(
+        lambda left, right: pd.merge(left, right, on=["subject"], how="inner"),
+        data_frames,
+    )
     df_merged = df_merged.dropna()
 
     # Subset, Z score
     df_class = df_merged[["class.cp", "class.nv"]]
-    df_variables = df_merged.drop(["subject", "class.etuv", "class.cp", "class.nv"], axis=1)
+    df_variables = df_merged.drop(
+        ["subject", "class.etuv", "class.cp", "class.nv"], axis=1
+    )
     df_variables = df_variables.apply(zscore)
 
     # Predict Controller vs. Progressor

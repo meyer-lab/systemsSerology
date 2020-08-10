@@ -2,8 +2,8 @@
 This creates Figure 2.
 """
 
-from .common import subplotLabel, getSetup
 from syserol.regression import function_elastic_net
+from .common import subplotLabel, getSetup
 
 
 def makeFigure():
@@ -13,7 +13,7 @@ def makeFigure():
     
     functions = ['ADCD', 'ADCC', 'ADNP', 'CD107a', 'IFNy', 'MIP1b']
     for i, name in enumerate(functions):
-        Measured, Y_pred, corr = function_elastic_net(name)
+        Measured, Y_pred, _ = function_elastic_net(name)
         ax[i].scatter(Measured, Y_pred)
         ax[i].set_ylabel("Predicted", fontsize = 12)
         ax[i].set_xlabel("Measured", fontsize = 12)
