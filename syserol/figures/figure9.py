@@ -94,7 +94,7 @@ def makeFigure():
     classes = pd.DataFrame(data)
 
     # PLOT DataFrames
-    ax, f = getSetup((10, 7), (1, 2))
+    ax, f = getSetup((5, 4), (1, 2))
     sns.set()
     # Function Plot
     a = sns.pointplot(
