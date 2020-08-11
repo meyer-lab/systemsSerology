@@ -8,9 +8,9 @@ import seaborn as sns
 from syserol.regression import function_elastic_net, two_way_classifications
 from syserol.dataImport import importFunction, createCube
 from syserol.model import (
-    cross_validation,
+    Function_Prediction_10FoldCV,
     SVM_2class_predictions,
-)  # Function_Prediction_10FoldCV
+)  
 from sklearn.metrics import r2_score
 from syserol.figures.common import subplotLabel, getSetup
 from syserol.tensor import perform_CMTF
@@ -19,7 +19,7 @@ from syserol.tensor import perform_CMTF
 def makeFigure():
     """ Show Similarity in Prediction of Alter Model and Our Model"""
     # Gather Function Prediction Accuracies
-    arry = cross_validation()  # Our Function Predictions in an array
+    arry = Function_Prediction_10FoldCV(6)  # Our Function Predictions in an array
     _, mapped = importFunction()
     accuracies = np.zeros(12)
     for ii, func in enumerate(mapped):
