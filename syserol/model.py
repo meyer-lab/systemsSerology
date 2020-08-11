@@ -34,8 +34,8 @@ def test_predictions(function="ADCD"):
     return corr
 
 
-def cross_validation():
-    """ 10 Fold Cross Validation to Test Predictive Abilities"""
+def Function_Prediction_10FoldCV(components=10):
+    """ 10 Fold Cross Validation to Test Function Predictive Abilities"""
     cube, glyCube = createCube()
     glycan, _ = importGlycan()
 
@@ -54,7 +54,7 @@ def cross_validation():
             test_index, len(glycan) : len(glycan) + 6
         ] = np.nan  # artificially make the value NaN
 
-        _, matrixFac, _ = perform_CMTF(cube, copy, 2)  # run decomposition on new matrix
+        _, matrixFac, _ = perform_CMTF(cube, copy, components)  # run decomposition on new matrix
         pred_matrix = tl.kruskal_to_tensor(matrixFac)
         matrix[test_index, 6:13] = pred_matrix[
             test_index, len(glycan) : len(glycan) + 6

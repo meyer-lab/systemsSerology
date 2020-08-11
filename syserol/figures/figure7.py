@@ -4,12 +4,13 @@ This creates Figure 7.
 import numpy as np
 from sklearn.metrics import r2_score
 from syserol.figures.common import subplotLabel, getSetup
-from syserol.model import cross_validation
+from syserol.model import Function_Prediction_10FoldCV
+
 
 def makeFigure():
     """ Analyze Prediction Accuracy of 10 Fold Cross Validation Strategy"""
     ax, f = getSetup((10, 10), (3, 2))
-    matrix = cross_validation()
+    matrix = Function_Prediction_10FoldCV(6)
     functions = ["ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"]
     # Plot Actual vs. Predicted Values for each Function
     for i in np.arange(6):
