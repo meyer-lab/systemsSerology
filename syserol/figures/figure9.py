@@ -2,15 +2,23 @@
 This creates Figure 9, Paper Figure 2.
 """
 
+from functools import reduce
 import pandas as pd
 import numpy as np
 import seaborn as sns
 from syserol.regression import function_elastic_net, two_way_classifications
-from syserol.dataImport import importFunction, createCube
+from syserol.dataImport import (
+    importFunction,
+    createCube,
+    importLuminex,
+    importGlycan,
+    importIGG,
+    getAxes,
+)
 from syserol.model import (
     Function_Prediction_10FoldCV,
     SVM_2class_predictions,
-)  
+)
 from sklearn.metrics import r2_score
 from syserol.figures.common import subplotLabel, getSetup
 from syserol.tensor import perform_CMTF
@@ -67,7 +75,58 @@ def makeFigure():
         ]
     )
     data = {"Accuracy": accuracies, "Model": model, "Function": function}
-    functions = pd.DataFrame(data)
+    functions = pd.DataFrame(data)  # Function Prediction DataFrame, Figure 2B
+
+    # Gather function predictions for subjects left out of Alter
+    # arry = Function_Prediction_10FoldCV(6) (line 22)
+    # Re-Create Alter DataFrame with leftout subjects
+    df = importLuminex()
+    lum = df.pivot(index="subject", columns="variable", values="value")
+    _, df2 = importGlycan()
+    glyc = df2.pivot(index="subject", columns="variable", values="value")
+    func, _ = importFunction()
+    igg = importIGG()
+    igg = igg.pivot(index="subject", columns="variable", values="value")
+    data_frames = [lum, glyc, func, igg]
+    df_merged = reduce(
+        lambda left, right: pd.merge(left, right, on=["subject"], how="inner"),
+        data_frames,
+    )
+    df_merged = df_merged.dropna()  # Final Alter DataFrame
+    fullsubj = np.array(df_merged["subject"])  # Subjects only included in Alter
+    leftout = []
+    subjects, _, _ = getAxes()
+    for index, i in enumerate(subjects):
+        if i not in fullsubj:
+            leftout.append((index, i))  # Subjects left out of Alter
+    indices = [i[0] for i in leftout]
+    preds = arry[indices, :]
+    df = pd.DataFrame(
+        preds,
+        columns=[
+            [
+                "ADCD",
+                "ADCC",
+                "ADNP",
+                "CD107a",
+                "IFNy",
+                "MIP1b",
+                "ADCD",
+                "ADCC",
+                "ADNP",
+                "CD107a",
+                "IFNy",
+                "MIP1b",
+            ]
+        ],
+    )
+    X = pd.melt(df.iloc[:, 0:6])
+    Y = pd.melt(df.iloc[:, 6:12])
+    X.columns = ["Function", "Value"]
+    Y.columns = ["Function", "Value"]
+    subjects_out = pd.concat([X, Y], axis=1)
+    subjects_out.columns = ["Function", "Value_x", "Function1", "Value_y"]
+    subjects_out = subjects_out.drop(columns=["Function1"])  # DataFrame for Figure 2D
 
     # Gather Class Prediction Accuracies
     accuracyCvP, accuracyVvN, _, _ = two_way_classifications()  # Alter accuracies
@@ -91,10 +150,10 @@ def makeFigure():
         ["Alter Model", "Our Model", "Baseline", "Alter Model", "Our Model", "Baseline"]
     )
     data = {"Accuracies": accuracies, "Class": category, "Model": model}
-    classes = pd.DataFrame(data)
+    classes = pd.DataFrame(data)  # Class Predictions DataFrame, Figure 2C
 
     # PLOT DataFrames
-    ax, f = getSetup((5, 4), (1, 2))
+    ax, f = getSetup((5, 4), (2, 2))
     sns.set()
     # Function Plot
     a = sns.pointplot(
@@ -134,6 +193,13 @@ def makeFigure():
     b.set_ylabel("Accuracy", fontsize=12)
     b.set_xlabel("Class Prediction", fontsize=12)
     b.tick_params(axis="x", labelsize=10)
+
+    # Function Predictions for Values left out of Alter Plot
+    c = sns.scatterplot(
+        x="Value_x", y="Value_y", hue="Function", data=subjects_out, ax=ax[2]
+    )
+    c.set_ylabel("Predicted Values", fontsize=12)
+    c.set_xlabel("Actual Values", fontsize=12)
 
     subplotLabel(ax)
 
