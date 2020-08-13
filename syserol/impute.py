@@ -1,33 +1,42 @@
 """ Evaluate the ability of CP to impute data. """
 
 import numpy as np
+import tensorly as tl
 from .dataImport import createCube
-from .tensor import impute
+from .tensor import perform_CMTF
 
 
-def evalMissing(nComp = 1, numSample = 100):
+def evalMissing(cube, glyCube, nComp, numSample=100):
     """ Evaluate how well factorization imputes missing values. """
-    cube = createCube()
-
+    cube = np.copy(cube)
+    glyCube = np.copy(glyCube)
     orig = []
-    recon = []
 
-    idxs = np.argwhere(np.isfinite(cube))
+    indices = list()
 
-    for ii in range(numSample):
+    for _ in range(numSample):
+        idxs = np.argwhere(np.isfinite(cube))
         i, j, k = idxs[np.random.choice(idxs.shape[0], 1)][0]
-
+        indices.append((i, j, k))
         orig.append(cube[i, j, k])
-        cubeTemp = np.copy(cube)
-        cubeTemp[i, j, k] = np.nan
+        cube[i, j, k] = np.nan
 
-        tensorR = impute(cubeTemp, nComp)
+    factors, _, _ = perform_CMTF(cube, glyCube, nComp)
+    tensorR = tl.kruskal_to_tensor(factors)
 
-        recon.append(tensorR[i, j, k])
-        print(len(recon))
-        print(np.corrcoef(orig, recon)[0, 1])
+    recon = [tensorR[indx[0], indx[1], indx[2]] for indx in indices]
 
-        if len(recon) > 100:
-            break
+    return np.array(orig), np.array(recon)
 
-    return orig, recon
+
+def evaluate_missing():
+    """ check differences between original and recon values for different number of components. """
+    Cube, glyCube = createCube()
+
+    Sumsqs = list()
+    for comp in np.arange(1, 8):
+        orig, recon = evalMissing(Cube, glyCube, nComp=comp, numSample=100)
+
+        Sumsqs.append(np.linalg.norm(orig - recon) / np.linalg.norm(orig))
+
+    return Sumsqs

@@ -1,5 +1,7 @@
 """ Data import and processing. """
+from functools import lru_cache
 from os.path import join, dirname
+from functools import reduce
 import numpy as np
 import pandas as pd
 
@@ -8,7 +10,9 @@ path_here = dirname(dirname(__file__))
 
 def load_file(name):
     """ Return a requested data file. """
-    data = pd.read_csv(join(path_here, "syserol/data/" + name + ".csv"), delimiter=",", comment="#")
+    data = pd.read_csv(
+        join(path_here, "syserol/data/" + name + ".csv"), delimiter=",", comment="#"
+    )
 
     return data
 
@@ -36,9 +40,9 @@ def importGlycan():
     df = load_file("data-glycan-gp120")
     dfAxis = load_file("meta-glycans")
     df = pd.melt(df, id_vars=["subject"])
-    
+
     glycan = dfAxis["glycan"].to_list()
-    
+
     return glycan, df
 
 
@@ -69,13 +73,18 @@ def importFunction():
     """ Import functional data. """
     subjects, _, _ = getAxes()
     df = load_file("data-function")
-    df_a = pd.DataFrame({'subject' : subjects})
+    df_a = pd.DataFrame({"subject": subjects})
 
-    df = df_a.merge(df, on='subject', how='left')
+    df = df_a.merge(df, on="subject", how="left")
 
-    return df
+    functions = ["ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"]
+    idnum = [0, 1, 2, 3, 4, 5]
+    mapped = dict(zip(functions, idnum))
+
+    return df, mapped
 
 
+@lru_cache()
 def createCube():
     """ Import the data and assemble the antigen cube. """
     subjects, detections, antigen = getAxes()
@@ -83,18 +92,25 @@ def createCube():
 
     IGG = importIGG()
     glycan, dfGlycan = importGlycan()
-    glyCube = np.full([len(subjects), len(glycan)], np.nan)
+    dfGlycan = dfGlycan.pivot(index="subject", columns="variable", values="value")
+    func, _ = importFunction()
+    data_frames = [dfGlycan, func]
+    df_merged = reduce(
+        lambda left, right: pd.merge(left, right, on=["subject"], how="outer"),
+        data_frames,
+    )
+    glyCube = np.full([len(subjects), len(glycan) + 6], np.nan)
 
     for k, curAnti in enumerate(antigen):
         lumx = importLuminex(curAnti)
 
         for i, curSubj in enumerate(subjects):
             subjLumx = lumx[lumx["subject"] == curSubj]
-            subjGly = dfGlycan[dfGlycan["subject"] == curSubj]
-            
-            for _, row in subjGly.iterrows():
-                j = glycan.index(row["variable"])
-                glyCube[i, j] = row["value"]
+            subjGly = df_merged[df_merged["subject"] == curSubj]
+            subjGly = subjGly.drop(["subject"], axis=1)
+
+            for j, col in enumerate(subjGly):
+                glyCube[i, j] = subjGly[col]
 
             for _, row in subjLumx.iterrows():
                 j = detections.index(row["variable"])
@@ -111,6 +127,8 @@ def createCube():
     # We probably want to do some sort of normalization, but I'm not sure what yet
     cube = cube - np.nanmean(cube, axis=(0, 2))[np.newaxis, :, np.newaxis]
     cube = cube / np.nanstd(cube, axis=(0, 2))[np.newaxis, :, np.newaxis]
+    glyCube = glyCube - np.nanmean(glyCube, axis=0)[np.newaxis, :]
+    glyCube = glyCube / np.nanstd(glyCube, axis=0)[np.newaxis, :]
 
     print("Missingness fraction: " + str(np.mean(np.isnan(cube))))
 

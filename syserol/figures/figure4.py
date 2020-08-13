@@ -4,13 +4,11 @@ This creates Figure 4.
 
 from .common import subplotLabel, getSetup
 
-
 def makeFigure():
-    """Get a list of the axis objects and create a figure"""
+    """ Builds the figure. """
     # Get list of axis objects
-    ax, f = getSetup((10, 10), (1, 1))
+    ax, f = getSetup((10, 10), (2, 3))
 
-    # Add subplot labels
     subplotLabel(ax)
 
     return f

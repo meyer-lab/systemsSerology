@@ -3,29 +3,27 @@ Unit test file.
 """
 import unittest
 import numpy as np
-import tensorly as tl
-from ..tensor import find_R2X, perform_decomposition, R2X
+from ..dataImport import createCube
+from ..tensor import perform_CMTF
 
 
 class TestModel(unittest.TestCase):
     """ Test Class for Tensor related work. """
+    def setUp(self):
+        self.cube, self.glyCube = createCube()
 
     def test_R2X(self):
         """ Test to ensure R2X for higher components is larger. """
-        tensor = np.random.rand(5, 5, 5)
-        tensor[1, 3, 2] = np.nan
-
-        self.assertTrue(np.isfinite(R2X(tensor, tensor)))
-        self.assertTrue(R2X(tensor, tensor) == 1.0)
-
         arr = []
-        for i in range(1, 4):
-            factors = perform_decomposition(tensor, i)
-            arr.append(find_R2X(tensor, factors))
+        for i in range(1, 3):
+            facT, facM, R2X = perform_CMTF(self.cube, self.glyCube, i)
+            self.assertTrue(np.all(np.isfinite(facT[0])))
+            self.assertTrue(np.allclose(facT[1][0], facM[1][0]))
+            arr.append(R2X)
 
         for j in range(len(arr) - 1):
             self.assertTrue(arr[j] < arr[j + 1])
 
         # confirm R2X is >= 0 and <=1
-        self.assertGreaterEqual(tl.min(arr), 0)
-        self.assertLessEqual(tl.max(arr), 1)
+        self.assertGreaterEqual(np.min(arr), 0)
+        self.assertLessEqual(np.max(arr), 1)
