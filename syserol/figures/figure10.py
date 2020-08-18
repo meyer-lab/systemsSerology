@@ -35,6 +35,7 @@ def makeFigure():
             glycaninf.iloc[i, 2] = "S2"
     glycaninf["FB"] = glycaninf["f"] + glycaninf["b"]
     glycaninf["GS"] = glycaninf["g"] + glycaninf["s"]
+    glycaninf["FB"] = glycaninf["FB"].replace(to_replace=[np.nan, ""], value=["Total", "No F or B"])
     glycaninf.loc[19:24, "GS"] = glycaninf.loc[19:24, "glycan"]
     _, detections, antigen = getAxes()
     subjinfo = load_file("meta-subjects")
