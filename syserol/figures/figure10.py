@@ -24,8 +24,10 @@ def makeFigure():
 
     # Gather grouping info
     glycaninf = load_file("meta-glycans")
-    glycaninf = glycaninf.replace(to_replace=["false", "b", "f", "g1", "g2", "g0", "s"],
-        value=["", "B", "F", "G1", "G2", "G0", "S"]) 
+    glycaninf = glycaninf.replace(
+        to_replace=["false", "b", "f", "g1", "g2", "g0", "s"],
+        value=["", "B", "F", "G1", "G2", "G0", "S"],
+    )
     for i in np.arange(0, len(glycaninf)):
         if "S1" in glycaninf.iloc[i, 0]:
             glycaninf.iloc[i, 2] = "S1"
@@ -44,50 +46,205 @@ def makeFigure():
     for i, j in zip(index, place):
         # Subjects
         values1 = subjects[:, i]
-        values2 = subjects[:, i+1]
-        data = {f"Component {i+1} Measurement": values1, f"Component {i+2} Measurement": values2, "Groups": subjinfo["class.etuv"]}
+        values2 = subjects[:, i + 1]
+        data = {
+            f"Component {i+1} Measurement": values1,
+            f"Component {i+2} Measurement": values2,
+            "Groups": subjinfo["class.etuv"],
+        }
         df = pd.DataFrame(data)
-        if j==4:
-            a = sns.scatterplot(x=f"Component {i+1} Measurement", y=f"Component {i+2} Measurement", hue="Groups", data=df, palette="Set1", legend="brief", ax=ax[j])
-            a.legend(loc='center left', bbox_to_anchor=(1, 0.5), ncol=1)
-        else: 
-            a = sns.scatterplot(x=f"Component {i+1} Measurement", y=f"Component {i+2} Measurement", hue="Groups", data=df, palette="Set1", legend=False, ax=ax[j])
+        if j == 4:
+            a = sns.scatterplot(
+                x=f"Component {i+1} Measurement",
+                y=f"Component {i+2} Measurement",
+                hue="Groups",
+                data=df,
+                palette="Set1",
+                legend="brief",
+                ax=ax[j],
+            )
+            a.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
+        else:
+            a = sns.scatterplot(
+                x=f"Component {i+1} Measurement",
+                y=f"Component {i+2} Measurement",
+                hue="Groups",
+                data=df,
+                palette="Set1",
+                legend=False,
+                ax=ax[j],
+            )
 
         # Detections
         values1 = receptors[:, i]
-        values2 = receptors[:, i+1]
-        data = {f"Component {i+1} Measurement": values1, f"Component {i+2} Measurement": values2, "Receptor": detections}
+        values2 = receptors[:, i + 1]
+        data = {
+            f"Component {i+1} Measurement": values1,
+            f"Component {i+2} Measurement": values2,
+            "Receptor": detections,
+        }
         df = pd.DataFrame(data)
-        markers = ('o', 'X', 'X', 'X', '^', 'D', 'D', 'D', 'D', 'D', 'D', '<', '>', '8', 's', 'P', 'P', 'P', 'P', 'P', 'p', 'd')
-        if j==4:
-            b = sns.scatterplot(x=f"Component {i+1} Measurement", y=f"Component {i+2} Measurement", hue="Receptor", style="Receptor", markers=markers, data=df, palette="Set2", legend="brief", ax=ax[j+1])
-            b.legend(loc='center left', bbox_to_anchor=(1, 0.5), ncol=1)
+        markers = (
+            "o",
+            "X",
+            "X",
+            "X",
+            "^",
+            "D",
+            "D",
+            "D",
+            "D",
+            "D",
+            "D",
+            "<",
+            ">",
+            "8",
+            "s",
+            "P",
+            "P",
+            "P",
+            "P",
+            "P",
+            "p",
+            "d",
+        )
+        if j == 4:
+            b = sns.scatterplot(
+                x=f"Component {i+1} Measurement",
+                y=f"Component {i+2} Measurement",
+                hue="Receptor",
+                style="Receptor",
+                markers=markers,
+                data=df,
+                palette="Set2",
+                legend="brief",
+                ax=ax[j + 1],
+            )
+            b.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
         else:
-            b = sns.scatterplot(x=f"Component {i+1} Measurement", y=f"Component {i+2} Measurement", hue="Receptor", style="Receptor", markers=markers, data=df, palette="Set2", legend=False, ax=ax[j+1])
+            b = sns.scatterplot(
+                x=f"Component {i+1} Measurement",
+                y=f"Component {i+2} Measurement",
+                hue="Receptor",
+                style="Receptor",
+                markers=markers,
+                data=df,
+                palette="Set2",
+                legend=False,
+                ax=ax[j + 1],
+            )
 
         # Antigens
         values1 = antigens[:, i]
-        values2 = antigens[:, i+1]
-        data = {f"Component {i+1} Measurement": values1, f"Component {i+2} Measurement": values2, "Antigens": antigen}
+        values2 = antigens[:, i + 1]
+        data = {
+            f"Component {i+1} Measurement": values1,
+            f"Component {i+2} Measurement": values2,
+            "Antigens": antigen,
+        }
         df = pd.DataFrame(data)
-        markers = ('o', 'v', '^', '<', '>', '8', 's', 'p', '*', 'h', 'H', 'D', 'd', 'P', 'X', 'o', 'v', '^', '<', '>', '8', 's', 'p', '*', 'h', 'H', 'D', 'd', 'P', 'X', 'o', 'v', '^', '<', '>', '8', 's', 'p', '*', 'h', 'H')
-        if j==4:
-            c = sns.scatterplot(x=f"Component {i+1} Measurement", y=f"Component {i+2} Measurement", hue="Antigens", style="Antigens", markers=markers, data=df, palette="Set3", legend="brief", ax=ax[j+2])
-            c.legend(loc='center left', bbox_to_anchor=(1, 0.5), ncol=1)
+        markers = (
+            "o",
+            "v",
+            "^",
+            "<",
+            ">",
+            "8",
+            "s",
+            "p",
+            "*",
+            "h",
+            "H",
+            "D",
+            "d",
+            "P",
+            "X",
+            "o",
+            "v",
+            "^",
+            "<",
+            ">",
+            "8",
+            "s",
+            "p",
+            "*",
+            "h",
+            "H",
+            "D",
+            "d",
+            "P",
+            "X",
+            "o",
+            "v",
+            "^",
+            "<",
+            ">",
+            "8",
+            "s",
+            "p",
+            "*",
+            "h",
+            "H",
+        )
+        if j == 4:
+            c = sns.scatterplot(
+                x=f"Component {i+1} Measurement",
+                y=f"Component {i+2} Measurement",
+                hue="Antigens",
+                style="Antigens",
+                markers=markers,
+                data=df,
+                palette="Set3",
+                legend="brief",
+                ax=ax[j + 2],
+            )
+            c.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
         else:
-            c = sns.scatterplot(x=f"Component {i+1} Measurement", y=f"Component {i+2} Measurement", hue="Antigens", style="Antigens", markers=markers, data=df, palette="Set3", legend=False, ax=ax[j+2])
+            c = sns.scatterplot(
+                x=f"Component {i+1} Measurement",
+                y=f"Component {i+2} Measurement",
+                hue="Antigens",
+                style="Antigens",
+                markers=markers,
+                data=df,
+                palette="Set3",
+                legend=False,
+                ax=ax[j + 2],
+            )
 
         # Glycans/Functions
         values1 = glyc[:, i]
-        values2 = glyc[:, i+1]
-        data = {f"Component {i+1} Measurement": values1, f"Component {i+2} Measurement": values2, "G": np.concatenate((np.array(glycaninf["GS"]), functions)), "FB": np.concatenate((np.array(glycaninf["FB"]), [np.nan]*6))}
+        values2 = glyc[:, i + 1]
+        data = {
+            f"Component {i+1} Measurement": values1,
+            f"Component {i+2} Measurement": values2,
+            "G": np.concatenate((np.array(glycaninf["GS"]), functions)),
+            "FB": np.concatenate((np.array(glycaninf["FB"]), [np.nan] * 6)),
+        }
         df = pd.DataFrame(data)
-        if j==4:
-            d = sns.scatterplot(x=f"Component {i+1} Measurement", y=f"Component {i+2} Measurement", hue="G", style="FB", data=df, palette="Paired", legend="brief", ax=ax[j+3])
-            d.legend(loc='center left', bbox_to_anchor=(1, 0.5), ncol=1)
+        if j == 4:
+            d = sns.scatterplot(
+                x=f"Component {i+1} Measurement",
+                y=f"Component {i+2} Measurement",
+                hue="G",
+                style="FB",
+                data=df,
+                palette="Paired",
+                legend="brief",
+                ax=ax[j + 3],
+            )
+            d.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
         else:
-            d = sns.scatterplot(x=f"Component {i+1} Measurement", y=f"Component {i+2} Measurement", hue="G", style="FB", data=df, palette="Paired", legend=False, ax=ax[j+3])
-
+            d = sns.scatterplot(
+                x=f"Component {i+1} Measurement",
+                y=f"Component {i+2} Measurement",
+                hue="G",
+                style="FB",
+                data=df,
+                palette="Paired",
+                legend=False,
+                ax=ax[j + 3],
+            )
 
     ax[0].set_title("Subjects", fontsize=15)
     ax[1].set_title("Receptors", fontsize=15)
