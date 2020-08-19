@@ -220,7 +220,7 @@ def makeFigure():
             f"Component {i+1} Measurement": values1,
             f"Component {i+2} Measurement": values2,
             "G": np.concatenate((np.array(glycaninf["GS"]), functions)),
-            "FB": np.concatenate((np.array(glycaninf["FB"]), [np.nan] * 6)),
+            "FB": np.concatenate((np.array(glycaninf["FB"]), ["Function"] * 6)),
         }
         df = pd.DataFrame(data)
         if j == 4:
