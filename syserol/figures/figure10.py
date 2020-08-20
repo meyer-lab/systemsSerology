@@ -24,6 +24,19 @@ def makeFigure():
 
     # Gather grouping info
     glycaninf = load_file("meta-glycans")
+    glycaninf = glycaninf.replace(
+        to_replace=["false", "b", "f", "g1", "g2", "g0", "s"],
+        value=["", "B", "F", "G1", "G2", "G0", "S"],
+    )
+    for i in np.arange(0, len(glycaninf)):
+        if "S1" in glycaninf.iloc[i, 0]:
+            glycaninf.iloc[i, 2] = "S1"
+        if "S2" in glycaninf.iloc[i, 0]:
+            glycaninf.iloc[i, 2] = "S2"
+    glycaninf["FB"] = glycaninf["f"] + glycaninf["b"]
+    glycaninf["GS"] = glycaninf["g"] + glycaninf["s"]
+    glycaninf["FB"] = glycaninf["FB"].replace(to_replace=[np.nan, ""], value=["Total", "No F or B"])
+    glycaninf.loc[19:24, "GS"] = glycaninf.loc[19:24, "glycan"]
     _, detections, antigen = getAxes()
     subjinfo = load_file("meta-subjects")
 
@@ -47,11 +60,11 @@ def makeFigure():
             hue="Groups",
             data=df,
             palette="Set1",
-            legend="brief",
+            legend="brief" if j==4 else False,
             ax=ax[j],
         )
         a.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
-
+        
         # Detections
         values1 = receptors[:, i]
         values2 = receptors[:, i + 1]
@@ -93,7 +106,7 @@ def makeFigure():
             markers=markers,
             data=df,
             palette="Set2",
-            legend="brief",
+            legend="brief" if j==4 else False,
             ax=ax[j + 1],
         )
         b.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
@@ -158,7 +171,7 @@ def makeFigure():
             markers=markers,
             data=df,
             palette="Set3",
-            legend="brief",
+            legend="brief" if j==4 else False,
             ax=ax[j + 2],
         )
         c.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
@@ -169,51 +182,18 @@ def makeFigure():
         data = {
             f"Component {i+1} Measurement": values1,
             f"Component {i+2} Measurement": values2,
-            "Groups": np.concatenate((np.array(glycaninf["glycan"]), functions)),
+            "G": np.concatenate((np.array(glycaninf["GS"]), functions)),
+            "FB": np.concatenate((np.array(glycaninf["FB"]), ["Function"] * 6)),
         }
         df = pd.DataFrame(data)
-        markers = (
-            "o",
-            "o",
-            "o",
-            "X",
-            "X",
-            "X",
-            "^",
-            "X",
-            "^",
-            "^",
-            "s",
-            "s",
-            "s",
-            "X",
-            "X",
-            "<",
-            "<",
-            "<",
-            "<",
-            "8",
-            "8",
-            "8",
-            "D",
-            "D",
-            "D",
-            "*",
-            "d",
-            "P",
-            "h",
-            "H",
-            "v",
-        )
         d = sns.scatterplot(
             x=f"Component {i+1} Measurement",
             y=f"Component {i+2} Measurement",
-            hue="Groups",
-            style="Groups",
+            hue="G",
+            style="FB",
             data=df,
             palette="Paired",
-            markers=markers,
-            legend="brief",
+            legend="brief" if j==4 else False,
             ax=ax[j + 3],
         )
         d.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
