@@ -26,9 +26,9 @@ def load_cache(r):
 def calcR2X(tensorIn, matrixIn, tensorFac, matrixFac):
     """ Calculate the R2X of CMTF. """
     tensorErr = np.nanvar(tl.kruskal_to_tensor(tensorFac) - tensorIn)
-    matrixErr = np.nanvar(tl.kruskal_to_tensor(matrixFac) - matrixIn)
+    #matrixErr = np.nanvar(tl.kruskal_to_tensor(matrixFac) - matrixIn)
 
-    return 1.0 - (tensorErr + matrixErr) / (np.nanvar(tensorIn) + np.nanvar(matrixIn))
+    return 1.0 - (tensorErr) / (np.nanvar(tensorIn))
 
 
 def perform_CMTF(tensorIn, matrixIn, r):
@@ -43,19 +43,19 @@ def perform_CMTF(tensorIn, matrixIn, r):
 
     # Check for a cache and if it matches return the result
     cache = load_cache(r)
-    if cache is not None:
-        tensorFac, matrixFac, R2Xcache = cache
+    #if cache is not None:
+    #    tensorFac, matrixFac, R2Xcache = cache
 
-        try:
-            R2XX = calcR2X(tensorIn, matrixIn, tensorFac, matrixFac)
-        except:
-            R2XX = -1
+    #    try:
+    #        R2XX = calcR2X(tensorIn, matrixIn, tensorFac, matrixFac)
+    #    except:
+    #        R2XX = -1
 
-        if np.isclose(R2XX, R2Xcache):
-            print("Cache hit.")
-            return tensorFac, matrixFac, R2Xcache
-        else:
-            print("Cache miss. Performing factorization.")
+    #    if np.isclose(R2XX, R2Xcache):
+    #        print("Cache hit.")
+    #        return tensorFac, matrixFac, R2Xcache
+    #    else:
+    #        print("Cache miss. Performing factorization.")
 
     # Initialize by running PARAFAC on the 3D tensor
     kruskal = parafac(
@@ -70,10 +70,8 @@ def perform_CMTF(tensorIn, matrixIn, r):
     tensor = tensor * mask + tl.kruskal_to_tensor(kruskal, mask=1 - mask)
     assert np.all(np.isfinite(tensor))
 
-    # Now run CMTF
-    tensorFac, matrixFac = coupled_matrix_tensor_3d_factorization(
-        tensor, matrix, mask_3d=mask, mask_matrix=mask_matrix, init=kruskal
-    )
+    tensorFac = kruskal
+    matrixFac = None
 
     R2XX = calcR2X(tensorIn, matrixIn, tensorFac, matrixFac)
 
