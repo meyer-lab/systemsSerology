@@ -1,7 +1,7 @@
 
 flist = 1 2 3 4 5 6 7 8 9 10
 
-all: pylint.log $(patsubst %, output/figure%.svg, $(flist))
+all: pylint.log $(patsubst %, figure%.svg, $(flist))
 
 venv: venv/bin/activate
 
@@ -27,7 +27,7 @@ output/manuscript.md: venv manuscript/*.md
 	. venv/bin/activate && manubot process --content-directory=manuscript --output-directory=output --cache-directory=cache --skip-citations --log-level=INFO
 	git remote rm rootstock
 
-output/manuscript.html: venv output/manuscript.md $(patsubst %, output/figure%.svg, $(flist))
+output/manuscript.html: venv output/manuscript.md $(patsubst %, figure%.svg, $(flist))
 	mkdir output/output
 	cp output/*.svg output/output/
 	. venv/bin/activate && pandoc --verbose \
