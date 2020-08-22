@@ -6,7 +6,6 @@ pipeline {
   stages {
     stage('Clean/Setup') {
       steps {
-        sh 'git reset --hard && git clean -ffdx'
         sh 'git submodule update --init --recursive && make clean'
         sh 'make venv'
       }
@@ -14,8 +13,12 @@ pipeline {
     stage('Test/Build/Lint') {
       steps {
         sh 'make all -j 3'
+        lock ('manubot') {
+          sh 'make output/manuscript.html'
+        }
         archiveArtifacts artifacts: '*.svg', onlyIfSuccessful: true
         recordIssues qualityGates: [[threshold: 50, type: 'TOTAL', unstable: true]], tools: [pyLint(pattern: 'pylint.log')]
+        publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'output', reportFiles: 'manuscript.html', reportName: 'Manuscript'])
       }
     }
   }

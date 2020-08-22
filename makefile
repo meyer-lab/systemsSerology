@@ -1,4 +1,7 @@
-all: pylint.log figure1.svg figure2.svg figure3.svg figure4.svg figure5.svg figure6.svg figure7.svg figure8.svg figure9.svg figure10.svg
+
+flist = 1 2 3 4 5 6 7 8 9 10
+
+all: pylint.log $(patsubst %, output/figure%.svg, $(flist))
 
 venv: venv/bin/activate
 
@@ -19,6 +22,17 @@ testprofile: venv
 
 pylint.log: venv
 	. venv/bin/activate && (pylint --rcfile=./common/pylintrc syserol > pylint.log || echo "pylint exited with $?")
+
+output/manuscript.md: venv manuscript/*.md
+	. venv/bin/activate && manubot process --content-directory=manuscript --output-directory=output --cache-directory=cache --skip-citations --log-level=INFO
+	git remote rm rootstock
+
+output/manuscript.html: venv output/manuscript.md $(patsubst %, output/figure%.svg, $(flist))
+	mkdir output/output
+	cp output/*.svg output/output/
+	. venv/bin/activate && pandoc --verbose \
+		--defaults=./common/templates/manubot/pandoc/common.yaml \
+		--defaults=./common/templates/manubot/pandoc/html.yaml
 
 clean:
 	rm -rf *.svg output venv pylint.log
