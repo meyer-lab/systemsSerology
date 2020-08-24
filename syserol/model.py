@@ -96,9 +96,9 @@ def SVM_2class_predictions(subjects_matrix):
     return cp_accuracy, nv_accuracy
 
 
-def noCMTF_function_prediction(function="ADCC"):
+def noCMTF_function_prediction(components=6, function="ADCC"):
     cube, glyCube = createCube()
-    tensorFac, matrixFac, R2XX = perform_CMTF(cube, glyCube, 6)
+    tensorFac, matrixFac, R2XX = perform_CMTF(cube, glyCube, components)
 
     func, _ = importFunction()
     df = pd.DataFrame(tensorFac[1][0]) #subjects x components matrix
@@ -112,6 +112,6 @@ def noCMTF_function_prediction(function="ADCC"):
     regr = ElasticNetCV(normalize=True, max_iter = 10000)
     model = regr.fit(X, Y)
     Y_pred = cross_val_predict(ElasticNet(alpha = regr.alpha_, normalize = True, max_iter = 10000), X, Y, cv = 10)
-    print(np.sqrt(r2_score(Y, Y_pred)))
+    print(f"Components: {components}, Accuracy: {np.sqrt(r2_score(Y, Y_pred))}")
         
     return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))
