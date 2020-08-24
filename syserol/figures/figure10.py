@@ -54,6 +54,7 @@ def makeFigure():
             "Groups": subjinfo["class.etuv"],
         }
         df = pd.DataFrame(data)
+        xmax = np.amax(np.absolute(values1))
         a = sns.scatterplot(
             x=f"Component {i+1} Measurement",
             y=f"Component {i+2} Measurement",
@@ -64,7 +65,8 @@ def makeFigure():
             ax=ax[j],
         )
         a.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
-        
+        a.set_xlim(-xmax, xmax)
+
         # Detections
         values1 = receptors[:, i]
         values2 = receptors[:, i + 1]
@@ -74,6 +76,7 @@ def makeFigure():
             "Receptor": detections,
         }
         df = pd.DataFrame(data)
+        xmax = np.amax(np.absolute(values1))
         markers = (
             "o",
             "X",
@@ -110,6 +113,7 @@ def makeFigure():
             ax=ax[j + 1],
         )
         b.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
+        b.set_xlim(-xmax, xmax)
 
         # Antigens
         values1 = antigens[:, i]
@@ -120,6 +124,7 @@ def makeFigure():
             "Antigens": antigen,
         }
         df = pd.DataFrame(data)
+        xmax = np.amax(np.absolute(values1))
         markers = (
             "o",
             "v",
@@ -175,6 +180,7 @@ def makeFigure():
             ax=ax[j + 2],
         )
         c.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
+        c.set_xlim(-xmax, xmax)
 
         # Glycans/Functions
         values1 = glyc[:, i]
@@ -186,6 +192,7 @@ def makeFigure():
             "FB": np.concatenate((np.array(glycaninf["FB"]), ["Function"] * 6)),
         }
         df = pd.DataFrame(data)
+        xmax = np.amax(np.absolute(values1))
         d = sns.scatterplot(
             x=f"Component {i+1} Measurement",
             y=f"Component {i+2} Measurement",
@@ -197,6 +204,7 @@ def makeFigure():
             ax=ax[j + 3],
         )
         d.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
+        d.set_xlim(-xmax, xmax)
 
     ax[0].set_title("Subjects", fontsize=15)
     ax[1].set_title("Receptors", fontsize=15)
