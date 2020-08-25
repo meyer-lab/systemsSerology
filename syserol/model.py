@@ -1,7 +1,9 @@
 """ Regression methods using Factorized Data. """
 import numpy as np
+import pandas as pd
 import tensorly as tl
 from sklearn.model_selection import KFold
+from sklearn.linear_model import ElasticNetCV, ElasticNet
 from sklearn.model_selection import cross_val_predict
 from sklearn.metrics import r2_score, accuracy_score
 from sklearn.svm import SVC
@@ -92,3 +94,23 @@ def SVM_2class_predictions(subjects_matrix):
     nv_accuracy = accuracy_score(Y, y_pred2)
 
     return cp_accuracy, nv_accuracy
+
+def noCMTF_function_prediction(components=6, function="ADCC"):
+    cube, glyCube = createCube()
+    tensorFac, matrixFac, _ = perform_CMTF(cube, glyCube, components)
+
+    func, _ = importFunction()
+    df = pd.DataFrame(tensorFac[1][0]) #subjects x components matrix
+    df = df.join(func, how = 'inner')
+    df = df.dropna()
+    df_func = df[["ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"]]
+    df_variables = df.drop(['subject','ADCD', 'ADCC', 'ADNP', 'CD107a', 'IFNy', 'MIP1b'], axis = 1)
+
+    X = df_variables
+    Y = df_func["ADCC"]
+    regr = ElasticNetCV(normalize=True, max_iter = 10000)
+    model = regr.fit(X, Y)
+    Y_pred = cross_val_predict(ElasticNet(alpha = regr.alpha_, normalize = True, max_iter = 10000), X, Y, cv = 10)
+    print(f"Components: {components}, Accuracy: {np.sqrt(r2_score(Y, Y_pred))}")
+
+    return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))
