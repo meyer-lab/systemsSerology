@@ -1,5 +1,5 @@
 
-flist = 1 2 3 4 5 6 7 8 9 10
+flist = 1 2 6 7 8 9 10
 
 all: pylint.log $(patsubst %, figure%.svg, $(flist))
 
@@ -28,11 +28,11 @@ output/manuscript.md: venv manuscript/*.md
 	git remote rm rootstock
 
 output/manuscript.html: venv output/manuscript.md $(patsubst %, figure%.svg, $(flist))
-	mkdir output/output
 	cp *.svg output/
 	. venv/bin/activate && pandoc --verbose \
 		--defaults=./common/templates/manubot/pandoc/common.yaml \
-		--defaults=./common/templates/manubot/pandoc/html.yaml
+		--defaults=./common/templates/manubot/pandoc/html.yaml \
+		output/manuscript.md
 
 clean:
 	rm -rf *.svg output venv pylint.log
