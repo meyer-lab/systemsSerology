@@ -92,14 +92,7 @@ def createCube():
 
     IGG = importIGG()
     glycan, dfGlycan = importGlycan()
-    dfGlycan = dfGlycan.pivot(index="subject", columns="variable", values="value")
-    func, _ = importFunction()
-    data_frames = [dfGlycan, func]
-    df_merged = reduce(
-        lambda left, right: pd.merge(left, right, on=["subject"], how="outer"),
-        data_frames,
-    )
-    df_merged = df_merged.drop(["ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"], axis=1)
+    df_merged = load_file("data-glycan-gp120")
     glyCube = np.full([len(subjects), len(glycan)], np.nan)
 
     for k, curAnti in enumerate(antigen):
@@ -107,8 +100,13 @@ def createCube():
 
         for i, curSubj in enumerate(subjects):
             subjLumx = lumx[lumx["subject"] == curSubj]
-            subjGly = df_merged[df_merged["subject"] == curSubj]
-            subjGly = subjGly.drop(["subject"], axis=1)
+            if df_merged["subject"].isin([curSubj]).any():
+                subjGly = df_merged[df_merged["subject"] == curSubj]
+                subjGly = subjGly.drop(["subject"], axis=1)
+            else:
+                subjGly = pd.DataFrame(np.nan, index=[0], columns=range(25))
+                my_columns = glycan
+                subjGly.columns = my_columns
 
             for j, col in enumerate(subjGly):
                 glyCube[i, j] = subjGly[col]
