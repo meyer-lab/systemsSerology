@@ -77,9 +77,7 @@ def perform_CMTF(tensorIn, matrixIn, r):
     # Solve for factors on remaining glycosylation matrix variation
     matrixResid = matrixIn - tl.kruskal_to_tensor(matrixFac)
 
-    
-
-    pc = PCA(matrixResid, ncomp = 4, missing = "fill-em", max_em_iter = 200)
+    # pc = PCA(matrixResid, ncomp = 4, missing = "fill-em", max_em_iter = 200)
     # TODO: Incorporate this factorization into the existing tensors
 
     R2XX = calcR2X(tensorIn, matrixIn, tensorFac, matrixFac)
