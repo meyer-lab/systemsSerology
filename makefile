@@ -29,7 +29,7 @@ output/manuscript.md: venv manuscript/*.md
 
 output/manuscript.html: venv output/manuscript.md $(patsubst %, figure%.svg, $(flist))
 	mkdir output/output
-	cp output/*.svg output/output/
+	cp *.svg output/
 	. venv/bin/activate && pandoc --verbose \
 		--defaults=./common/templates/manubot/pandoc/common.yaml \
 		--defaults=./common/templates/manubot/pandoc/html.yaml
