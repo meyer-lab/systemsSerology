@@ -49,20 +49,20 @@ def makeFigure():
         values1 = subjects[:, i]
         values2 = subjects[:, i + 1]
         data = {
-            f"Component {i+1} Measurement": values1,
-            f"Component {i+2} Measurement": values2,
+            f"Component {i+1}": values1,
+            f"Component {i+2}": values2,
             "Groups": subjinfo["class.etuv"],
         }
         df = pd.DataFrame(data)
         xmax = np.amax(np.absolute(values1))
         ymax = np.amax(np.absolute(values2))
         a = sns.scatterplot(
-            x=f"Component {i+1} Measurement",
-            y=f"Component {i+2} Measurement",
+            x=f"Component {i+1}",
+            y=f"Component {i+2}",
             hue="Groups",
             data=df,
             palette="Set1",
-            legend="brief" if j==4 else False,
+            legend="brief" if j == 4 else False,
             ax=ax[j],
         )
         a.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
@@ -73,8 +73,8 @@ def makeFigure():
         values1 = receptors[:, i]
         values2 = receptors[:, i + 1]
         data = {
-            f"Component {i+1} Measurement": values1,
-            f"Component {i+2} Measurement": values2,
+            f"Component {i+1}": values1,
+            f"Component {i+2}": values2,
             "Receptor": detections,
         }
         df = pd.DataFrame(data)
@@ -105,14 +105,14 @@ def makeFigure():
             "d",
         )
         b = sns.scatterplot(
-            x=f"Component {i+1} Measurement",
-            y=f"Component {i+2} Measurement",
+            x=f"Component {i+1}",
+            y=f"Component {i+2}",
             hue="Receptor",
             style="Receptor",
             markers=markers,
             data=df,
             palette="Set2",
-            legend="brief" if j==4 else False,
+            legend="brief" if j == 4 else False,
             ax=ax[j + 1],
         )
         b.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
@@ -123,8 +123,8 @@ def makeFigure():
         values1 = antigens[:, i]
         values2 = antigens[:, i + 1]
         data = {
-            f"Component {i+1} Measurement": values1,
-            f"Component {i+2} Measurement": values2,
+            f"Component {i+1}": values1,
+            f"Component {i+2}": values2,
             "Antigens": antigen,
         }
         df = pd.DataFrame(data)
@@ -174,14 +174,14 @@ def makeFigure():
             "H",
         )
         c = sns.scatterplot(
-            x=f"Component {i+1} Measurement",
-            y=f"Component {i+2} Measurement",
+            x=f"Component {i+1}",
+            y=f"Component {i+2}",
             hue="Antigens",
             style="Antigens",
             markers=markers,
             data=df,
             palette="Set3",
-            legend="brief" if j==4 else False,
+            legend="brief" if j == 4 else False,
             ax=ax[j + 2],
         )
         c.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
@@ -192,8 +192,8 @@ def makeFigure():
         values1 = glyc[:, i]
         values2 = glyc[:, i + 1]
         data = {
-            f"Component {i+1} Measurement": values1,
-            f"Component {i+2} Measurement": values2,
+            f"Component {i+1}": values1,
+            f"Component {i+2}": values2,
             "G": np.concatenate((np.array(glycaninf["GS"]), functions)),
             "FB": np.concatenate((np.array(glycaninf["FB"]), ["Function"] * 6)),
         }
@@ -201,13 +201,13 @@ def makeFigure():
         xmax = np.amax(np.absolute(values1))
         ymax = np.amax(np.absolute(values2))
         d = sns.scatterplot(
-            x=f"Component {i+1} Measurement",
-            y=f"Component {i+2} Measurement",
+            x=f"Component {i+1}",
+            y=f"Component {i+2}",
             hue="G",
             style="FB",
             data=df,
             palette="Paired",
-            legend="brief" if j==4 else False,
+            legend="brief" if j == 4 else False,
             ax=ax[j + 3],
         )
         d.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)

@@ -7,6 +7,7 @@ from os.path import join, dirname
 import numpy as np
 import tensorly as tl
 from tensorly.decomposition import parafac
+from statsmodels.multivariate.pca import PCA
 from .cmtf import coupled_matrix_tensor_3d_factorization
 
 path_here = dirname(dirname(__file__))
@@ -58,22 +59,26 @@ def perform_CMTF(tensorIn, matrixIn, r):
             print("Cache miss. Performing factorization.")
 
     # Initialize by running PARAFAC on the 3D tensor
-    kruskal = parafac(
+    tensorFac = parafac(
         tensor,
         r,
         mask=mask,
         orthogonalise=True,
         normalize_factors=False,
-        n_iter_max=200,
+        n_iter_max=300,
         linesearch=True,
     )
-    tensor = tensor * mask + tl.kruskal_to_tensor(kruskal, mask=1 - mask)
+    tensor = tensor * mask + tl.kruskal_to_tensor(tensorFac, mask=1 - mask)
     assert np.all(np.isfinite(tensor))
 
     # Now run CMTF
-    tensorFac, matrixFac = coupled_matrix_tensor_3d_factorization(
-        tensor, matrix, mask_3d=mask, mask_matrix=mask_matrix, init=kruskal
-    )
+    matrixFac = coupled_matrix_tensor_3d_factorization(matrix, mask_matrix=mask_matrix, init=tensorFac)
+
+    # Solve for factors on remaining glycosylation matrix variation
+    matrixResid = matrixIn - tl.kruskal_to_tensor(matrixFac)
+
+    # pc = PCA(matrixResid, ncomp = 4, missing = "fill-em", max_em_iter = 200)
+    # TODO: Incorporate this factorization into the existing tensors
 
     R2XX = calcR2X(tensorIn, matrixIn, tensorFac, matrixFac)
 

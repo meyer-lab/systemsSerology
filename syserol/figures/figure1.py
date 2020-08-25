@@ -7,6 +7,7 @@ from .common import subplotLabel, getSetup
 from ..dataImport import createCube
 from ..tensor import perform_CMTF
 
+
 def makeFigure():
     """Get a list of the axis objects and create a figure"""
     # Get list of axis objects
