@@ -62,7 +62,7 @@ def makeFigure():
             hue="Groups",
             data=df,
             palette="Set1",
-            legend="brief" if j==4 else False,
+            legend="brief" if j == 4 else False,
             ax=ax[j],
         )
         a.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
@@ -112,7 +112,7 @@ def makeFigure():
             markers=markers,
             data=df,
             palette="Set2",
-            legend="brief" if j==4 else False,
+            legend="brief" if j == 4 else False,
             ax=ax[j + 1],
         )
         b.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
@@ -181,7 +181,7 @@ def makeFigure():
             markers=markers,
             data=df,
             palette="Set3",
-            legend="brief" if j==4 else False,
+            legend="brief" if j == 4 else False,
             ax=ax[j + 2],
         )
         c.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
@@ -207,7 +207,7 @@ def makeFigure():
             style="FB",
             data=df,
             palette="Paired",
-            legend="brief" if j==4 else False,
+            legend="brief" if j == 4 else False,
             ax=ax[j + 3],
         )
         d.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
