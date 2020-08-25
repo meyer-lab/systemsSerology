@@ -7,6 +7,7 @@ from os.path import join, dirname
 import numpy as np
 import tensorly as tl
 from tensorly.decomposition import parafac
+from statsmodels.multivariate.pca import PCA
 from .cmtf import coupled_matrix_tensor_3d_factorization
 
 path_here = dirname(dirname(__file__))
@@ -72,6 +73,14 @@ def perform_CMTF(tensorIn, matrixIn, r):
 
     # Now run CMTF
     matrixFac = coupled_matrix_tensor_3d_factorization(matrix, mask_matrix=mask_matrix, init=tensorFac)
+
+    # Solve for factors on remaining glycosylation matrix variation
+    matrixResid = matrixIn - tl.kruskal_to_tensor(matrixFac)
+
+    
+
+    pc = PCA(matrixResid, ncomp = 4, missing = "fill-em", max_em_iter = 200)
+    # TODO: Incorporate this factorization into the existing tensors
 
     R2XX = calcR2X(tensorIn, matrixIn, tensorFac, matrixFac)
 
