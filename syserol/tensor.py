@@ -58,7 +58,7 @@ def perform_CMTF(tensorIn, matrixIn, r):
             print("Cache miss. Performing factorization.")
 
     # Initialize by running PARAFAC on the 3D tensor
-    kruskal = parafac(
+    tensorFac = parafac(
         tensor,
         r,
         mask=mask,
@@ -67,13 +67,11 @@ def perform_CMTF(tensorIn, matrixIn, r):
         n_iter_max=200,
         linesearch=True,
     )
-    tensor = tensor * mask + tl.kruskal_to_tensor(kruskal, mask=1 - mask)
+    tensor = tensor * mask + tl.kruskal_to_tensor(tensorFac, mask=1 - mask)
     assert np.all(np.isfinite(tensor))
 
     # Now run CMTF
-    tensorFac, matrixFac = coupled_matrix_tensor_3d_factorization(
-        tensor, matrix, mask_3d=mask, mask_matrix=mask_matrix, init=kruskal
-    )
+    matrixFac = coupled_matrix_tensor_3d_factorization(matrix, mask_matrix=mask_matrix, init=tensorFac)
 
     R2XX = calcR2X(tensorIn, matrixIn, tensorFac, matrixFac)
 
