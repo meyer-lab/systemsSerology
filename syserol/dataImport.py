@@ -99,7 +99,8 @@ def createCube():
         lambda left, right: pd.merge(left, right, on=["subject"], how="outer"),
         data_frames,
     )
-    glyCube = np.full([len(subjects), len(glycan) + 6], np.nan)
+    df_merged = df_merged.drop(["ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"], axis=1)
+    glyCube = np.full([len(subjects), len(glycan)], np.nan)
 
     for k, curAnti in enumerate(antigen):
         lumx = importLuminex(curAnti)
