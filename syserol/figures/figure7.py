@@ -12,7 +12,7 @@ def makeFigure():
     ax, f = getSetup((10, 10), (3, 2))
     functions = ["ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"]
     # Plot Actual vs. Predicted Values for each Function
-    for i, func in enumerate(functions):       
+    for i, func in enumerate(functions):
         x, y, accuracy = noCMTF_function_prediction(components=6, function=func)
         ax[i].scatter(x, y)
         ax[i].set_xlabel("Actual Values", fontsize=12)

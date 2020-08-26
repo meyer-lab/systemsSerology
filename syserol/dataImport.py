@@ -1,7 +1,6 @@
 """ Data import and processing. """
 from functools import lru_cache
 from os.path import join, dirname
-from functools import reduce
 import numpy as np
 import pandas as pd
 

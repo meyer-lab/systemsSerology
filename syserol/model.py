@@ -70,7 +70,7 @@ def SVM_2class_predictions(subjects_matrix):
 
 def noCMTF_function_prediction(components=6, function="ADCC"):
     cube, glyCube = createCube()
-    tensorFac, matrixFac, _ = perform_CMTF(cube, glyCube, components)
+    tensorFac, _, _ = perform_CMTF(cube, glyCube, components)
 
     func, _ = importFunction()
     df = pd.DataFrame(tensorFac[1][0])  # subjects x components matrix
@@ -84,7 +84,7 @@ def noCMTF_function_prediction(components=6, function="ADCC"):
     X = df_variables
     Y = df_func[function]
     regr = ElasticNetCV(normalize=True, max_iter=10000)
-    model = regr.fit(X, Y)
+    regr.fit(X, Y)
     Y_pred = cross_val_predict(
         ElasticNet(alpha=regr.alpha_, normalize=True, max_iter=10000), X, Y, cv=10
     )
@@ -118,7 +118,7 @@ def ourSubjects_function_prediction(components=6, function="ADCC"):
     indices = [i[0] for i in leftout]
 
     cube, glyCube = createCube()
-    tensorFac, matrixFac, _ = perform_CMTF(cube, glyCube, components)
+    tensorFac, _, _ = perform_CMTF(cube, glyCube, components)
 
     func, _ = importFunction()
     df = pd.DataFrame(tensorFac[1][0])  # subjects x components matrix
@@ -133,7 +133,7 @@ def ourSubjects_function_prediction(components=6, function="ADCC"):
     X = df_variables
     Y = df_func[function]
     regr = ElasticNetCV(normalize=True, max_iter=10000)
-    model = regr.fit(X, Y)
+    regr.fit(X, Y)
     Y_pred = cross_val_predict(
         ElasticNet(alpha=regr.alpha_, normalize=True, max_iter=10000), X, Y, cv=10
     )
