@@ -37,37 +37,6 @@ def test_predictions(function="ADCD"):
     return corr
 
 
-def Function_Prediction_10FoldCV(components=10):
-    """ 10 Fold Cross Validation to Test Function Predictive Abilities"""
-    cube, glyCube = createCube()
-    glycan, _ = importGlycan()
-
-    X = glyCube
-    matrix = np.zeros([181, 12])
-
-    kf = KFold(n_splits=10, shuffle=True)  # split into 10 folds
-    for _, test_index in kf.split(X):  # run cross validation
-        copy = (
-            glyCube.copy()
-        )  # copy & restore original values at start of each cross validation fold
-        matrix[test_index, 0:6] = copy[
-            test_index, len(glycan) : len(glycan) + 6
-        ]  # store original value
-        copy[
-            test_index, len(glycan) : len(glycan) + 6
-        ] = np.nan  # artificially make the value NaN
-
-        _, matrixFac, _ = perform_CMTF(
-            cube, copy, components
-        )  # run decomposition on new matrix
-        pred_matrix = tl.kruskal_to_tensor(matrixFac)
-        matrix[test_index, 6:13] = pred_matrix[
-            test_index, len(glycan) : len(glycan) + 6
-        ]  # store predicted values
-
-    return matrix
-
-
 def SVM_2class_predictions(subjects_matrix):
     """ Predict Subject Class with Support Vector Machines and Decomposed Tensor Data"""
     # Load Data
