@@ -4,6 +4,7 @@ This creates Figure 2.
 
 from syserol.regression import function_elastic_net
 from .common import subplotLabel, getSetup
+from ..dataImport import functions
 
 
 def makeFigure():
@@ -11,7 +12,6 @@ def makeFigure():
     # Get list of axis objects
     ax, f = getSetup((10, 10), (2, 3))
 
-    functions = ['ADCD', 'ADCC', 'ADNP', 'CD107a', 'IFNy', 'MIP1b']
     for i, name in enumerate(functions):
         Measured, Y_pred, _ = function_elastic_net(name)
         ax[i].scatter(Measured, Y_pred)

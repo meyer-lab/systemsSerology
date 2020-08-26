@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 from syserol.regression import function_elastic_net, two_way_classifications
-from syserol.dataImport import createCube
+from syserol.dataImport import createCube, functions
 from syserol.model import (
     noCMTF_function_prediction,
     ourSubjects_function_prediction,
@@ -19,7 +19,6 @@ from syserol.tensor import perform_CMTF
 def makeFigure():
     """ Show Similarity in Prediction of Alter Model and Our Model"""
     # Gather Function Prediction Accuracies
-    functions = ["ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"]
     accuracies = np.zeros(12)
     for ii, func in enumerate(functions):
         _, _, acc = function_elastic_net(func)  # Alter Function Predictions

@@ -10,7 +10,7 @@ from sklearn.metrics import r2_score, accuracy_score
 from sklearn.svm import SVC
 from tensorly.kruskal_tensor import kruskal_to_tensor
 from syserol.tensor import perform_CMTF
-from syserol.dataImport import createCube, importFunction, importGlycan, load_file, importLuminex, importIGG, getAxes
+from syserol.dataImport import functions, createCube, importFunction, importGlycan, load_file, importLuminex, importIGG, getAxes
 
 
 def test_predictions(function="ADCD"):
@@ -49,20 +49,18 @@ def SVM_2class_predictions(subjects_matrix):
     nv = np.array(classes["class.nv"])
 
     # Controller/Progressor classification
-    X = subjects_matrix
     Y = cp
     # Kernel = RBF
     # Run SVM classifier model
     clf = SVC(kernel="rbf")
-    y_pred1 = cross_val_predict(clf, X, Y, cv=Y.size)
+    y_pred1 = cross_val_predict(clf, subjects_matrix, Y, cv=Y.size)
     cp_accuracy = accuracy_score(Y, y_pred1)
 
     # Viremic/Nonviremic classification
     Y = nv
     # Kernel = RBF
     # Run SVM classifier model
-    clf = SVC(kernel="rbf")
-    y_pred2 = cross_val_predict(clf, X, Y, cv=Y.size)
+    y_pred2 = cross_val_predict(clf, subjects_matrix, Y, cv=Y.size)
     nv_accuracy = accuracy_score(Y, y_pred2)
 
     return cp_accuracy, nv_accuracy
@@ -76,7 +74,7 @@ def noCMTF_function_prediction(components=6, function="ADCC"):
     df = pd.DataFrame(tensorFac[1][0])  # subjects x components matrix
     df = df.join(func, how="inner")
     df = df.dropna()
-    df_func = df[["ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"]]
+    df_func = df[functions]
     df_variables = df.drop(
         ["subject", "ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"], axis=1
     )
@@ -125,7 +123,7 @@ def ourSubjects_function_prediction(components=6, function="ADCC"):
     df = df.join(func, how="inner")
     df = df.iloc[indices]
     df = df.dropna()
-    df_func = df[["ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"]]
+    df_func = df[functions]
     df_variables = df.drop(
         ["subject", "ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"], axis=1
     )

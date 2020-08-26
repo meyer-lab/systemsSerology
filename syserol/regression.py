@@ -14,6 +14,7 @@ from .dataImport import (
     importGlycan,
     importIGG,
     load_file,
+    functions,
 )
 from .tensor import perform_CMTF
 
@@ -36,7 +37,7 @@ def function_elastic_net(function="ADCC"):
     df_merged = df_merged.dropna()
 
     # separate dataframes
-    df_func = df_merged[["ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"]]
+    df_func = df_merged[functions]
     df_variables = df_merged.drop(
         ["subject", "ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"], axis=1
     )
