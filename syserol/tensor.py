@@ -87,9 +87,9 @@ def perform_CMTF(tensorIn, matrixIn, r):
         tensor,
         r,
         mask=mask,
-        orthogonalise=True,
+        orthogonalise=100,
         normalize_factors=False,
-        n_iter_max=400,
+        n_iter_max=1000,
         linesearch=True,
     )
     tensor = tensor * mask + tl.kruskal_to_tensor(tensorFac, mask=1 - mask)
