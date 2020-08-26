@@ -71,10 +71,10 @@ def makeFigure():
         ]
     )
     data = {"Accuracy": accuracies, "Model": model, "Function": function}
-    functions = pd.DataFrame(data)  # Function Prediction DataFrame, Figure 2B
+    functions_df = pd.DataFrame(data)  # Function Prediction DataFrame, Figure 2B
 
-    preds = np.zeros([81, 12])
     # Subjects left out of Alter
+    preds = np.zeros([81, 12])
     for i, func in enumerate(functions):
         Y, Y_pred = ourSubjects_function_prediction(components=6, function=func)
         preds[:, i] = Y
@@ -141,7 +141,7 @@ def makeFigure():
         hue="Model",
         markers=["o", "x"],
         join=False,
-        data=functions,
+        data=functions_df,
         ax=ax[0],
     )
     # Formatting
