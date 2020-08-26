@@ -16,7 +16,8 @@ from syserol.dataImport import (
     getAxes,
 )
 from syserol.model import (
-    Function_Prediction_10FoldCV,
+    noCMTF_function_prediction,
+    ourSubjects_function_prediction,
     SVM_2class_predictions,
 )
 from sklearn.metrics import r2_score
@@ -27,19 +28,14 @@ from syserol.tensor import perform_CMTF
 def makeFigure():
     """ Show Similarity in Prediction of Alter Model and Our Model"""
     # Gather Function Prediction Accuracies
-    arry = Function_Prediction_10FoldCV(6)  # Our Function Predictions in an array
-    _, mapped = importFunction()
+    functions = ["ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"]
     accuracies = np.zeros(12)
-    for ii, func in enumerate(mapped):
+    for ii, func in enumerate(functions):
         _, _, acc = function_elastic_net(func)  # Alter Function Predictions
         accuracies[ii] = acc  # store accuracies
-    for i in np.arange(6):
-        x = arry[0:181, i]
-        y = arry[0:181, i + 6]
-        idx = np.isfinite(x)
-        accuracies[i + 6] = np.sqrt(
-            r2_score(x[idx], y[idx])
-        )  # Calculate our accuracies & store
+    for i, func in enumerate(functions):
+        _, _, accuracy = noCMTF_function_prediction(components=6, function=func) # our prediction accuracies
+        accuracies[i+6] = accuracy #store
 
     # Create DataFrame
     model = np.array(
@@ -75,32 +71,15 @@ def makeFigure():
         ]
     )
     data = {"Accuracy": accuracies, "Model": model, "Function": function}
-    functions = pd.DataFrame(data)  # Function Prediction DataFrame, Figure 2B
+    functions_df = pd.DataFrame(data)  # Function Prediction DataFrame, Figure 2B
 
-    # Gather function predictions for subjects left out of Alter
-    # arry = Function_Prediction_10FoldCV(6) (line 22)
-    # Re-Create Alter DataFrame with leftout subjects
-    df = importLuminex()
-    lum = df.pivot(index="subject", columns="variable", values="value")
-    _, df2 = importGlycan()
-    glyc = df2.pivot(index="subject", columns="variable", values="value")
-    func, _ = importFunction()
-    igg = importIGG()
-    igg = igg.pivot(index="subject", columns="variable", values="value")
-    data_frames = [lum, glyc, func, igg]
-    df_merged = reduce(
-        lambda left, right: pd.merge(left, right, on=["subject"], how="inner"),
-        data_frames,
-    )
-    df_merged = df_merged.dropna()  # Final Alter DataFrame
-    fullsubj = np.array(df_merged["subject"])  # Subjects only included in Alter
-    leftout = []
-    subjects, _, _ = getAxes()
-    for index, i in enumerate(subjects):
-        if i not in fullsubj:
-            leftout.append((index, i))  # Subjects left out of Alter
-    indices = [i[0] for i in leftout]
-    preds = arry[indices, :]
+    # Subjects left out of Alter
+    preds = np.zeros([81, 12])
+    for i, func in enumerate(functions):
+        Y, Y_pred = ourSubjects_function_prediction(components=6, function=func)
+        preds[:, i] = Y
+        preds[:, i+6] = Y_pred
+    
     df = pd.DataFrame(
         preds,
         columns=[
@@ -162,7 +141,7 @@ def makeFigure():
         hue="Model",
         markers=["o", "x"],
         join=False,
-        data=functions,
+        data=functions_df,
         ax=ax[0],
     )
     # Formatting

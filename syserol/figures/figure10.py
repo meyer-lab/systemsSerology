@@ -40,7 +40,6 @@ def makeFigure():
     _, detections, antigen = getAxes()
     subjinfo = load_file("meta-subjects")
 
-    functions = ["ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"]
     index = [0, 2, 4]
     place = [0, 4, 8]
     # Build Figure
@@ -188,14 +187,14 @@ def makeFigure():
         c.set_xlim(-xmax, xmax)
         c.set_ylim(-ymax, ymax)
 
-        # Glycans/Functions
+        # Glycans
         values1 = glyc[:, i]
         values2 = glyc[:, i + 1]
         data = {
             f"Component {i+1}": values1,
             f"Component {i+2}": values2,
-            "G": np.concatenate((np.array(glycaninf["GS"]), functions)),
-            "FB": np.concatenate((np.array(glycaninf["FB"]), ["Function"] * 6)),
+            "G": glycaninf["GS"],
+            "FB": glycaninf["FB"],
         }
         df = pd.DataFrame(data)
         xmax = np.amax(np.absolute(values1))
@@ -217,6 +216,6 @@ def makeFigure():
     ax[0].set_title("Subjects", fontsize=15)
     ax[1].set_title("Receptors", fontsize=15)
     ax[2].set_title("Antigens", fontsize=15)
-    ax[3].set_title("Glycans/Functions", fontsize=15)
+    ax[3].set_title("Glycans", fontsize=15)
 
     return f
