@@ -78,28 +78,24 @@ def SVM_2class_predictions(subjects_matrix):
 
 def noCMTF_function_prediction(components=6, function="ADCC"):
     cube, glyCube = createCube()
-    tensorFac, _, _ = perform_CMTF(cube, glyCube, components)
+    X = perform_CMTF(cube, glyCube, components)[1][0]
 
     func, _ = importFunction()
-    df = pd.DataFrame(tensorFac[1][0])  # subjects x components matrix
-    df = df.join(func, how="inner")
-    df = df.dropna()
-    df_func = df[functions]
-    df_variables = df.drop(
-        ["subject", "ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"], axis=1
-    )
+    Y = func[function]
 
-    X = df_variables
-    Y = df_func[function]
+    # Chop out NaNs
+    X = X[np.isfinite(Y), :]
+    Y = Y[np.isfinite(Y)]
+
     regr = ElasticNetCV(normalize=True, max_iter=10000)
     regr.fit(X, Y)
-    Y_pred = cross_val_predict(
-        ElasticNet(alpha=regr.alpha_, normalize=True, max_iter=10000), X, Y, cv=10
-    )
+    enet = ElasticNet(alpha=regr.alpha_, normalize=True, max_iter=10000)
+    Y_pred = cross_val_predict(enet, X, Y, cv=Y.size)
+    score = np.sqrt(r2_score(Y, Y_pred))
 
-    print(f"Components: {components}, Accuracy: {np.sqrt(r2_score(Y, Y_pred))}")
+    print(f"Components: {components}, Accuracy: {score}")
 
-    return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))
+    return Y, Y_pred, score)
 
 
 def ourSubjects_function_prediction(components=6, function="ADCC"):
