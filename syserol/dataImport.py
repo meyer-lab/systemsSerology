@@ -92,25 +92,18 @@ def createCube():
 
     IGG = importIGG()
     glycan, dfGlycan = importGlycan()
-    dfGlycan = dfGlycan.pivot(index="subject", columns="variable", values="value")
-    func, _ = importFunction()
-    data_frames = [dfGlycan, func]
-    df_merged = reduce(
-        lambda left, right: pd.merge(left, right, on=["subject"], how="outer"),
-        data_frames,
-    )
-    glyCube = np.full([len(subjects), len(glycan) + 6], np.nan)
+    glyCube = np.full([len(subjects), len(glycan)], np.nan)
 
     for k, curAnti in enumerate(antigen):
         lumx = importLuminex(curAnti)
 
         for i, curSubj in enumerate(subjects):
             subjLumx = lumx[lumx["subject"] == curSubj]
-            subjGly = df_merged[df_merged["subject"] == curSubj]
-            subjGly = subjGly.drop(["subject"], axis=1)
+            subjGly = dfGlycan[dfGlycan["subject"] == curSubj]
 
-            for j, col in enumerate(subjGly):
-                glyCube[i, j] = subjGly[col]
+            for _, row in subjGly.iterrows():
+                j = glycan.index(row["variable"])
+                glyCube[i, j] = row["value"]
 
             for _, row in subjLumx.iterrows():
                 j = detections.index(row["variable"])
