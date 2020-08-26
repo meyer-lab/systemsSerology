@@ -1,26 +1,10 @@
 """
 Tensor decomposition methods
 """
-import pickle
-from pathlib import Path
-from os.path import join, dirname
 import numpy as np
 import tensorly as tl
 from tensorly.kruskal_tensor import KruskalTensor, kruskal_to_tensor
 from tensorly.decomposition import parafac
-
-path_here = dirname(dirname(__file__))
-
-
-def load_cache(r):
-    """ Return a requested data file. """
-    path = Path(join(path_here, "syserol/data/cache/factors" + str(r) + ".p"))
-
-    if path.exists():
-        data = pickle.load(open(path, "rb"))
-        return data
-
-    return None
 
 
 def calcR2X(tensorIn, matrixIn, tensorFac, matrixFac):
@@ -65,22 +49,6 @@ def perform_CMTF(tensorIn, matrixIn, r):
     mask_matrix = np.isfinite(matrix).astype(int)
     matrix[mask_matrix == 0] = 0.0
 
-    # Check for a cache and if it matches return the result
-    cache = load_cache(r)
-    if cache is not None:
-        tensorFac, matrixFac, R2Xcache = cache
-
-        try:
-            R2XX = calcR2X(tensorIn, matrixIn, tensorFac, matrixFac)
-        except BaseException:
-            R2XX = -1
-
-        if np.isclose(R2XX, R2Xcache):
-            print("Cache hit.")
-            return tensorFac, matrixFac, R2Xcache
-        else:
-            print("Cache miss. Performing factorization.")
-
     # Initialize by running PARAFAC on the 3D tensor
     tensorFac = parafac(
         tensor,
@@ -106,9 +74,9 @@ def perform_CMTF(tensorIn, matrixIn, r):
 
     matrixFacExt = parafac(
         matrixResid,
-        1,
+        4,
         mask=mask_matrix,
-        orthogonalise=100,
+        orthogonalise=True,
         normalize_factors=False,
         n_iter_max=1000,
         linesearch=True,
