@@ -49,7 +49,7 @@ def perform_CMTF(tensorIn, matrixIn, r):
 
         try:
             R2XX = calcR2X(tensorIn, matrixIn, tensorFac, matrixFac)
-        except:
+        except BaseException:
             R2XX = -1
 
         if np.isclose(R2XX, R2Xcache):
@@ -80,7 +80,7 @@ def perform_CMTF(tensorIn, matrixIn, r):
     R2XX = calcR2X(tensorIn, matrixIn, tensorFac, matrixFac)
     print("CMTF R2X before PCA: " + str(R2XX))
 
-    pc = PCA(matrixResid, ncomp = 1, missing = "fill-em", max_em_iter = 600, standardize = False, demean = False, normalize = False)
+    pc = PCA(matrixResid, ncomp=1, missing="fill-em", max_em_iter=600, standardize=False, demean=False, normalize=False)
     ncp = pc._ncomp
 
     # Incorporate PCA into factorization
