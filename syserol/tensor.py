@@ -3,7 +3,7 @@ Tensor decomposition methods
 """
 import numpy as np
 import tensorly as tl
-from tensorly.kruskal_tensor import KruskalTensor, kruskal_to_tensor
+from tensorly.kruskal_tensor import KruskalTensor
 from tensorly.decomposition import parafac
 
 
@@ -24,19 +24,18 @@ def cmtf(Y, mask_matrix, init):
 
     # alternating least squares
     for iteration in range(10 ** 4):
-        V = np.transpose(np.linalg.lstsq(A, Y, rcond=-1)[0])
+        V = np.linalg.lstsq(A, Y, rcond=-1)[0]
 
         # Perform masking
-        Y = Y * mask_matrix + kruskal_to_tensor((None, [A, V])) * (1 - mask_matrix)
+        Y = Y * mask_matrix + A @ V * (1 - mask_matrix)
 
-        error_new = np.linalg.norm(Y - kruskal_to_tensor((None, [A, V])))
-
-        if iteration > 2 and (tl.abs(error_old - error_new) <= 1e-10 or error_new < 1e-6):
+        error_new = np.linalg.norm(Y - A @ V)
+        if iteration > 2 and (np.absolute(error_old - error_new) <= 1e-12):
             break
 
         error_old = error_new
 
-    return KruskalTensor((None, [A, V]))
+    return KruskalTensor((None, [A, np.transpose(V)]))
 
 
 def perform_CMTF(tensorIn, matrixIn, r):
@@ -50,15 +49,9 @@ def perform_CMTF(tensorIn, matrixIn, r):
     matrix[mask_matrix == 0] = 0.0
 
     # Initialize by running PARAFAC on the 3D tensor
-    tensorFac = parafac(
-        tensor,
-        r,
-        mask=mask,
-        orthogonalise=100,
-        normalize_factors=False,
-        n_iter_max=1000,
-        linesearch=True,
-    )
+    parafacSettings = {'orthogonalise': 100, 'tol': 1e-09, 'normalize_factors': False, 'n_iter_max': 2000, 'linesearch': True}
+    tensorFac = parafac(tensor, r, mask=mask, **parafacSettings)
+
     tensor = tensor * mask + tl.kruskal_to_tensor(tensorFac, mask=1 - mask)
     assert np.all(np.isfinite(tensor))
 
@@ -72,15 +65,7 @@ def perform_CMTF(tensorIn, matrixIn, r):
     R2XX = calcR2X(tensorIn, matrixIn, tensorFac, matrixFac)
     print("CMTF R2X before PCA: " + str(R2XX))
 
-    matrixFacExt = parafac(
-        matrixResid,
-        4,
-        mask=mask_matrix,
-        orthogonalise=True,
-        normalize_factors=False,
-        n_iter_max=1000,
-        linesearch=True,
-    )
+    matrixFacExt = parafac(matrixResid, 4, mask=mask_matrix, **parafacSettings)
     ncp = matrixFacExt.rank
 
     # Incorporate PCA into factorization
