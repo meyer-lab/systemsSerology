@@ -65,7 +65,7 @@ def perform_CMTF(tensorIn, matrixIn, r):
         mask=mask,
         orthogonalise=True,
         normalize_factors=False,
-        n_iter_max=300,
+        n_iter_max=400,
         linesearch=True,
     )
     tensor = tensor * mask + tl.kruskal_to_tensor(tensorFac, mask=1 - mask)
@@ -77,11 +77,24 @@ def perform_CMTF(tensorIn, matrixIn, r):
     # Solve for factors on remaining glycosylation matrix variation
     matrixResid = matrixIn - tl.kruskal_to_tensor(matrixFac)
 
-    # pc = PCA(matrixResid, ncomp = 4, missing = "fill-em", max_em_iter = 200)
-    # TODO: Incorporate this factorization into the existing tensors
+    R2XX = calcR2X(tensorIn, matrixIn, tensorFac, matrixFac)
+    print("CMTF R2X before PCA: " + str(R2XX))
+
+    pc = PCA(matrixResid, ncomp = 1, missing = "fill-em", max_em_iter = 600, standardize = False, demean = False, normalize = False)
+    ncp = pc._ncomp
+
+    # Incorporate PCA into factorization
+    tensorFac.factors[0] = np.concatenate((tensorFac.factors[0], pc.scores), axis=1)
+    tensorFac.factors[1] = np.pad(tensorFac.factors[1], ((0, 0), (0, ncp)), constant_values=0.0)
+    tensorFac.factors[2] = np.pad(tensorFac.factors[2], ((0, 0), (0, ncp)), constant_values=0.0)
+    tensorFac.rank += ncp
+    tensorFac.weights = np.pad(tensorFac.weights, (0, ncp), constant_values=1.0)
+    matrixFac.factors[0] = tensorFac.factors[0]
+    matrixFac.factors[1] = np.concatenate((matrixFac.factors[1], pc.loadings), axis=1)
+    matrixFac.weights = np.pad(matrixFac.weights, (0, ncp), constant_values=1.0)
+    matrixFac.rank += ncp
 
     R2XX = calcR2X(tensorIn, matrixIn, tensorFac, matrixFac)
-
     print("CMTF R2X: " + str(R2XX))
 
     return tensorFac, matrixFac, R2XX
