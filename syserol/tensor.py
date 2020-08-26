@@ -6,9 +6,9 @@ from pathlib import Path
 from os.path import join, dirname
 import numpy as np
 import tensorly as tl
+from tensorly.kruskal_tensor import KruskalTensor, kruskal_to_tensor
 from tensorly.decomposition import parafac
 from statsmodels.multivariate.pca import PCA
-from .cmtf import coupled_matrix_tensor_3d_factorization
 
 path_here = dirname(dirname(__file__))
 
@@ -30,6 +30,30 @@ def calcR2X(tensorIn, matrixIn, tensorFac, matrixFac):
     matrixErr = np.nanvar(tl.kruskal_to_tensor(matrixFac) - matrixIn)
 
     return 1.0 - (tensorErr + matrixErr) / (np.nanvar(tensorIn) + np.nanvar(matrixIn))
+
+
+def cmtf(Y, mask_matrix, init):
+    """ Calculate the glycosylation matrix components corresponding to the patient components from the tensor. """
+    assert tl.is_tensor(Y)
+
+    # initialize values
+    A = init.factors[0]
+
+    # alternating least squares
+    for iteration in range(10 ** 4):
+        V = np.transpose(np.linalg.lstsq(A, Y, rcond=-1)[0])
+
+        # Perform masking
+        Y = Y * mask_matrix + kruskal_to_tensor((None, [A, V])) * (1 - mask_matrix)
+
+        error_new = np.linalg.norm(Y - kruskal_to_tensor((None, [A, V])))
+
+        if iteration > 2 and (tl.abs(error_old - error_new) <= 1e-10 or error_new < 1e-6):
+            break
+
+        error_old = error_new
+
+    return KruskalTensor((None, [A, V]))
 
 
 def perform_CMTF(tensorIn, matrixIn, r):
@@ -72,7 +96,7 @@ def perform_CMTF(tensorIn, matrixIn, r):
     assert np.all(np.isfinite(tensor))
 
     # Now run CMTF
-    matrixFac = coupled_matrix_tensor_3d_factorization(matrix, mask_matrix=mask_matrix, init=tensorFac)
+    matrixFac = cmtf(matrix, mask_matrix=mask_matrix, init=tensorFac)
 
     # Solve for factors on remaining glycosylation matrix variation
     matrixResid = matrixIn - tl.kruskal_to_tensor(matrixFac)
