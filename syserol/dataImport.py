@@ -81,7 +81,7 @@ def importFunction():
     idnum = [0, 1, 2, 3, 4, 5]
     mapped = dict(zip(functions, idnum))
 
-    return
+    return df, mapped
 
 
 @lru_cache()
