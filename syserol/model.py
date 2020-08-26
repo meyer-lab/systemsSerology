@@ -10,7 +10,16 @@ from sklearn.metrics import r2_score, accuracy_score
 from sklearn.svm import SVC
 from tensorly.kruskal_tensor import kruskal_to_tensor
 from syserol.tensor import perform_CMTF
-from syserol.dataImport import createCube, importFunction, importGlycan, load_file, importLuminex, importIGG, getAxes
+from syserol.dataImport import (
+    createCube,
+    importFunction,
+    importGlycan,
+    load_file,
+    importLuminex,
+    importIGG,
+    getAxes,
+    importAlterDF,
+)
 
 
 def test_predictions(function="ADCD"):
@@ -96,19 +105,8 @@ def noCMTF_function_prediction(components=6, function="ADCC"):
 
 def ourSubjects_function_prediction(components=6, function="ADCC"):
     # Re-Create Alter DataFrame with leftout subjects
-    df = importLuminex()
-    lum = df.pivot(index="subject", columns="variable", values="value")
-    _, df2 = importGlycan()
-    glyc = df2.pivot(index="subject", columns="variable", values="value")
-    func, _ = importFunction()
-    igg = importIGG()
-    igg = igg.pivot(index="subject", columns="variable", values="value")
-    data_frames = [lum, glyc, func, igg]
-    df_merged = reduce(
-        lambda left, right: pd.merge(left, right, on=["subject"], how="inner"),
-        data_frames,
-    )
-    df_merged = df_merged.dropna()  # Final Alter DataFrame
+    df_merged = importAlterDF()
+
     fullsubj = np.array(df_merged["subject"])  # Subjects only included in Alter
     leftout = []
     subjects, _, _ = getAxes()

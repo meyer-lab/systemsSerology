@@ -83,6 +83,24 @@ def importFunction():
 
     return df, mapped
 
+def importAlterDF():
+    """ Recreate Alter DF, Import Luminex, Luminex-IGG, Subject group pairs, and Glycan into DF"""
+    df = importLuminex()
+    lum = df.pivot(index="subject", columns="variable", values="value")
+    _, df2 = importGlycan()
+    glyc = df2.pivot(index="subject", columns="variable", values="value")
+    func, _ = importFunction()
+    igg = importIGG()
+    igg = igg.pivot(index="subject", columns="variable", values="value")
+    data_frames = [lum, glyc, func, igg]
+    df_merged = reduce(
+        lambda left, right: pd.merge(left, right, on=["subject"], how="inner"),
+        data_frames,
+    )
+    df_merged = df_merged.dropna()
+    
+    return df_merged
+
 
 @lru_cache()
 def createCube():
