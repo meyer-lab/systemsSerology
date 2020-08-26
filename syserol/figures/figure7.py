@@ -10,7 +10,6 @@ from syserol.model import noCMTF_function_prediction
 def makeFigure():
     """ Analyze Prediction Accuracy of 10 Fold Cross Validation Strategy"""
     ax, f = getSetup((10, 10), (3, 2))
-    #matrix = Function_Prediction_10FoldCV(6)
     functions = ["ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"]
     # Plot Actual vs. Predicted Values for each Function
     for i, func in enumerate(functions):       
