@@ -5,7 +5,7 @@ This creates Figure 8.
 import numpy as np
 from syserol.figures.common import subplotLabel, getSetup
 from syserol.dataImport import createCube
-from syserol.model import SVM_2class_predictions
+from syserol.classify import SVM_2class_predictions
 from syserol.tensor import perform_CMTF
 
 

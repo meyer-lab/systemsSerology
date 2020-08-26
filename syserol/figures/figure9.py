@@ -6,7 +6,12 @@ from functools import reduce
 import pandas as pd
 import numpy as np
 import seaborn as sns
-from syserol.regression import function_elastic_net, two_way_classifications
+from syserol.regression import (
+    function_elastic_net,
+    two_way_classifications,
+    noCMTF_function_prediction,
+    ourSubjects_function_prediction,
+)
 from syserol.dataImport import (
     importFunction,
     createCube,
@@ -15,11 +20,7 @@ from syserol.dataImport import (
     importIGG,
     getAxes,
 )
-from syserol.model import (
-    noCMTF_function_prediction,
-    ourSubjects_function_prediction,
-    SVM_2class_predictions,
-)
+from syserol.classify import SVM_2class_predictions
 from sklearn.metrics import r2_score
 from syserol.figures.common import subplotLabel, getSetup
 from syserol.tensor import perform_CMTF
@@ -34,8 +35,10 @@ def makeFigure():
         _, _, acc = function_elastic_net(func)  # Alter Function Predictions
         accuracies[ii] = acc  # store accuracies
     for i, func in enumerate(functions):
-        _, _, accuracy = noCMTF_function_prediction(components=6, function=func) # our prediction accuracies
-        accuracies[i+6] = accuracy #store
+        _, _, accuracy = noCMTF_function_prediction(
+            components=6, function=func
+        )  # our prediction accuracies
+        accuracies[i + 6] = accuracy  # store
 
     # Create DataFrame
     model = np.array(
@@ -78,8 +81,8 @@ def makeFigure():
     for i, func in enumerate(functions):
         Y, Y_pred = ourSubjects_function_prediction(components=6, function=func)
         preds[:, i] = Y
-        preds[:, i+6] = Y_pred
-    
+        preds[:, i + 6] = Y_pred
+
     df = pd.DataFrame(
         preds,
         columns=[

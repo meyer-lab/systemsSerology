@@ -4,7 +4,7 @@ This creates Figure 7.
 import numpy as np
 from sklearn.metrics import r2_score
 from syserol.figures.common import subplotLabel, getSetup
-from syserol.model import noCMTF_function_prediction
+from syserol.regression import noCMTF_function_prediction
 
 
 def makeFigure():
