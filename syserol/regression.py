@@ -18,28 +18,6 @@ from .dataImport import (
 from .tensor import perform_CMTF
 
 
-def patientComponents(nComp=1):
-    """ Generate factorization on cross-validation. """
-    cube, glyCube = createCube()
-    factors = perform_CMTF(cube, glyCube, nComp)
-    Y, _ = importFunction()
-    Y = Y["ADCC"]
-
-    idxx = np.isfinite(Y)
-    Y = Y[idxx]
-    X = factors[0][idxx, :]
-    Y_pred = np.empty(Y.shape)
-
-    Y_pred = cross_val_predict(ElasticNetCV(normalize=True), X, Y, cv=len(Y))
-
-    model = ElasticNetCV(normalize=True).fit(X, Y)
-    print(model.coef_)
-
-    print(np.sqrt(r2_score(Y, Y_pred)))
-
-    return Y, Y_pred
-
-
 def function_elastic_net(function="ADCC"):
     """ Predict functions using elastic net according to Alter methods"""
     # Import Luminex, Luminex-IGG, Function, and Glycan into DF
