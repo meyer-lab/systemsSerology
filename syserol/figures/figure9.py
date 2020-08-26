@@ -2,25 +2,16 @@
 This creates Figure 9, Paper Figure 2.
 """
 
-from functools import reduce
 import pandas as pd
 import numpy as np
 import seaborn as sns
 from syserol.regression import function_elastic_net, two_way_classifications
-from syserol.dataImport import (
-    importFunction,
-    createCube,
-    importLuminex,
-    importGlycan,
-    importIGG,
-    getAxes,
-)
+from syserol.dataImport import createCube
 from syserol.model import (
     noCMTF_function_prediction,
     ourSubjects_function_prediction,
     SVM_2class_predictions,
 )
-from sklearn.metrics import r2_score
 from syserol.figures.common import subplotLabel, getSetup
 from syserol.tensor import perform_CMTF
 
@@ -111,7 +102,7 @@ def makeFigure():
     accuracyCvP, accuracyVvN, _, _ = two_way_classifications()  # Alter accuracies
     # Run our model
     cube, glyCube = createCube()
-    tensorFac, matrixFac, R2XX = perform_CMTF(cube, glyCube, 6)
+    tensorFac, _, _ = perform_CMTF(cube, glyCube, 6)
     subjects_matrix = tensorFac[1][0]
     cp_accuracy, nv_accuracy = SVM_2class_predictions(subjects_matrix)  # Our accuracies
 
