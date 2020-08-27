@@ -1,7 +1,7 @@
 """ Data import and processing. """
+from functools import reduce
 from functools import lru_cache
 from os.path import join, dirname
-from functools import reduce
 import numpy as np
 import pandas as pd
 
@@ -69,6 +69,9 @@ def getAxes():
     return subjects, detections, antigen
 
 
+functions = ["ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"]
+
+
 def importFunction():
     """ Import functional data. """
     subjects, _, _ = getAxes()
@@ -77,7 +80,6 @@ def importFunction():
 
     df = df_a.merge(df, on="subject", how="left")
 
-    functions = ["ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"]
     idnum = [0, 1, 2, 3, 4, 5]
     mapped = dict(zip(functions, idnum))
 

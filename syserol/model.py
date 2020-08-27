@@ -11,6 +11,7 @@ from sklearn.svm import SVC
 from tensorly.kruskal_tensor import kruskal_to_tensor
 from syserol.tensor import perform_CMTF
 from syserol.dataImport import (
+    functions,
     createCube,
     importFunction,
     importGlycan,
@@ -58,20 +59,18 @@ def SVM_2class_predictions(subjects_matrix):
     nv = np.array(classes["class.nv"])
 
     # Controller/Progressor classification
-    X = subjects_matrix
     Y = cp
     # Kernel = RBF
     # Run SVM classifier model
     clf = SVC(kernel="rbf")
-    y_pred1 = cross_val_predict(clf, X, Y, cv=10)
+    y_pred1 = cross_val_predict(clf, subjects_matrix, Y, cv=20)
     cp_accuracy = accuracy_score(Y, y_pred1)
 
     # Viremic/Nonviremic classification
     Y = nv
     # Kernel = RBF
     # Run SVM classifier model
-    clf = SVC(kernel="rbf")
-    y_pred2 = cross_val_predict(clf, X, Y, cv=10)
+    y_pred2 = cross_val_predict(clf, subjects_matrix, Y, cv=20)
     nv_accuracy = accuracy_score(Y, y_pred2)
 
     return cp_accuracy, nv_accuracy
@@ -79,13 +78,13 @@ def SVM_2class_predictions(subjects_matrix):
 
 def noCMTF_function_prediction(components=6, function="ADCC"):
     cube, glyCube = createCube()
-    tensorFac, matrixFac, _ = perform_CMTF(cube, glyCube, components)
+    tensorFac, _, _ = perform_CMTF(cube, glyCube, components)
 
     func, _ = importFunction()
     df = pd.DataFrame(tensorFac[1][0])  # subjects x components matrix
     df = df.join(func, how="inner")
     df = df.dropna()
-    df_func = df[["ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"]]
+    df_func = df[functions]
     df_variables = df.drop(
         ["subject", "ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"], axis=1
     )
@@ -93,7 +92,7 @@ def noCMTF_function_prediction(components=6, function="ADCC"):
     X = df_variables
     Y = df_func[function]
     regr = ElasticNetCV(normalize=True, max_iter=10000)
-    model = regr.fit(X, Y)
+    regr.fit(X, Y)
     Y_pred = cross_val_predict(
         ElasticNet(alpha=regr.alpha_, normalize=True, max_iter=10000), X, Y, cv=10
     )
@@ -116,14 +115,14 @@ def ourSubjects_function_prediction(components=6, function="ADCC"):
     indices = [i[0] for i in leftout]
 
     cube, glyCube = createCube()
-    tensorFac, matrixFac, _ = perform_CMTF(cube, glyCube, components)
+    tensorFac, _, _ = perform_CMTF(cube, glyCube, components)
 
     func, _ = importFunction()
     df = pd.DataFrame(tensorFac[1][0])  # subjects x components matrix
     df = df.join(func, how="inner")
     df = df.iloc[indices]
     df = df.dropna()
-    df_func = df[["ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"]]
+    df_func = df[functions]
     df_variables = df.drop(
         ["subject", "ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"], axis=1
     )
@@ -131,7 +130,7 @@ def ourSubjects_function_prediction(components=6, function="ADCC"):
     X = df_variables
     Y = df_func[function]
     regr = ElasticNetCV(normalize=True, max_iter=10000)
-    model = regr.fit(X, Y)
+    regr.fit(X, Y)
     Y_pred = cross_val_predict(
         ElasticNet(alpha=regr.alpha_, normalize=True, max_iter=10000), X, Y, cv=10
     )
