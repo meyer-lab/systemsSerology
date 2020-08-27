@@ -9,6 +9,7 @@ from sklearn.linear_model import LogisticRegressionCV
 from sklearn.metrics import r2_score, accuracy_score, confusion_matrix
 from sklearn.svm import SVC
 from tensorly.kruskal_tensor import kruskal_to_tensor
+from scipy.stats import zscore
 from syserol.tensor import perform_CMTF
 from syserol.dataImport import (
     functions,
