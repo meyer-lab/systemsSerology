@@ -7,7 +7,6 @@ import numpy as np
 import seaborn as sns
 from syserol.regression import (
     function_elastic_net,
-    two_way_classifications,
     noCMTF_function_prediction,
     ourSubjects_function_prediction,
 )
@@ -20,7 +19,7 @@ from syserol.dataImport import (
     getAxes,
     functions
 )
-from syserol.classify import SVM_2class_predictions
+from syserol.classify import SVM_2class_predictions, two_way_classifications
 from sklearn.metrics import r2_score
 from syserol.figures.common import subplotLabel, getSetup
 from syserol.tensor import perform_CMTF
