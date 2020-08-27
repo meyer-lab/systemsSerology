@@ -10,6 +10,7 @@ from sklearn.svm import SVC
 from tensorly.kruskal_tensor import kruskal_to_tensor
 from syserol.tensor import perform_CMTF
 from syserol.dataImport import (
+    functions,
     createCube,
     importFunction,
     importGlycan,
@@ -57,20 +58,18 @@ def SVM_2class_predictions(subjects_matrix):
     nv = np.array(classes["class.nv"])
 
     # Controller/Progressor classification
-    X = subjects_matrix
     Y = cp
     # Kernel = RBF
     # Run SVM classifier model
     clf = SVC(kernel="rbf")
-    y_pred1 = cross_val_predict(clf, X, Y, cv=10)
+    y_pred1 = cross_val_predict(clf, subjects_matrix, Y, cv=20)
     cp_accuracy = accuracy_score(Y, y_pred1)
 
     # Viremic/Nonviremic classification
     Y = nv
     # Kernel = RBF
     # Run SVM classifier model
-    clf = SVC(kernel="rbf")
-    y_pred2 = cross_val_predict(clf, X, Y, cv=10)
+    y_pred2 = cross_val_predict(clf, subjects_matrix, Y, cv=20)
     nv_accuracy = accuracy_score(Y, y_pred2)
 
     return cp_accuracy, nv_accuracy
