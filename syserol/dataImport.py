@@ -1,4 +1,5 @@
 """ Data import and processing. """
+from functools import reduce
 from functools import lru_cache
 from os.path import join, dirname
 import numpy as np

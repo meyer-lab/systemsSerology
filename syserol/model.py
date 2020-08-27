@@ -63,14 +63,14 @@ def SVM_2class_predictions(subjects_matrix):
     # Kernel = RBF
     # Run SVM classifier model
     clf = SVC(kernel="rbf")
-    y_pred1 = cross_val_predict(clf, subjects_matrix, Y, cv=Y.size)
+    y_pred1 = cross_val_predict(clf, subjects_matrix, Y, cv=20)
     cp_accuracy = accuracy_score(Y, y_pred1)
 
     # Viremic/Nonviremic classification
     Y = nv
     # Kernel = RBF
     # Run SVM classifier model
-    y_pred2 = cross_val_predict(clf, subjects_matrix, Y, cv=Y.size)
+    y_pred2 = cross_val_predict(clf, subjects_matrix, Y, cv=20)
     nv_accuracy = accuracy_score(Y, y_pred2)
 
     return cp_accuracy, nv_accuracy
