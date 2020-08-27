@@ -16,10 +16,10 @@ class TestModel(unittest.TestCase):
         """ Test to ensure R2X for higher components is larger. """
         arr = []
         for i in range(1, 3):
-            facT, facM, R2X = perform_CMTF(self.cube, self.glyCube, i)
+            facT, facM, tensorR2X, _ = perform_CMTF(self.cube, self.glyCube, i)
             self.assertTrue(np.all(np.isfinite(facT[0])))
             self.assertTrue(np.allclose(facT[1][0], facM[1][0]))
-            arr.append(R2X)
+            arr.append(tensorR2X)
 
         for j in range(len(arr) - 1):
             self.assertTrue(arr[j] < arr[j + 1])

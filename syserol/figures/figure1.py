@@ -15,8 +15,12 @@ def makeFigure():
 
     cube, glyCube = createCube()
     comps = np.arange(1, 13)
-    tensorArr = [perform_CMTF(cube, glyCube, i)[2] for i in comps]
-    matrixArr = [perform_CMTF(cube, glyCube, i)[3] for i in comps]
+    tensorArr = np.zeros(12)
+    matrixArr = np.zeros(12)
+    for i in comps:
+        _, _, tensorR2X, matrixR2X = perform_CMTF(cube, glyCube, i)
+        tensorArr[i-1] = tensorR2X
+        matrixArr[i-1] = matrixR2X
 
     ax[0].plot(comps, tensorArr, label="Tensor R2X")
     ax[0].plot(comps, matrixArr, label="Matrix R2X")
