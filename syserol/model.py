@@ -31,7 +31,7 @@ def test_predictions(function="ADCD"):
     corr = list()
 
     for comp in np.arange(1, 16):
-        _, matrixFac, _ = perform_CMTF(cube, glyCube, comp)
+        _, matrixFac, _, _ = perform_CMTF(cube, glyCube, comp)
         reconMatrix = kruskal_to_tensor(matrixFac)
         x = mapped[function]
         j = len(glycan) + x
@@ -78,7 +78,7 @@ def SVM_2class_predictions(subjects_matrix):
 
 def noCMTF_function_prediction(components=6, function="ADCC"):
     cube, glyCube = createCube()
-    tensorFac, _, _ = perform_CMTF(cube, glyCube, components)
+    tensorFac, _, _, _ = perform_CMTF(cube, glyCube, components)
 
     func, _ = importFunction()
     df = pd.DataFrame(tensorFac[1][0])  # subjects x components matrix
@@ -115,7 +115,7 @@ def ourSubjects_function_prediction(components=6, function="ADCC"):
     indices = [i[0] for i in leftout]
 
     cube, glyCube = createCube()
-    tensorFac, _, _ = perform_CMTF(cube, glyCube, components)
+    tensorFac, _, _, _ = perform_CMTF(cube, glyCube, components)
 
     func, _ = importFunction()
     df = pd.DataFrame(tensorFac[1][0])  # subjects x components matrix

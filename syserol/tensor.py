@@ -7,12 +7,10 @@ from tensorly.kruskal_tensor import KruskalTensor
 from tensorly.decomposition import parafac
 
 
-def calcR2X(tensorIn, matrixIn, tensorFac, matrixFac):
-    """ Calculate the R2X of CMTF. """
-    tensorErr = np.nanvar(tl.kruskal_to_tensor(tensorFac) - tensorIn)
-    matrixErr = np.nanvar(tl.kruskal_to_tensor(matrixFac) - matrixIn)
-
-    return 1.0 - (tensorErr + matrixErr) / (np.nanvar(tensorIn) + np.nanvar(matrixIn))
+def calcR2X(data, factor):
+    """ Calculate R2X. """
+    tensorErr = np.nanvar(tl.kruskal_to_tensor(factor) - data)
+    return 1.0 - tensorErr / np.nanvar(data)
 
 
 def cmtf(Y, mask_matrix, init):
@@ -62,8 +60,11 @@ def perform_CMTF(tensorIn, matrixIn, r):
     matrixResid = matrixIn - tl.kruskal_to_tensor(matrixFac)
     matrixResid[mask_matrix == 0] = 0.0
 
-    R2XX = calcR2X(tensorIn, matrixIn, tensorFac, matrixFac)
-    print("CMTF R2X before PCA: " + str(R2XX))
+    tensor_R2XX = calcR2X(tensorIn, tensorFac)
+    matrix_R2XX = calcR2X(matrixIn, matrixFac)
+    print("CMTF Tensor R2X before PCA: " + str(tensor_R2XX))
+    print("CMTF Matrix R2X before PCA: " + str(matrix_R2XX))
+
 
     matrixFacExt = parafac(matrixResid, 4, mask=mask_matrix, **parafacSettings)
     ncp = matrixFacExt.rank
@@ -79,7 +80,9 @@ def perform_CMTF(tensorIn, matrixIn, r):
     matrixFac.weights = np.pad(matrixFac.weights, (0, ncp), constant_values=1.0)
     matrixFac.rank += ncp
 
-    R2XX = calcR2X(tensorIn, matrixIn, tensorFac, matrixFac)
-    print("CMTF R2X: " + str(R2XX))
+    tensor_R2XX = calcR2X(tensorIn, tensorFac)
+    matrix_R2XX = calcR2X(matrixIn, matrixFac)
+    print("CMTF Tensor R2X: " + str(tensor_R2XX))
+    print("CMTF Matrix R2X: " + str(matrix_R2XX))
 
-    return tensorFac, matrixFac, R2XX
+    return tensorFac, matrixFac, tensor_R2XX, matrix_R2XX

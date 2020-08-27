@@ -14,7 +14,7 @@ def makeFigure():
     ax, f = getSetup((8, 8), (3, 4))
 
     cube, glyCube = createCube()
-    tensorFac, matrixFac, _ = perform_CMTF(cube, glyCube, 6)
+    tensorFac, matrixFac, _, _ = perform_CMTF(cube, glyCube, 6)
 
     # Gather tensor data matrices
     subjects = np.squeeze(tensorFac.factors[0])

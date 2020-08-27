@@ -17,7 +17,6 @@ from .dataImport import (
     functions,
     importAlterDF,
 )
-from .tensor import perform_CMTF
 
 
 def function_elastic_net(function="ADCC"):
