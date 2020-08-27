@@ -95,7 +95,7 @@ def noCMTF_function_prediction(components=6, function="ADCC"):
 
     print(f"Components: {components}, Accuracy: {score}")
 
-    return Y, Y_pred, score)
+    return Y, Y_pred, score
 
 
 def ourSubjects_function_prediction(components=6, function="ADCC"):
