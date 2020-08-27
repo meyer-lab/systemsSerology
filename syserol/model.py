@@ -84,8 +84,9 @@ def noCMTF_function_prediction(components=6, function="ADCC"):
     Y = func[function]
 
     # Chop out NaNs
-    X = X[np.isfinite(Y), :]
-    Y = Y[np.isfinite(Y)]
+    keepp = np.squeeze(np.isfinite(Y))
+    X = X[keepp, :]
+    Y = Y[keepp]
 
     regr = ElasticNetCV(normalize=True, max_iter=10000)
     regr.fit(X, Y)
