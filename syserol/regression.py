@@ -46,7 +46,7 @@ def function_elastic_net(function="ADCC"):
 def noCMTF_function_prediction(components=6, function="ADCC"):
     """ Predict functions using our decomposition and regression methods"""
     cube, glyCube = createCube()
-    tensorFac, matrixFac, _ = perform_CMTF(cube, glyCube, components)
+    tensorFac, matrixFac, _, _ = perform_CMTF(cube, glyCube, components)
 
     func, _ = importFunction()
     df = pd.DataFrame(tensorFac[1][0])  # subjects x components matrix
@@ -84,7 +84,7 @@ def ourSubjects_function_prediction(components=6, function="ADCC"):
     indices = [i[0] for i in leftout]
 
     cube, glyCube = createCube()
-    tensorFac, matrixFac, _ = perform_CMTF(cube, glyCube, components)
+    tensorFac, matrixFac, _, _ = perform_CMTF(cube, glyCube, components)
 
     func, _ = importFunction()
     df = pd.DataFrame(tensorFac[1][0])  # subjects x components matrix
