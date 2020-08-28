@@ -60,13 +60,7 @@ def perform_CMTF(tensorIn, matrixIn, r):
     matrixResid = matrixIn - tl.kruskal_to_tensor(matrixFac)
     matrixResid[mask_matrix == 0] = 0.0
 
-    tensor_R2XX = calcR2X(tensorIn, tensorFac)
-    matrix_R2XX = calcR2X(matrixIn, matrixFac)
-    print("CMTF Tensor R2X before PCA: " + str(tensor_R2XX))
-    print("CMTF Matrix R2X before PCA: " + str(matrix_R2XX))
-
-
-    matrixFacExt = parafac(matrixResid, 5, mask=mask_matrix, **parafacSettings)
+    matrixFacExt = parafac(matrixResid, 6, mask=mask_matrix, **parafacSettings)
     ncp = matrixFacExt.rank
 
     # Incorporate PCA into factorization
