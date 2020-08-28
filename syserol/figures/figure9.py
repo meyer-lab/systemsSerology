@@ -12,7 +12,6 @@ from syserol.regression import (
 )
 from syserol.dataImport import (
     createCube,
-    getAxes,
     functions
 )
 from syserol.classify import SVM_2class_predictions, two_way_classifications

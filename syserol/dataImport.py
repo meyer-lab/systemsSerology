@@ -100,7 +100,7 @@ def importAlterDF():
         data_frames,
     )
     df_merged = df_merged.dropna()
-    
+
     return df_merged
 
 

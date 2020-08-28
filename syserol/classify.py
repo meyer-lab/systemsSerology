@@ -4,14 +4,10 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import cross_val_predict
 from sklearn.linear_model import LogisticRegressionCV
-from sklearn.metrics import r2_score, accuracy_score, confusion_matrix
+from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.svm import SVC
-from tensorly.kruskal_tensor import kruskal_to_tensor
 from scipy.stats import zscore
 from syserol.dataImport import (
-    createCube,
-    importFunction,
-    importGlycan,
     load_file,
     importLuminex,
     importIGG,
