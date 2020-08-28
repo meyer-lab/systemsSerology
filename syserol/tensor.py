@@ -66,7 +66,7 @@ def perform_CMTF(tensorIn, matrixIn, r):
     print("CMTF Matrix R2X before PCA: " + str(matrix_R2XX))
 
 
-    matrixFacExt = parafac(matrixResid, 4, mask=mask_matrix, **parafacSettings)
+    matrixFacExt = parafac(matrixResid, 5, mask=mask_matrix, **parafacSettings)
     ncp = matrixFacExt.rank
 
     # Incorporate PCA into factorization
