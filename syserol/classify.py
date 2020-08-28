@@ -2,8 +2,6 @@
 from functools import reduce
 import numpy as np
 import pandas as pd
-import tensorly as tl
-from sklearn.model_selection import KFold
 from sklearn.model_selection import cross_val_predict
 from sklearn.linear_model import LogisticRegressionCV
 from sklearn.metrics import r2_score, accuracy_score, confusion_matrix
@@ -12,15 +10,12 @@ from tensorly.kruskal_tensor import kruskal_to_tensor
 from scipy.stats import zscore
 from syserol.tensor import perform_CMTF
 from syserol.dataImport import (
-    functions,
     createCube,
     importFunction,
     importGlycan,
     load_file,
     importLuminex,
     importIGG,
-    getAxes,
-    importAlterDF,
 )
 
 

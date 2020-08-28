@@ -11,16 +11,11 @@ from syserol.regression import (
     ourSubjects_function_prediction,
 )
 from syserol.dataImport import (
-    importFunction,
     createCube,
-    importLuminex,
-    importGlycan,
-    importIGG,
     getAxes,
     functions
 )
 from syserol.classify import SVM_2class_predictions, two_way_classifications
-from sklearn.metrics import r2_score
 from syserol.figures.common import subplotLabel, getSetup
 from syserol.tensor import perform_CMTF
 

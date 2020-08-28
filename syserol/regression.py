@@ -1,17 +1,12 @@
 """ Regression methods. """
-from functools import reduce
 import numpy as np
 import pandas as pd
-from sklearn.linear_model import ElasticNetCV, ElasticNet, LogisticRegressionCV
+from sklearn.linear_model import ElasticNetCV, ElasticNet
 from sklearn.model_selection import cross_val_predict
-from sklearn.metrics import r2_score, accuracy_score
-from scipy.stats import zscore
+from sklearn.metrics import r2_score
 from .dataImport import (
     createCube,
     importFunction,
-    importLuminex,
-    importGlycan,
-    importIGG,
     load_file,
     functions,
     importAlterDF,
