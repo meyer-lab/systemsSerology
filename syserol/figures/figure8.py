@@ -16,7 +16,7 @@ def makeFigure():
     cp_list = np.zeros(10)
     nv_list = np.zeros(10)
     for i in np.arange(1, 11):
-        tensorFac, _, _ = perform_CMTF(cube, glyCube, i)
+        tensorFac, _, _, _ = perform_CMTF(cube, glyCube, i)
         cp_accuracy, nv_accuracy = SVM_2class_predictions(tensorFac[1][0])
         cp_list[i - 1] = cp_accuracy
         nv_list[i - 1] = nv_accuracy

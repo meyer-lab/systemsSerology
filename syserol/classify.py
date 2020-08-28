@@ -19,30 +19,6 @@ from syserol.dataImport import (
 )
 
 
-def test_predictions(function="ADCD"):
-    """ Test correlation between original glyCube matrix and CMTF decomposed/reconstructed matrix"""
-    cube, glyCube = createCube()
-    _, mapped = importFunction()
-    glycan, _ = importGlycan()
-    corr = list()
-
-    for comp in np.arange(1, 16):
-        _, matrixFac, _ = perform_CMTF(cube, glyCube, comp)
-        reconMatrix = kruskal_to_tensor(matrixFac)
-        x = mapped[function]
-        j = len(glycan) + x
-        orig = list()
-        recon = list()
-        for i in range(len(glyCube)):
-            if np.isfinite(glyCube[i, j]):
-                orig.append(glyCube[i, j])
-                recon.append(reconMatrix[i, j])
-        corr.append(np.sqrt(r2_score(orig, recon)))
-        print(f"Correlation for component {comp}: {np.sqrt(r2_score(orig, recon))}")
-
-    return corr
-
-
 def SVM_2class_predictions(subjects_matrix):
     """ Predict Subject Class with Support Vector Machines and Decomposed Tensor Data"""
     # Load Data
