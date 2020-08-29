@@ -14,9 +14,9 @@ def makeFigure():
     ax, f = getSetup((10, 10), (1, 1))
 
     cube, glyCube = createCube()
-    comps = np.arange(1, 13)
-    tensorArr = np.zeros(12)
-    matrixArr = np.zeros(12)
+    comps = np.array([1, 2, 3, 4, 6, 8, 10, 12])
+    tensorArr = np.zeros(comps.size)
+    matrixArr = np.zeros(comps.size)
     for i in comps:
         _, _, tensorR2X, matrixR2X = perform_CMTF(cube, glyCube, i)
         tensorArr[i-1] = tensorR2X
