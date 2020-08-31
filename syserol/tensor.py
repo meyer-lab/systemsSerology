@@ -47,7 +47,7 @@ def perform_CMTF(tensorIn, matrixIn, r):
     matrix[mask_matrix == 0] = 0.0
 
     # Initialize by running PARAFAC on the 3D tensor
-    parafacSettings = {'orthogonalise': 100, 'tol': 1e-09, 'normalize_factors': False, 'n_iter_max': 700, 'linesearch': True}
+    parafacSettings = {'orthogonalise': 100, 'tol': 1e-09, 'normalize_factors': False, 'n_iter_max': 1000, 'linesearch': True}
     tensorFac = parafac(tensor, r, mask=mask, **parafacSettings)
 
     tensor = tensor * mask + tl.kruskal_to_tensor(tensorFac, mask=1 - mask)
