@@ -21,6 +21,9 @@ from syserol.tensor import perform_CMTF
 
 def makeFigure():
     """ Show Similarity in Prediction of Alter Model and Our Model"""
+    # Decompose Cube
+    cube, glyCube = createCube()
+    tensorFac, _, _, _ = perform_CMTF(cube, glyCube, 6)
     # Gather Function Prediction Accuracies
     accuracies = np.zeros(12)
     for ii, func in enumerate(functions):
@@ -28,7 +31,7 @@ def makeFigure():
         accuracies[ii] = acc  # store accuracies
     for i, func in enumerate(functions):
         _, _, accuracy = noCMTF_function_prediction(
-            components=6, function=func
+            tensorFac, function=func
         )  # our prediction accuracies
         accuracies[i + 6] = accuracy  # store
 
@@ -71,7 +74,7 @@ def makeFigure():
     # Subjects left out of Alter
     preds = np.zeros([81, 12])
     for i, func in enumerate(functions):
-        Y, Y_pred = ourSubjects_function_prediction(components=6, function=func)
+        Y, Y_pred = ourSubjects_function_prediction(tensorFac, function=func)
         preds[:, i] = Y
         preds[:, i + 6] = Y_pred
 
@@ -105,8 +108,6 @@ def makeFigure():
     # Gather Class Prediction Accuracies
     accuracyCvP, accuracyVvN, _, _ = two_way_classifications()  # Alter accuracies
     # Run our model
-    cube, glyCube = createCube()
-    tensorFac, _, _, _ = perform_CMTF(cube, glyCube, 6)
     subjects_matrix = tensorFac[1][0]
     cp_accuracy, nv_accuracy = SVM_2class_predictions(subjects_matrix)  # Our accuracies
 

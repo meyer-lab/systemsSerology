@@ -5,14 +5,11 @@ from sklearn.linear_model import ElasticNetCV, ElasticNet
 from sklearn.model_selection import cross_val_predict
 from sklearn.metrics import r2_score
 from .dataImport import (
-    createCube,
     importFunction,
     functions,
     importAlterDF,
     getAxes,
 )
-from .tensor import perform_CMTF
-
 
 
 def function_elastic_net(function="ADCC"):
@@ -42,11 +39,8 @@ def function_elastic_net(function="ADCC"):
     return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))
 
 
-def noCMTF_function_prediction(components=6, function="ADCC"):
+def noCMTF_function_prediction(tensorFac, function="ADCC"):
     """ Predict functions using our decomposition and regression methods"""
-    cube, glyCube = createCube()
-    tensorFac, _, _, _ = perform_CMTF(cube, glyCube, components)
-
     func, _ = importFunction()
     df = pd.DataFrame(tensorFac[1][0])  # subjects x components matrix
     df = df.join(func, how="inner")
@@ -64,12 +58,12 @@ def noCMTF_function_prediction(components=6, function="ADCC"):
         ElasticNet(alpha=regr.alpha_, normalize=True, max_iter=10000), X, Y, cv=10
     )
 
-    print(f"Components: {components}, Accuracy: {np.sqrt(r2_score(Y, Y_pred))}")
+    print(f"Accuracy: {np.sqrt(r2_score(Y, Y_pred))}")
 
     return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))
 
 
-def ourSubjects_function_prediction(components=6, function="ADCC"):
+def ourSubjects_function_prediction(tensorFac, function="ADCC"):
     """ Predict functions for subjects specifically left out of Alter using regression methods"""
     # Re-Create Alter DataFrame with leftout subjects
     df_merged = importAlterDF()
@@ -81,9 +75,6 @@ def ourSubjects_function_prediction(components=6, function="ADCC"):
         if i not in fullsubj:
             leftout.append((index, i))  # Subjects left out of Alter
     indices = [i[0] for i in leftout]
-
-    cube, glyCube = createCube()
-    tensorFac, _, _, _ = perform_CMTF(cube, glyCube, components)
 
     func, _ = importFunction()
     df = pd.DataFrame(tensorFac[1][0])  # subjects x components matrix
