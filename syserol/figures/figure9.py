@@ -106,7 +106,7 @@ def makeFigure():
     accuracyCvP, accuracyVvN, _, _ = two_way_classifications()  # Alter accuracies
     # Run our model
     cube, glyCube = createCube()
-    tensorFac, _, _, _ = perform_CMTF(cube, glyCube, 8)
+    tensorFac, _, _, _ = perform_CMTF(cube, glyCube, 6)
     subjects_matrix = tensorFac[1][0]
     cp_accuracy, nv_accuracy = SVM_2class_predictions(subjects_matrix)  # Our accuracies
 
