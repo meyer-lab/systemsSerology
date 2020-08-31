@@ -14,7 +14,7 @@ from sklearn.metrics import r2_score
 cube, glyCube = createCube()
 # Find optimal component number based on prediction accuracies for function and class
 # Change component number to see accuracy
-tensorFac, _, _ = perform_CMTF(cube, glyCube, 6)
+tensorFac, _, _, _ = perform_CMTF(cube, glyCube, 6)
 subjects_matrix = tensorFac[1][0]
 cp_accuracy, nv_accuracy = SVM_2class_predictions(subjects_matrix) # class prediction accuracies for component i
     
