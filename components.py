@@ -23,7 +23,7 @@ func_accuracies = np.zeros(6)
 r2s = np.zeros(6)
 for i, func in enumerate(functions):
     _, _, accuracy = noCMTF_function_prediction(
-            tensorFac, function=func
+            components=6, function=func
     )  # our prediction accuracies
     func_accuracies[i] = accuracy
 
