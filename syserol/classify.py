@@ -3,7 +3,7 @@ from functools import reduce
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import cross_val_predict
-from sklearn.linear_model import LogisticRegressionCV
+from sklearn.linear_model import LogisticRegressionCV, LogisticRegression
 from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.svm import SVC
 from scipy.stats import zscore
@@ -56,12 +56,16 @@ def logistic_2class_predictions(subjects_matrix):
 
     # Controller/Progressor classification
     Y = cp
-    Y_pred1 = cross_val_predict(LogisticRegressionCV(), subjects_matrix, Y)
+    regr = LogisticRegressionCV(penalty="elasticnet", solver="saga", l1_ratios=[0.0, 0.1, 0.5, 0.9, 1.0])
+    regr.fit(subjects_matrix, Y)
+    Y_pred1 = cross_val_predict(LogisticRegression(penalty="elasticnet", solver="saga", C=regr.C_[0], l1_ratio=regr.l1_ratio_[0]), subjects_matrix, Y)
     cp_accuracy = accuracy_score(Y, Y_pred1)
 
     # Viremic/Nonviremic classification
     Y = nv
-    Y_pred2 = cross_val_predict(LogisticRegressionCV(), subjects_matrix, Y)
+    regr = LogisticRegressionCV(penalty="elasticnet", solver="saga", l1_ratios=[0.0, 0.1, 0.5, 0.9, 1.0])
+    regr.fit(subjects_matrix, Y)
+    Y_pred2 = cross_val_predict(LogisticRegression(penalty="elasticnet", solver="saga", C=regr.C_[0], l1_ratio=regr.l1_ratio_[0]), subjects_matrix, Y)
     nv_accuracy = accuracy_score(Y, Y_pred2)
 
     return cp_accuracy, nv_accuracy
