@@ -43,6 +43,30 @@ def SVM_2class_predictions(subjects_matrix):
     return cp_accuracy, nv_accuracy
 
 
+def logistic_2class_predictions(subjects_matrix):
+    """ Predict Subject Class with Decomposed Tensor Data and Logistic Regression"""
+    # Load Data
+    classes = load_file("meta-subjects")
+    classes = classes.replace(
+        to_replace=["controller", "progressor", "viremic", "nonviremic"],
+        value=[1, 0, 1, 0],
+    )
+    cp = np.array(classes["class.cp"])
+    nv = np.array(classes["class.nv"])
+
+    # Controller/Progressor classification
+    Y = cp
+    Y_pred1 = cross_val_predict(LogisticRegressionCV(), subjects_matrix, Y)
+    cp_accuracy = accuracy_score(Y, Y_pred1)
+
+    # Viremic/Nonviremic classification
+    Y = nv
+    Y_pred2 = cross_val_predict(LogisticRegressionCV(), subjects_matrix, Y)
+    nv_accuracy = accuracy_score(Y, Y_pred2)
+
+    return cp_accuracy, nv_accuracy
+
+
 def two_way_classifications():
     """ Predict classifications of subjects by progression (EC/VC vs TP/UP) or by viremia (EC/TP vs VC/UP) - Alter methods"""
     # Import Luminex, Luminex-IGG, Subject group pairs, and Glycan into DF
