@@ -76,7 +76,7 @@ def SVR_noCMTF_function_prediction(tensorFac, function="ADCC"):
 
     X = df_variables
     Y = df_func[function]
-    Y_pred = cross_val_predict(SVR(kernel="linear"), X, Y, cv=10)
+    Y_pred = cross_val_predict(SVR(), X, Y, cv=10)
     accuracy = np.sqrt(r2_score(Y, Y_pred))
     print(f"Accuracy: {accuracy}")
 
@@ -135,7 +135,7 @@ def SVR_ourSubjects_function_prediction(tensorFac, function="ADCC"):
 
     X = df_variables
     Y = df_func[function]
-    Y_pred = cross_val_predict(SVR(kernel="linear"), X, Y, cv=10)
+    Y_pred = cross_val_predict(SVR(), X, Y, cv=10)
     accuracy = np.sqrt(r2_score(Y, Y_pred))
     print(f"Accuracy: {accuracy}")
 
