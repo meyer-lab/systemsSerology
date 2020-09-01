@@ -101,6 +101,16 @@ def importAlterDF():
 
     return df_merged
 
+def AlterIndices():
+    df = importAlterDF()
+    subjects, _, _ = getAxes()
+
+    indices = np.full([93], np.nan)
+    for i, subject in enumerate(df["subject"]):
+        if subject in subjects:
+            indices[i] = subjects.index(subject)
+
+    return indices
 
 @lru_cache()
 def createCube():
