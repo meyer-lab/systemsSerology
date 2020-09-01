@@ -12,6 +12,15 @@ from .dataImport import (
     functions,
 )
 
+def elasticNetFunc(X, Y):
+    """ Function with common elastic net methods. """
+    regr = ElasticNetCV(normalize=True, max_iter=10000, cv=len(Y))
+    regr.fit(X, Y)
+    enet = ElasticNet(alpha=regr.alpha_, normalize=True, max_iter=10000)
+    Y_pred = cross_val_predict(enet, X, Y, cv=len(Y))
+    rsq = np.sqrt(r2_score(Y, Y_pred))
+    return Y_pred, rsq
+
 
 def function_elastic_net(function="ADCC"):
     """ Predict functions using elastic net according to Alter methods"""
@@ -24,18 +33,9 @@ def function_elastic_net(function="ADCC"):
 
     # perform regression
     Y = df_func[function]
-    X = df_variables
-    Y_pred = np.empty(Y.shape)
+    Y_pred, rsq = elasticNetFunc(df_variables, Y)
 
-    regr = ElasticNetCV(normalize=True, max_iter=10000)
-    regr.fit(X, Y)
-    Y_pred = cross_val_predict(
-        ElasticNet(alpha=regr.alpha_, normalize=True, max_iter=10000), X, Y, cv=10
-    )
-
-    print(np.sqrt(r2_score(Y, Y_pred)))
-
-    return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))
+    return Y, Y_pred, rsq
 
 
 def noCMTF_function_prediction(tensorFac, function="ADCC"):
@@ -47,17 +47,10 @@ def noCMTF_function_prediction(tensorFac, function="ADCC"):
     df_func = df[functions]
     df_variables = df.drop(["subject"] + functions, axis=1)
 
-    X = df_variables
     Y = df_func[function]
-    regr = ElasticNetCV(normalize=True, max_iter=10000)
-    regr.fit(X, Y)
-    Y_pred = cross_val_predict(
-        ElasticNet(alpha=regr.alpha_, normalize=True, max_iter=10000), X, Y, cv=10
-    )
+    Y_pred, rsq = elasticNetFunc(df_variables, Y)
 
-    print(f"Accuracy: {np.sqrt(r2_score(Y, Y_pred))}")
-
-    return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))
+    return Y, Y_pred, rsq
 
 
 def ourSubjects_function_prediction(tensorFac, function="ADCC"):
@@ -79,12 +72,7 @@ def ourSubjects_function_prediction(tensorFac, function="ADCC"):
     df_func = df[functions]
     df_variables = df.drop(["subject"] + functions, axis=1)
 
-    X = df_variables
     Y = df_func[function]
-    regr = ElasticNetCV(normalize=True, max_iter=10000)
-    regr.fit(X, Y)
-    Y_pred = cross_val_predict(
-        ElasticNet(alpha=regr.alpha_, normalize=True, max_iter=10000), X, Y, cv=10
-    )
+    Y_pred, _ = elasticNetFunc(df_variables, Y)
 
     return Y, Y_pred
