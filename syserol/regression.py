@@ -9,6 +9,7 @@ from .dataImport import (
     functions,
     importAlterDF,
     getAxes,
+    functions,
 )
 
 
@@ -19,9 +20,7 @@ def function_elastic_net(function="ADCC"):
 
     # separate dataframes
     df_func = df_merged[functions]
-    df_variables = df_merged.drop(
-        ["subject", "ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"], axis=1
-    )
+    df_variables = df_merged.drop(["subject"] + functions, axis=1)
 
     # perform regression
     Y = df_func[function]
@@ -45,10 +44,8 @@ def noCMTF_function_prediction(tensorFac, function="ADCC"):
     df = pd.DataFrame(tensorFac[1][0])  # subjects x components matrix
     df = df.join(func, how="inner")
     df = df.dropna()
-    df_func = df[["ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"]]
-    df_variables = df.drop(
-        ["subject", "ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"], axis=1
-    )
+    df_func = df[functions]
+    df_variables = df.drop(["subject"] + functions, axis=1)
 
     X = df_variables
     Y = df_func[function]
@@ -69,27 +66,23 @@ def ourSubjects_function_prediction(tensorFac, function="ADCC"):
     df_merged = importAlterDF()
 
     fullsubj = np.array(df_merged["subject"])  # Subjects only included in Alter
-    leftout = []
     subjects, _, _ = getAxes()
-    for index, i in enumerate(subjects):
-        if i not in fullsubj:
-            leftout.append((index, i))  # Subjects left out of Alter
-    indices = [i[0] for i in leftout]
+
+    # Subjects left out of Alter
+    indices = [idx for idx, i in enumerate(subjects) if i not in fullsubj]
 
     func, _ = importFunction()
     df = pd.DataFrame(tensorFac[1][0])  # subjects x components matrix
     df = df.join(func, how="inner")
     df = df.iloc[indices]
     df = df.dropna()
-    df_func = df[["ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"]]
-    df_variables = df.drop(
-        ["subject", "ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"], axis=1
-    )
+    df_func = df[functions]
+    df_variables = df.drop(["subject"] + functions, axis=1)
 
     X = df_variables
     Y = df_func[function]
     regr = ElasticNetCV(normalize=True, max_iter=10000)
-    model = regr.fit(X, Y)
+    regr.fit(X, Y)
     Y_pred = cross_val_predict(
         ElasticNet(alpha=regr.alpha_, normalize=True, max_iter=10000), X, Y, cv=10
     )
