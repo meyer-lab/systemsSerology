@@ -1,5 +1,5 @@
 """
-This creates Figure 7.
+This creates Figure 5.
 """
 import numpy as np
 from syserol.figures.common import subplotLabel, getSetup
