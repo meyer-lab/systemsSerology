@@ -69,9 +69,9 @@ def SVR_noCMTF_function_prediction(tensorFac, function="ADCC"):
     df = pd.DataFrame(tensorFac[1][0])  # subjects x components matrix
     df = df.join(func, how="inner")
     df = df.dropna()
-    df_func = df[["ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"]]
+    df_func = df[functions]
     df_variables = df.drop(
-        ["subject", "ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"], axis=1
+        ["subject"] + functions, axis=1
     )
 
     X = df_variables
@@ -100,15 +100,13 @@ def ourSubjects_function_prediction(tensorFac, function="ADCC"):
     df = df.join(func, how="inner")
     df = df.iloc[indices]
     df = df.dropna()
-    df_func = df[["ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"]]
-    df_variables = df.drop(
-        ["subject", "ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"], axis=1
-    )
+    df_func = df[functions]
+    df_variables = df.drop(["subject"] + functions, axis=1)
 
     X = df_variables
     Y = df_func[function]
     regr = ElasticNetCV(normalize=True, max_iter=10000)
-    model = regr.fit(X, Y)
+    regr.fit(X, Y)
     Y_pred = cross_val_predict(
         ElasticNet(alpha=regr.alpha_, normalize=True, max_iter=10000), X, Y, cv=10
     )
@@ -132,10 +130,8 @@ def SVR_ourSubjects_function_prediction(tensorFac, function="ADCC"):
     df = df.join(func, how="inner")
     df = df.iloc[indices]
     df = df.dropna()
-    df_func = df[["ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"]]
-    df_variables = df.drop(
-        ["subject", "ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"], axis=1
-    )
+    df_func = df[functions]
+    df_variables = df.drop(["subject"] + functions, axis=1)
 
     X = df_variables
     Y = df_func[function]
