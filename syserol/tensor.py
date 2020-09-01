@@ -36,7 +36,7 @@ def cmtf(Y, mask_matrix, init):
     return KruskalTensor((None, [A, np.transpose(V)]))
 
 
-def perform_CMTF(tensorIn, matrixIn, r, rMat=6):
+def perform_CMTF(tensorIn, matrixIn, r):
     """ Perform CMTF decomposition. """
     tensor = np.copy(tensorIn)
     mask = np.isfinite(tensor).astype(int)
@@ -57,7 +57,7 @@ def perform_CMTF(tensorIn, matrixIn, r, rMat=6):
     matrixResid = matrixIn - tl.kruskal_to_tensor(matrixFac)
     matrixResid[mask_matrix == 0] = 0.0
 
-    matrixFacExt = parafac(matrixResid, rMat, mask=mask_matrix, **parafacSettings)
+    matrixFacExt = parafac(matrixResid, r, mask=mask_matrix, **parafacSettings)
     ncp = matrixFacExt.rank
 
     # Incorporate PCA into factorization
