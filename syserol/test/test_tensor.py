@@ -17,8 +17,10 @@ class TestModel(unittest.TestCase):
         arr = []
         for i in range(1, 3):
             facT, facM, tensorR2X, _ = perform_CMTF(self.cube, self.glyCube, i)
-            self.assertTrue(np.all(np.isfinite(facT[0])))
-            self.assertTrue(np.allclose(facT[1][0], facM[1][0]))
+            self.assertTrue(np.all(np.isfinite(facT.factors[0])))
+            self.assertTrue(np.all(np.isfinite(facT.factors[1])))
+            self.assertTrue(np.all(np.isfinite(facT.factors[2])))
+            self.assertTrue(np.allclose(facT.factors[0], facM.factors[0]))
             arr.append(tensorR2X)
 
         for j in range(len(arr) - 1):
