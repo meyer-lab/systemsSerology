@@ -14,13 +14,12 @@ from .dataImport import (
 )
 
 
-
-
 def function_elastic_net(function="ADCC"):
     """ Predict functions using elastic net according to Alter methods"""
     # Import Luminex, Luminex-IGG, Function, and Glycan into DF
-    df_merged = importAlterDF()
-
+    df = importAlterDF()
+    func, _ = importFunction()
+    df_merged = df.merge(func, on="subject", how="inner")
     # separate dataframes
     df_func = df_merged[functions]
     df_variables = df_merged.drop(
@@ -81,9 +80,9 @@ def SVR_noCMTF_function_prediction(tensorFac, function="ADCC"):
 def ourSubjects_function_prediction(tensorFac, function="ADCC"):
     """ Predict functions for subjects specifically left out of Alter using regression methods"""
     # Re-Create Alter DataFrame with leftout subjects
-    df_merged = importAlterDF()
+    df_alt = importAlterDF()
 
-    fullsubj = np.array(df_merged["subject"])  # Subjects only included in Alter
+    fullsubj = np.array(df_alt["subject"])  # Subjects only included in Alter
     leftout = []
     subjects, _, _ = getAxes()
     for index, i in enumerate(subjects):
@@ -107,9 +106,9 @@ def ourSubjects_function_prediction(tensorFac, function="ADCC"):
 
 def SVR_ourSubjects_function_prediction(tensorFac, function="ADCC"):
     # Re-Create Alter DataFrame with leftout subjects
-    df_merged = importAlterDF()
+    df_alt = importAlterDF()
 
-    fullsubj = np.array(df_merged["subject"])  # Subjects only included in Alter
+    fullsubj = np.array(df_alt["subject"])  # Subjects only included in Alter
     leftout = []
     subjects, _, _ = getAxes()
     for index, i in enumerate(subjects):
