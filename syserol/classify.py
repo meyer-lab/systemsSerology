@@ -11,6 +11,7 @@ from syserol.dataImport import (
     load_file,
     importLuminex,
     importIGG,
+    importAlterDF
 )
 
 
@@ -74,16 +75,9 @@ def logistic_2class_predictions(subjects_matrix):
 def two_way_classifications():
     """ Predict classifications of subjects by progression (EC/VC vs TP/UP) or by viremia (EC/TP vs VC/UP) - Alter methods"""
     # Import Luminex, Luminex-IGG, Subject group pairs into DF
-    df = importLuminex()
-    lum = df.pivot(index="subject", columns="variable", values="value")
+    df = importAlterDF()
     subj = load_file("meta-subjects")
-    igg = importIGG()
-    igg = igg.pivot(index="subject", columns="variable", values="value")
-    data_frames = [lum, subj, igg]
-    df_merged = reduce(
-        lambda left, right: pd.merge(left, right, on=["subject"], how="inner"),
-        data_frames,
-    )
+    df_merged = df.merge(subj, on="subject", how="inner")
     df_merged = df_merged.dropna()
 
     # Subset, Z score
