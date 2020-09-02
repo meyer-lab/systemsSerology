@@ -32,83 +32,38 @@ def function_elastic_net(function="ADCC"):
     return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))
 
 
-def noCMTF_function_prediction(tensorFac, function="ADCC"):
+def function_prediction(tensorFac, function="ADCC", evaluation="all", enet=True):
     """ Predict functions using our decomposition and regression methods"""
     func, _ = importFunction()
-    df = pd.DataFrame(tensorFac[1][0])  # subjects x components matrix
-    df = df.join(func, how="inner")
-    dropped = [index for index, row in df.iterrows() if row.isna().any()]
-    df = df.dropna()
-    df_func = df[functions]
-    df_variables = df.drop(["subject"] + functions, axis=1)
 
-    Y = df_func[function]
-    Y_pred = elastic_net_helper(df_variables, Y)
+    Y = func[function]
+    X = tensorFac[1][0]  # subjects x components matrix
+    dropped = np.argwhere(np.isinf(Y))
+    X = X[np.isfinite(Y), :]
+    Y = Y[np.isfinite(Y)]
 
-    accuracy = accuracy_alterSubjOnly(Y, Y_pred, dropped)
+    if enet is True:
+        Y_pred = elastic_net_helper(X, Y)
+    else:
+        Y_pred = cross_val_predict(SVR(), X, Y, cv=10)
 
-    return Y, Y_pred, accuracy
+    if evaluation == "all":
+        return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))
+    elif evaluation == "Alter":
+        return accuracy_alterSubjOnly(Y, Y_pred, dropped)
+    elif evaluation == "notAlter":
+        return accuracy_leftoutAlterSubj(Y, Y_pred, dropped)
+    else:
+        raise ValueError("Wrong selection for evaluation.")
 
-def SVR_noCMTF_function_prediction(tensorFac, function="ADCC"):
-    """ Predict functions using our decomposition and SVR regression methods"""
-    func, _ = importFunction()
-    df = pd.DataFrame(tensorFac[1][0])  # subjects x components matrix
-    df = df.join(func, how="inner")
-    dropped = [index for index, row in df.iterrows() if row.isna().any()]
-    df = df.dropna()
-    df_func = df[functions]
-    df_variables = df.drop(["subject"] + functions, axis=1)
-
-    X = df_variables
-    Y = df_func[function]
-    Y_pred = cross_val_predict(SVR(), X, Y, cv=10)
-    accuracy = accuracy_alterSubjOnly(Y, Y_pred, dropped)
-
-    return Y, Y_pred, accuracy
-
-
-def ourSubjects_function_prediction(tensorFac, function="ADCC"):
-    """ Predict functions for subjects specifically left out of Alter using regression methods"""
-    func, _ = importFunction()
-    df = pd.DataFrame(tensorFac[1][0])  # subjects x components matrix
-    df = df.join(func, how="inner")
-    dropped = [index for index, row in df.iterrows() if row.isna().any()]
-    df = df.dropna()
-    df_func = df[functions]
-    df_variables = df.drop(["subject"] + functions, axis=1)
-
-    Y = df_func[function]
-    Y_pred = elastic_net_helper(df_variables, Y)
-
-    Y_us, Yp_us, accuracy = accuracy_leftoutAlterSubj(Y, Y_pred, dropped)
-
-    return Y_us, Yp_us
-
-
-def SVR_ourSubjects_function_prediction(tensorFac, function="ADCC"):
-    func, _ = importFunction()
-    df = pd.DataFrame(tensorFac[1][0])  # subjects x components matrix
-    df = df.join(func, how="inner")
-    dropped = [index for index, row in df.iterrows() if row.isna().any()]
-    df = df.dropna()
-    df_func = df[functions]
-    df_variables = df.drop(["subject"] + functions, axis=1)
-
-    X = df_variables
-    Y = df_func[function]
-    Y_pred = cross_val_predict(SVR(), X, Y, cv=10)
-
-    Y_us, Yp_us, accuracy = accuracy_leftoutAlterSubj(Y, Y_pred, dropped)
-
-    return Y_us, Yp_us
 
 
 def elastic_net_helper(X, Y):
     """ Helper Function for Elastic Net Regression"""
-    regr = ElasticNetCV(normalize=True, max_iter=10000, cv=len(Y))
+    regr = ElasticNetCV(normalize=True, max_iter=10000, cv=10)
     regr.fit(X, Y)
     enet = ElasticNet(alpha=regr.alpha_, normalize=True, max_iter=10000)
-    Y_pred = cross_val_predict(enet, X, Y, cv=len(Y))
+    Y_pred = cross_val_predict(enet, X, Y, cv=10)
     return Y_pred
 
 
@@ -116,52 +71,35 @@ def accuracy_alterSubjOnly(Y, Ypred, dropped):
     """ Calculate the Accuracy for Only Subjects Included in Alter """
     indices = AlterIndices()
 
-    Y_pred = Ypred.tolist()
-    Y_ = Y.tolist()
-    todrop = []
-    for i in (dropped):  
-        # Refill with NaN at Indices that were dropped before regression (Restore Ordering)
-        Y_pred.insert(i, np.nan)
-        Y_.insert(i, np.nan)
-        if i in indices:  
-            # Drop any subjects that were orginally in the dataframe, but not used for regression
-            todrop.append(indices.index(i))
-    indices_ = np.delete(
-        indices, todrop
-    )  # Indices that were included in Alter & the Regression
+    # Inflate back to original size
+    Ypred = np.insert(Ypred, dropped, np.nan)
+    Y = np.insert(Y, dropped, np.nan)
 
-    # Subset Y and Y_pred to include only Alter+regressed subjects
-    Yp_alter = np.array(Y_pred)[indices_]
-    Y_alter = np.array(Y_)[indices_]
-    print(f"Accuracy: {np.sqrt(r2_score(Y_alter, Yp_alter))}")
+    # Reduce to Alter subjects
+    Ypred = Ypred[indices]
+    Y = Y[indices]
 
-    return np.sqrt(r2_score(Y_alter, Yp_alter))
+    # Remove any missing cases
+    Ypred = Ypred[np.isfinite(Y)]
+    Y = Y[np.isfinite(Y)]
+
+    return Y, Ypred, np.sqrt(r2_score(Y, Ypred))
 
 
 def accuracy_leftoutAlterSubj(Y, Ypred, dropped):
     """ Calculate accuracy for subjects that Alter could not predict and we did predict"""
     indices = AlterIndices()
-    leftout = []  # Subjects leftout of Alter
-    for i in np.arange(181):
-        if i not in indices:
-            leftout.append(i)
+    
+    # Inflate back to original size
+    Ypred = np.insert(Ypred, dropped, np.nan)
+    Y = np.insert(Y, dropped, np.nan)
 
-    Y_pred = Ypred.tolist()
-    Y_ = Y.tolist()
-    todrop = []
-    for i in (dropped):  
-        # Refill Ypred & Y with NaN at Indices that were dropped before regression (Restore Ordering)
-        Y_pred.insert(i, np.nan)
-        Y_.insert(i, np.nan)
-        if i in leftout:
-            todrop.append(leftout.index(i))
-    leftout_indices = np.delete(
-        leftout, todrop
-    )  # Indices Leftout of Alter but also used in Regression
+    # Remove Alter cases
+    Ypred = Ypred.delete(indices)
+    Y = Y.delete(indices)
 
-    # Subset Y and Y_pred to include non-Alter but regressed subjects
-    Yp_us = np.array(Y_pred)[leftout_indices]
-    Y_us = np.array(Y_)[leftout_indices]
-    print(f"Accuracy: {np.sqrt(r2_score(Y_us, Yp_us))}")
+    # Remove any missing cases
+    Ypred = Ypred[np.isfinite(Y)]
+    Y = Y[np.isfinite(Y)]
 
-    return Y_us, Yp_us, np.sqrt(r2_score(Y_us, Yp_us))
+    return Y, Ypred, np.sqrt(r2_score(Y, Ypred))
