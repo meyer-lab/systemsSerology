@@ -10,16 +10,10 @@ from .dataImport import (
     functions,
     importAlterDF,
     getAxes,
+    AlterIndices
 )
 
-def elastic_net_helper(X, Y):
-    """ Helper Function for Elastic Net Regression"""
-    regr = ElasticNetCV(normalize=True, max_iter=10000)
-    regr.fit(X, Y)
-    Y_pred = cross_val_predict(
-        ElasticNet(alpha=regr.alpha_, normalize=True, max_iter=10000), X, Y, cv=10
-    )
-    return Y_pred
+
 
 
 def function_elastic_net(function="ADCC"):
@@ -50,6 +44,7 @@ def noCMTF_function_prediction(tensorFac, function="ADCC"):
     func, _ = importFunction()
     df = pd.DataFrame(tensorFac[1][0])  # subjects x components matrix
     df = df.join(func, how="inner")
+    dropped = [index for index, row in df.iterrows() if row.isna().any()]
     df = df.dropna()
     df_func = df[functions]
     df_variables = df.drop(
@@ -60,15 +55,16 @@ def noCMTF_function_prediction(tensorFac, function="ADCC"):
     Y = df_func[function]
     Y_pred = elastic_net_helper(X, Y)
 
-    print(f"Accuracy: {np.sqrt(r2_score(Y, Y_pred))}")
+    accuracy = accuracy_alterSubjOnly(Y, Y_pred, dropped)
 
-    return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))
+    return Y, Y_pred, accuracy
 
 def SVR_noCMTF_function_prediction(tensorFac, function="ADCC"):
     """ Predict functions using our decomposition and SVR regression methods"""
     func, _ = importFunction()
     df = pd.DataFrame(tensorFac[1][0])  # subjects x components matrix
     df = df.join(func, how="inner")
+    dropped = [index for index, row in df.iterrows() if row.isna().any()]
     df = df.dropna()
     df_func = df[functions]
     df_variables = df.drop(
@@ -78,8 +74,7 @@ def SVR_noCMTF_function_prediction(tensorFac, function="ADCC"):
     X = df_variables
     Y = df_func[function]
     Y_pred = cross_val_predict(SVR(), X, Y, cv=10)
-    accuracy = np.sqrt(r2_score(Y, Y_pred))
-    print(f"Accuracy: {accuracy}")
+    accuracy = accuracy_alterSubjOnly(Y, Y_pred, dropped)
 
     return Y, Y_pred, accuracy
 
@@ -137,3 +132,34 @@ def SVR_ourSubjects_function_prediction(tensorFac, function="ADCC"):
     print(f"Accuracy: {accuracy}")
 
     return Y, Y_pred
+
+
+def elastic_net_helper(X, Y):
+    """ Helper Function for Elastic Net Regression"""
+    regr = ElasticNetCV(normalize=True, max_iter=10000)
+    regr.fit(X, Y)
+    Y_pred = cross_val_predict(
+        ElasticNet(alpha=regr.alpha_, normalize=True, max_iter=10000), X, Y, cv=10
+    )
+    return Y_pred
+
+def accuracy_alterSubjOnly(Y, Ypred, dropped):
+    """ Calculate the Accuracy for Only Subjects Included in Alter """
+    indices = AlterIndices()
+
+    Y_pred = Ypred.tolist()
+    Y_ = Y.tolist()
+    todrop = []
+    for i in dropped: # Refill with NaN at Indices that were dropped before regression 
+        Y_pred.insert(i, np.nan)
+        Y_.insert(i, np.nan)
+        if i in indices: # Drop any subjects that were orginally in the dataframe, but not used for regression
+            todrop.append(indices.index(i))
+    indices_ = np.delete(indices, todrop)
+
+    # Subset Y and Y_pred to include only Alter+regressed subjects
+    Yp_alter = np.array(Y_pred)[indices_]
+    Y_alter = np.array(Y_)[indices_]
+    print(f"Accuracy: {np.sqrt(r2_score(Y_alter, Yp_alter))}")
+
+    return np.sqrt(r2_score(Y_alter, Yp_alter))
