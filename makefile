@@ -1,5 +1,5 @@
 
-flist = 1 2 3 4 5
+flist = 1 2 3 4 5 6
 
 all: pylint.log $(patsubst %, figure%.svg, $(flist))
 
