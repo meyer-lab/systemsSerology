@@ -12,6 +12,15 @@ from .dataImport import (
     getAxes,
 )
 
+def elastic_net_helper(X, Y):
+    """ Helper Function for Elastic Net Regression"""
+    regr = ElasticNetCV(normalize=True, max_iter=10000)
+    regr.fit(X, Y)
+    Y_pred = cross_val_predict(
+        ElasticNet(alpha=regr.alpha_, normalize=True, max_iter=10000), X, Y, cv=10
+    )
+    return Y_pred
+
 
 def function_elastic_net(function="ADCC"):
     """ Predict functions using elastic net according to Alter methods"""
@@ -21,7 +30,7 @@ def function_elastic_net(function="ADCC"):
     # separate dataframes
     df_func = df_merged[functions]
     df_variables = df_merged.drop(
-        ["subject", "ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"], axis=1
+        ["subject"] + functions, axis=1
     )
 
     # perform regression
@@ -29,11 +38,7 @@ def function_elastic_net(function="ADCC"):
     X = df_variables
     Y_pred = np.empty(Y.shape)
 
-    regr = ElasticNetCV(normalize=True, max_iter=10000)
-    regr.fit(X, Y)
-    Y_pred = cross_val_predict(
-        ElasticNet(alpha=regr.alpha_, normalize=True, max_iter=10000), X, Y, cv=10
-    )
+    Y_pred = elastic_net_helper(X, Y)
 
     print(np.sqrt(r2_score(Y, Y_pred)))
 
@@ -46,18 +51,14 @@ def noCMTF_function_prediction(tensorFac, function="ADCC"):
     df = pd.DataFrame(tensorFac[1][0])  # subjects x components matrix
     df = df.join(func, how="inner")
     df = df.dropna()
-    df_func = df[["ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"]]
+    df_func = df[functions]
     df_variables = df.drop(
-        ["subject", "ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"], axis=1
+        ["subject"] + functions, axis=1
     )
 
     X = df_variables
     Y = df_func[function]
-    regr = ElasticNetCV(normalize=True, max_iter=10000)
-    regr.fit(X, Y)
-    Y_pred = cross_val_predict(
-        ElasticNet(alpha=regr.alpha_, normalize=True, max_iter=10000), X, Y, cv=10
-    )
+    Y_pred = elastic_net_helper(X, Y)
 
     print(f"Accuracy: {np.sqrt(r2_score(Y, Y_pred))}")
 
@@ -105,11 +106,7 @@ def ourSubjects_function_prediction(tensorFac, function="ADCC"):
 
     X = df_variables
     Y = df_func[function]
-    regr = ElasticNetCV(normalize=True, max_iter=10000)
-    regr.fit(X, Y)
-    Y_pred = cross_val_predict(
-        ElasticNet(alpha=regr.alpha_, normalize=True, max_iter=10000), X, Y, cv=10
-    )
+    Y_pred = elastic_net_helper(X, Y)
 
     return Y, Y_pred
 

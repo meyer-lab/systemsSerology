@@ -93,7 +93,8 @@ def importAlterDF():
     glyc = df2.pivot(index="subject", columns="variable", values="value")
     igg = importIGG()
     igg = igg.pivot(index="subject", columns="variable", values="value")
-    data_frames = [lum, glyc, igg]
+    subj = load_file("meta-subjects")["subject"]
+    data_frames = [lum, glyc, igg, subj]
     df_merged = reduce(
         lambda left, right: pd.merge(left, right, on=["subject"], how="inner"),
         data_frames,
@@ -105,7 +106,7 @@ def AlterIndices():
     df = importAlterDF()
     subjects, _, _ = getAxes()
 
-    indices = np.full([93], np.nan)
+    indices = [-1]*98
     for i, subject in enumerate(df["subject"]):
         if subject in subjects:
             indices[i] = subjects.index(subject)
