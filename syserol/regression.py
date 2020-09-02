@@ -14,6 +14,7 @@ def function_elastic_net(function="ADCC"):
     df = importAlterDF()
     func, _ = importFunction()
     df_merged = df.merge(func, on="subject", how="inner")
+    df_merged = df_merged.dropna()
     # separate dataframes
     df_func = df_merged[functions]
     df_variables = df_merged.drop(["subject"] + functions, axis=1)
