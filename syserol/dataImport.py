@@ -106,12 +106,7 @@ def AlterIndices():
     df = importAlterDF()
     subjects, _, _ = getAxes()
 
-    indices = [-1]*98
-    for i, subject in enumerate(df["subject"]):
-        if subject in subjects:
-            indices[i] = subjects.index(subject)
-
-    return indices
+    return np.array([subjects.index(subject) for i, subject in enumerate(df["subject"])])
 
 @lru_cache()
 def createCube():
