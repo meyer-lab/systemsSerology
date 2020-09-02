@@ -73,7 +73,5 @@ def perform_CMTF(tensorIn, matrixIn, r):
 
     tensor_R2XX = calcR2X(tensorIn, tensorFac)
     matrix_R2XX = calcR2X(matrixIn, matrixFac)
-    print("CMTF Tensor R2X: " + str(tensor_R2XX))
-    print("CMTF Matrix R2X: " + str(matrix_R2XX))
 
     return tensorFac, matrixFac, tensor_R2XX, matrix_R2XX
