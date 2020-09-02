@@ -38,7 +38,7 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all", enet=True)
 
     Y = func[function]
     X = tensorFac[1][0]  # subjects x components matrix
-    dropped = np.argwhere(np.isinf(Y))
+    dropped = np.argwhere(np.isnan(Y))
     X = X[np.isfinite(Y), :]
     Y = Y[np.isfinite(Y)]
 
