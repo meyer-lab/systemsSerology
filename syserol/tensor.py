@@ -47,11 +47,8 @@ def perform_CMTF(tensorIn, matrixIn, r):
     matrix[mask_matrix == 0] = 0.0
 
     # Initialize by running PARAFAC on the 3D tensor
-    parafacSettings = {'orthogonalise': 100, 'tol': 1e-09, 'normalize_factors': False, 'n_iter_max': 1000, 'linesearch': True}
+    parafacSettings = {'orthogonalise': 200, 'tol': 1e-9, 'normalize_factors': False, 'n_iter_max': 1000, 'linesearch': True}
     tensorFac = parafac(tensor, r, mask=mask, **parafacSettings)
-
-    tensor = tensor * mask + tl.kruskal_to_tensor(tensorFac, mask=1 - mask)
-    assert np.all(np.isfinite(tensor))
 
     # Now run CMTF
     matrixFac = cmtf(matrix, mask_matrix=mask_matrix, init=tensorFac)
@@ -60,7 +57,7 @@ def perform_CMTF(tensorIn, matrixIn, r):
     matrixResid = matrixIn - tl.kruskal_to_tensor(matrixFac)
     matrixResid[mask_matrix == 0] = 0.0
 
-    matrixFacExt = parafac(matrixResid, 6, mask=mask_matrix, **parafacSettings)
+    matrixFacExt = parafac(matrixResid, r, mask=mask_matrix, **parafacSettings)
     ncp = matrixFacExt.rank
 
     # Incorporate PCA into factorization
@@ -76,7 +73,5 @@ def perform_CMTF(tensorIn, matrixIn, r):
 
     tensor_R2XX = calcR2X(tensorIn, tensorFac)
     matrix_R2XX = calcR2X(matrixIn, matrixFac)
-    print("CMTF Tensor R2X: " + str(tensor_R2XX))
-    print("CMTF Matrix R2X: " + str(matrix_R2XX))
 
     return tensorFac, matrixFac, tensor_R2XX, matrix_R2XX

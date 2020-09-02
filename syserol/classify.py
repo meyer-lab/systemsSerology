@@ -100,7 +100,6 @@ def two_way_classifications():
     Y_pred1 = cross_val_predict(LogisticRegressionCV(), X1, Y1)
     model1 = LogisticRegressionCV().fit(X1, Y1)
 
-    print(model1.coef_)
     confusionCvP = confusion_matrix(Y1, Y_pred1)
     accuracyCvP = accuracy_score(Y1, Y_pred1)
     print(f"Confusion Matrix Controller vs. Progressor: {confusionCvP} \n")
@@ -113,7 +112,6 @@ def two_way_classifications():
     Y_pred2 = cross_val_predict(LogisticRegressionCV(), X2, Y2)
     model2 = LogisticRegressionCV().fit(X2, Y2)
 
-    print(model2.coef_)
     confusionVvN = confusion_matrix(Y2, Y_pred2)
     accuracyVvN = accuracy_score(Y2, Y_pred2)
     print(f"Confusion Matrix Viremic vs. Nonviremic: {confusionVvN} \n")
