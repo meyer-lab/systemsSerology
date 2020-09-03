@@ -10,7 +10,6 @@ from .dataImport import (
     functions,
     importAlterDF,
     getAxes,
-    functions,
 )
 
 def elasticNetFunc(X, Y):
