@@ -14,6 +14,16 @@ from .dataImport import (
 )
 
 
+def elasticNetFunc(X, Y):
+    """ Function with common elastic net methods. """
+    regr = ElasticNetCV(normalize=True, max_iter=10000, cv=30, n_jobs=-1)
+    regr.fit(X, Y)
+    enet = ElasticNet(alpha=regr.alpha_, l1_ratio=regr.l1_ratio_, normalize=True, max_iter=10000)
+    Y_pred = cross_val_predict(enet, X, Y, cv=30, n_jobs=-1)
+    rsq = np.sqrt(r2_score(Y, Y_pred))
+    return Y_pred, rsq
+
+
 def function_elastic_net(function="ADCC"):
     """ Predict functions using elastic net according to Alter methods"""
     # Import Luminex, Luminex-IGG, Function, and Glycan into DF
@@ -27,7 +37,7 @@ def function_elastic_net(function="ADCC"):
 
     # perform regression
     Y = df_func[function]
-    Y_pred = elastic_net_helper(df_variables, Y)
+    Y_pred = elasticNetFunc(df_variables, Y)
 
     return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))
 
@@ -43,7 +53,7 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all", enet=True)
     Y = Y[np.isfinite(Y)]
 
     if enet is True:
-        Y_pred = elastic_net_helper(X, Y)
+        Y_pred = elasticNetFunc(X, Y)
     else:
         Y_pred = cross_val_predict(SVR(), X, Y, cv=10)
 
@@ -55,16 +65,6 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all", enet=True)
         return accuracy_leftoutAlterSubj(Y, Y_pred, dropped)
     else:
         raise ValueError("Wrong selection for evaluation.")
-
-
-
-def elastic_net_helper(X, Y):
-    """ Helper Function for Elastic Net Regression"""
-    regr = ElasticNetCV(normalize=True, max_iter=10000, cv=10)
-    regr.fit(X, Y)
-    enet = ElasticNet(alpha=regr.alpha_, normalize=True, max_iter=10000)
-    Y_pred = cross_val_predict(enet, X, Y, cv=10)
-    return Y_pred
 
 
 def accuracy_alterSubjOnly(Y, Ypred, dropped):
