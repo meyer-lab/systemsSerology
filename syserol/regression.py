@@ -48,7 +48,7 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all", enet=True)
 
     Y = func[function]
     X = tensorFac[1][0]  # subjects x components matrix
-    dropped = np.argwhere(np.isnan(Y))
+    dropped = np.nonzero(np.isnan(Y.to_numpy()))
     X = X[np.isfinite(Y), :]
     Y = Y[np.isfinite(Y)]
 
@@ -60,9 +60,9 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all", enet=True)
     if evaluation == "all":
         return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))
     elif evaluation == "Alter":
-        return accuracy_alterSubj(Y, Y_pred, dropped)
+        return accuracy_alterSubj(Y, Y_pred, dropped[0])
     elif evaluation == "notAlter":
-        return accuracy_alterSubj(Y, Y_pred, dropped, union=False)
+        return accuracy_alterSubj(Y, Y_pred, dropped[0], union=False)
     else:
         raise ValueError("Wrong selection for evaluation.")
 
@@ -73,7 +73,7 @@ def accuracy_alterSubj(Y, Ypred, dropped, union=True):
 
     # Inflate back to original size
     Ypred = np.insert(Ypred, dropped, np.nan)
-    Y = np.insert(Y, dropped, np.nan)
+    Y = np.insert(Y.to_numpy(), dropped, np.nan)
 
     if union is True:
         # Reduce to Alter subjects
