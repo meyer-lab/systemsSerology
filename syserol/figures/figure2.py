@@ -16,14 +16,13 @@ from syserol.dataImport import (
 )
 from syserol.classify import class_predictions, two_way_classifications
 from syserol.figures.common import subplotLabel, getSetup
-from syserol.tensor import perform_CMTF
+from syserol.tensor import perform_CMTF_def
 
 
 def makeFigure():
     """ Show Similarity in Prediction of Alter Model and Our Model"""
     # Decompose Cube
-    cube, glyCube = createCube()
-    tensorFac, _, _, _ = perform_CMTF(cube, glyCube, 6)
+    tensorFac, _, _, _ = perform_CMTF_def(6)
     # Gather Function Prediction Accuracies
     accuracies = np.zeros(12)
     for ii, func in enumerate(functions):

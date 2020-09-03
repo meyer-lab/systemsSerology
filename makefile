@@ -13,6 +13,9 @@ venv/bin/activate: requirements.txt
 figure%.svg: venv genFigure.py syserol/figures/figure%.py
 	. venv/bin/activate && ./genFigure.py $*
 
+figureAll: venv genAll.py
+	. venv/bin/activate && ./genAll.py
+
 test: venv
 	. venv/bin/activate && pytest -s -v
 
