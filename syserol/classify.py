@@ -16,8 +16,8 @@ from syserol.dataImport import (
 )
 
 
-def SVM_2class_predictions(subjects_matrix):
-    """ Predict Subject Class with Support Vector Machines and Decomposed Tensor Data"""
+def 2class_predictions(subjects_matrix, SVC=True):
+    """ Predict Subject Class with Decomposed Tensor Data"""
     # Load Data
     classes = load_file("meta-subjects")
     classes = classes.replace(
@@ -30,49 +30,29 @@ def SVM_2class_predictions(subjects_matrix):
     indices = AlterIndices()
     # Controller/Progressor classification
     Y = cp
-    # Kernel = RBF
-    # Run SVM classifier model
-    clf = SVC(kernel="rbf")
-    y_pred1 = cross_val_predict(clf, subjects_matrix, Y, cv=20)
+    if SVC == True:
+        # Kernel = RBF
+        # Run SVM classifier model
+        y_pred1 = cross_val_predict(SVC(kernel="rbf"), subjects_matrix, Y, cv=20)
+    else:
+        regr = LogisticRegressionCV(penalty="elasticnet", solver="saga", l1_ratios=[0.0, 0.1, 0.5, 0.9, 1.0])
+        regr.fit(subjects_matrix, Y)
+        y_pred1 = cross_val_predict(LogisticRegression(penalty="elasticnet", solver="saga", C=regr.C_[0], l1_ratio=regr.l1_ratio_[0]), subjects_matrix, Y)
     # Calculate accuracy for Alter included subjects only
     cp_accuracy = accuracy_score(Y[indices], y_pred1[indices])
 
     # Viremic/Nonviremic classification
     Y = nv
-    # Kernel = RBF
-    # Run SVM classifier model
-    y_pred2 = cross_val_predict(clf, subjects_matrix, Y, cv=20)
+    if SVC == True:
+        # Kernel = RBF
+        # Run SVM classifier model
+        y_pred2 = cross_val_predict(SVC(kernel="rbf"), subjects_matrix, Y, cv=20)
+    else:
+        regr = LogisticRegressionCV(penalty="elasticnet", solver="saga", l1_ratios=[0.0, 0.1, 0.5, 0.9, 1.0])
+        regr.fit(subjects_matrix, Y)
+        y_pred2 = cross_val_predict(LogisticRegression(penalty="elasticnet", solver="saga", C=regr.C_[0], l1_ratio=regr.l1_ratio_[0]), subjects_matrix, Y)
     # Calculate accuracy for Alter included subjects only
     nv_accuracy = accuracy_score(Y[indices], y_pred2[indices])
-
-    return cp_accuracy, nv_accuracy
-
-
-def logistic_2class_predictions(subjects_matrix):
-    """ Predict Subject Class with Decomposed Tensor Data and Logistic Regression"""
-    # Load Data
-    classes = load_file("meta-subjects")
-    classes = classes.replace(
-        to_replace=["controller", "progressor", "viremic", "nonviremic"],
-        value=[1, 0, 1, 0],
-    )
-    cp = np.array(classes["class.cp"])
-    nv = np.array(classes["class.nv"])
-
-    indices = AlterIndices()
-    # Controller/Progressor classification
-    Y = cp
-    regr = LogisticRegressionCV(penalty="elasticnet", solver="saga", l1_ratios=[0.0, 0.1, 0.5, 0.9, 1.0])
-    regr.fit(subjects_matrix, Y)
-    Y_pred1 = cross_val_predict(LogisticRegression(penalty="elasticnet", solver="saga", C=regr.C_[0], l1_ratio=regr.l1_ratio_[0]), subjects_matrix, Y)
-    cp_accuracy = accuracy_score(Y[indices], Y_pred1[indices])
-
-    # Viremic/Nonviremic classification
-    Y = nv
-    regr = LogisticRegressionCV(penalty="elasticnet", solver="saga", l1_ratios=[0.0, 0.1, 0.5, 0.9, 1.0])
-    regr.fit(subjects_matrix, Y)
-    Y_pred2 = cross_val_predict(LogisticRegression(penalty="elasticnet", solver="saga", C=regr.C_[0], l1_ratio=regr.l1_ratio_[0]), subjects_matrix, Y)
-    nv_accuracy = accuracy_score(Y[indices], Y_pred2[indices])
 
     return cp_accuracy, nv_accuracy
 
