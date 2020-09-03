@@ -14,7 +14,7 @@ from syserol.dataImport import (
     createCube,
     functions
 )
-from syserol.classify import logistic_2class_predictions, two_way_classifications
+from syserol.classify import class_predictions, two_way_classifications
 from syserol.figures.common import subplotLabel, getSetup
 from syserol.tensor import perform_CMTF
 
@@ -61,7 +61,7 @@ def makeFigure():
     accuracyCvP, accuracyVvN, _, _ = two_way_classifications()  # Alter accuracies
     # Run our model
     subjects_matrix = tensorFac[1][0]
-    cp_accuracy, nv_accuracy = logistic_2class_predictions(subjects_matrix)  # Our accuracies
+    cp_accuracy, nv_accuracy = class_predictions(subjects_matrix, True)  # Our accuracies
 
     # Create DataFrame
     baselineNV = 0.5083  # datasetEV3/Fc.array/class.nv/lambda.min/score_details.txt "No information rate"
