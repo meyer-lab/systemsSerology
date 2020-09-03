@@ -39,7 +39,7 @@ def makeFigure():
     # Subjects left out of Alter
     preds = np.zeros([81, 12])
     for i, func in enumerate(functions):
-        Y, Y_pred = function_prediction(tensorFac, function=func, evaluation="notAlter", enet=True)
+        Y, Y_pred, _ = function_prediction(tensorFac, function=func, evaluation="notAlter", enet=True)
         preds[:, i] = Y
         preds[:, i + 6] = Y_pred
 
