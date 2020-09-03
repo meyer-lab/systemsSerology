@@ -8,7 +8,6 @@ from sklearn.svm import SVC
 from scipy.stats import zscore
 from syserol.dataImport import (
     load_file,
-    functions,
     importAlterDF,
 )
 
@@ -36,8 +35,7 @@ def class_predictions(X, methodLR):
 
 def two_way_classifications():
     """ Predict classifications of subjects by progression (EC/VC vs TP/UP) or by viremia (EC/TP vs VC/UP) - Alter methods"""
-    df_merged = importAlterDF()
-    df_merged = df_merged.drop(functions, axis=1)
+    df_merged = importAlterDF(function=False)
 
     # Subset, Z score
     X = df_merged.drop(
