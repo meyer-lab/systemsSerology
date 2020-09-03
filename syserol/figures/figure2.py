@@ -25,14 +25,13 @@ def makeFigure():
         _, _, acc = function_elastic_net(func)  # Alter Function Predictions
         accuracies[ii] = acc  # store accuracies
     for i, func in enumerate(functions):
-        _, _, accuracy = function_prediction(
-            tensorFac, function=func, evaluation="Alter", enet=True
-        )  # our prediction accuracies
+        # our prediction accuracies
+        _, _, accuracy = function_prediction(tensorFac, function=func, evaluation="Alter")
         accuracies[i + 6] = accuracy  # store
 
     # Create DataFrame
-    model = np.array(["Alter Model"] * 6 + ["Our Model"] * 6)
-    function = np.array(functions + functions)
+    model = ["Alter Model"] * 6 + ["Our Model"] * 6
+    function = functions + functions
     data = {"Accuracy": accuracies, "Model": model, "Function": function}
     functions_df = pd.DataFrame(data)  # Function Prediction DataFrame, Figure 2B
 
@@ -40,7 +39,7 @@ def makeFigure():
     preds = np.empty([83, 12])
     preds.fill(np.nan)
     for i, func in enumerate(functions):
-        Y, Y_pred, _ = function_prediction(tensorFac, function=func, evaluation="notAlter", enet=True)
+        Y, Y_pred, _ = function_prediction(tensorFac, function=func, evaluation="notAlter")
         preds[0:len(Y), i] = Y
         preds[0:len(Y_pred), i + 6] = Y_pred
 
@@ -69,12 +68,8 @@ def makeFigure():
     accuracies = np.array(
         [accuracyCvP, cp_accuracy, baselineCP, accuracyVvN, nv_accuracy, baselineNV]
     )
-    category = np.array(
-        ["Progression", "Progression", "Progression", "Viremia", "Viremia", "Viremia"]
-    )
-    model = np.array(
-        ["Alter Model", "Our Model", "Baseline", "Alter Model", "Our Model", "Baseline"]
-    )
+    category = ["Progression"] * 3 + ["Viremia"] * 3
+    model = ["Alter Model", "Our Model", "Baseline"] * 2
     data = {"Accuracies": accuracies, "Class": category, "Model": model}
     classes = pd.DataFrame(data)  # Class Predictions DataFrame, Figure 2C
 
