@@ -55,19 +55,19 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all", enet=True)
     if enet is True:
         Y_pred = elasticNetFunc(X, Y)
     else:
-        Y_pred = cross_val_predict(SVR(), X, Y, cv=10)
+        Y_pred = cross_val_predict(SVR(), X, Y, cv=10, n_jobs=-1)
 
     if evaluation == "all":
         return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))
     elif evaluation == "Alter":
-        return accuracy_alterSubjOnly(Y, Y_pred, dropped)
+        return accuracy_alterSubj(Y, Y_pred, dropped)
     elif evaluation == "notAlter":
-        return accuracy_leftoutAlterSubj(Y, Y_pred, dropped)
+        return accuracy_alterSubj(Y, Y_pred, dropped, union=False)
     else:
         raise ValueError("Wrong selection for evaluation.")
 
 
-def accuracy_alterSubjOnly(Y, Ypred, dropped):
+def accuracy_alterSubj(Y, Ypred, dropped, union=True):
     """ Calculate the Accuracy for Only Subjects Included in Alter """
     indices = AlterIndices()
 
@@ -75,28 +75,14 @@ def accuracy_alterSubjOnly(Y, Ypred, dropped):
     Ypred = np.insert(Ypred, dropped, np.nan)
     Y = np.insert(Y, dropped, np.nan)
 
-    # Reduce to Alter subjects
-    Ypred = Ypred[indices]
-    Y = Y[indices]
-
-    # Remove any missing cases
-    Ypred = Ypred[np.isfinite(Y)]
-    Y = Y[np.isfinite(Y)]
-
-    return Y, Ypred, np.sqrt(r2_score(Y, Ypred))
-
-
-def accuracy_leftoutAlterSubj(Y, Ypred, dropped):
-    """ Calculate accuracy for subjects that Alter could not predict and we did predict"""
-    indices = AlterIndices()
-    
-    # Inflate back to original size
-    Ypred = np.insert(Ypred, dropped, np.nan)
-    Y = np.insert(Y, dropped, np.nan)
-
-    # Remove Alter cases
-    Ypred = Ypred.delete(indices)
-    Y = Y.delete(indices)
+    if union is True:
+        # Reduce to Alter subjects
+        Ypred = Ypred[indices]
+        Y = Y[indices]
+    else:
+        # Remove Alter cases
+        Ypred = Ypred.delete(indices)
+        Y = Y.delete(indices)
 
     # Remove any missing cases
     Ypred = Ypred[np.isfinite(Y)]
