@@ -11,10 +11,10 @@ from ..tensor import perform_CMTF
 def makeFigure():
     """Get a list of the axis objects and create a figure"""
     # Get list of axis objects
-    ax, f = getSetup((10, 10), (1, 1))
+    ax, f = getSetup((3, 3), (1, 1))
 
     cube, glyCube = createCube()
-    comps = np.array([1, 2, 3, 4, 6, 8, 10, 12])
+    comps = np.array([1, 2, 3, 4, 6, 8, 10])
     tensorArr = np.zeros(comps.size)
     matrixArr = np.zeros(comps.size)
     for i, compp in enumerate(comps):
