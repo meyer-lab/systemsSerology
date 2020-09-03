@@ -3,7 +3,7 @@ This creates Figure 5.
 """
 import numpy as np
 from syserol.figures.common import subplotLabel, getSetup
-from ..regression import noCMTF_function_prediction
+from ..regression import function_prediction
 from ..dataImport import functions, createCube
 from ..tensor import perform_CMTF
 
@@ -14,7 +14,7 @@ def makeFigure():
     cube, glyCube = createCube()
     tensorFac, _, _, _ = perform_CMTF(cube, glyCube, 6)
     for i, func in enumerate(functions):
-        x, y, accuracy = noCMTF_function_prediction(tensorFac, function=func)
+        x, y, accuracy = function_prediction(tensorFac, function=func, evaluation="All", enet=True)
         ax[i].scatter(x, y)
         ax[i].set_xlabel("Actual Values", fontsize=12)
         ax[i].set_ylabel("Predicted Values", fontsize=12)
