@@ -3,7 +3,7 @@ This creates Figure S1.
 """
 import numpy as np
 from .common import subplotLabel, getSetup
-from ..regression import noCMTF_function_prediction
+from ..regression import function_prediction
 from ..dataImport import functions
 from ..tensor import perform_CMTF
 
@@ -13,7 +13,7 @@ def makeFigure():
     # Plot Actual vs. Predicted Values for each Function
     tensorFac, _, _, _ = perform_CMTF()
     for i, func in enumerate(functions):
-        x, y, accuracy = noCMTF_function_prediction(tensorFac, function=func)
+        x, y, accuracy = function_prediction(tensorFac, function=func, evaluation="All", enet=True)
         ax[i].scatter(x, y, s=2)
         ax[i].set_xlabel("Actual Values")
         ax[i].set_ylabel("Predicted Values")
