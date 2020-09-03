@@ -4,15 +4,14 @@ This creates Figure 5.
 import numpy as np
 from syserol.figures.common import subplotLabel, getSetup
 from ..regression import noCMTF_function_prediction
-from ..dataImport import functions, createCube
+from ..dataImport import functions
 from ..tensor import perform_CMTF
 
 def makeFigure():
     """ Analyze Prediction Accuracy of 10 Fold Cross Validation Strategy"""
     ax, f = getSetup((10, 10), (3, 2))
     # Plot Actual vs. Predicted Values for each Function
-    cube, glyCube = createCube()
-    tensorFac, _, _, _ = perform_CMTF(cube, glyCube, 6)
+    tensorFac, _, _, _ = perform_CMTF()
     for i, func in enumerate(functions):
         x, y, accuracy = noCMTF_function_prediction(tensorFac, function=func)
         ax[i].scatter(x, y)
