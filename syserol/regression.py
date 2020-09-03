@@ -10,7 +10,9 @@ from .dataImport import (
     functions,
     importAlterDF,
     getAxes,
+    AlterIndices,
 )
+
 
 def elasticNetFunc(X, Y):
     """ Function with common elastic net methods. """
@@ -25,100 +27,63 @@ def elasticNetFunc(X, Y):
 def function_elastic_net(function="ADCC"):
     """ Predict functions using elastic net according to Alter methods"""
     # Import Luminex, Luminex-IGG, Function, and Glycan into DF
-    df_merged = importAlterDF()
-
+    df = importAlterDF(function=True, subjects=False)
+    df_merged = df.dropna()
     # separate dataframes
     df_func = df_merged[functions]
     df_variables = df_merged.drop(["subject"] + functions, axis=1)
 
     # perform regression
     Y = df_func[function]
-    Y_pred, rsq = elasticNetFunc(df_variables, Y)
-
-    return Y, Y_pred, rsq
-
-
-def noCMTF_function_prediction(tensorFac, function="ADCC"):
-    """ Predict functions using our decomposition and regression methods"""
-    func, _ = importFunction()
-    df = pd.DataFrame(tensorFac[1][0])  # subjects x components matrix
-    df = df.join(func, how="inner")
-    df = df.dropna()
-    df_func = df[functions]
-    df_variables = df.drop(["subject"] + functions, axis=1)
-
-    Y = df_func[function]
-    Y_pred, rsq = elasticNetFunc(df_variables, Y)
-
-    return Y, Y_pred, rsq
-
-def SVR_noCMTF_function_prediction(tensorFac, function="ADCC"):
-    """ Predict functions using our decomposition and SVR regression methods"""
-    func, _ = importFunction()
-    df = pd.DataFrame(tensorFac[1][0])  # subjects x components matrix
-    df = df.join(func, how="inner")
-    df = df.dropna()
-    df_func = df[functions]
-    df_variables = df.drop(
-        ["subject"] + functions, axis=1
-    )
-
-    X = df_variables
-    Y = df_func[function]
-    Y_pred = cross_val_predict(SVR(), X, Y, cv=10, n_jobs=-1)
-    accuracy = np.sqrt(r2_score(Y, Y_pred))
-    print(f"Accuracy: {accuracy}")
-
-    return Y, Y_pred, accuracy
-
-def ourSubjects_function_prediction(tensorFac, function="ADCC"):
-    """ Predict functions for subjects specifically left out of Alter using regression methods"""
-    # Re-Create Alter DataFrame with leftout subjects
-    df_merged = importAlterDF()
-
-    fullsubj = np.array(df_merged["subject"])  # Subjects only included in Alter
-    subjects, _, _ = getAxes()
-
-    # Subjects left out of Alter
-    indices = [idx for idx, i in enumerate(subjects) if i not in fullsubj]
-
-    func, _ = importFunction()
-    df = pd.DataFrame(tensorFac[1][0])  # subjects x components matrix
-    df = df.join(func, how="inner")
-    df = df.iloc[indices]
-    df = df.dropna()
-    df_func = df[functions]
-    df_variables = df.drop(["subject"] + functions, axis=1)
-
-    Y = df_func[function]
     Y_pred, _ = elasticNetFunc(df_variables, Y)
 
-    return Y, Y_pred
+    return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))
 
-def SVR_ourSubjects_function_prediction(tensorFac, function="ADCC"):
-    # Re-Create Alter DataFrame with leftout subjects
-    df_merged = importAlterDF()
 
-    fullsubj = np.array(df_merged["subject"])  # Subjects only included in Alter
-    leftout = []
-    subjects, _, _ = getAxes()
-    for index, i in enumerate(subjects):
-        if i not in fullsubj:
-            leftout.append((index, i))  # Subjects left out of Alter
-    indices = [i[0] for i in leftout]
-
+def function_prediction(tensorFac, function="ADCC", evaluation="all", enet=True):
+    """ Predict functions using our decomposition and regression methods"""
     func, _ = importFunction()
-    df = pd.DataFrame(tensorFac[1][0])  # subjects x components matrix
-    df = df.join(func, how="inner")
-    df = df.iloc[indices]
-    df = df.dropna()
-    df_func = df[functions]
-    df_variables = df.drop(["subject"] + functions, axis=1)
 
-    X = df_variables
-    Y = df_func[function]
-    Y_pred = cross_val_predict(SVR(), X, Y, cv=10)
-    accuracy = np.sqrt(r2_score(Y, Y_pred))
-    print(f"Accuracy: {accuracy}")
+    Y = func[function]
+    X = tensorFac[1][0]  # subjects x components matrix
+    dropped = np.nonzero(np.isnan(Y.to_numpy()))
+    X = X[np.isfinite(Y), :]
+    Y = Y[np.isfinite(Y)]
 
-    return Y, Y_pred
+    if enet is True:
+        Y_pred, _ = elasticNetFunc(X, Y)
+    else:
+        Y_pred = cross_val_predict(SVR(), X, Y, cv=10, n_jobs=-1)
+
+    if evaluation == "all":
+        return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))
+    elif evaluation == "Alter":
+        return accuracy_alterSubj(Y, Y_pred, dropped[0])
+    elif evaluation == "notAlter":
+        return accuracy_alterSubj(Y, Y_pred, dropped[0], union=False)
+    else:
+        raise ValueError("Wrong selection for evaluation.")
+
+
+def accuracy_alterSubj(Y, Ypred, dropped, union=True):
+    """ Calculate the Accuracy for Only Subjects Included in Alter """
+    indices = AlterIndices()
+
+    # Inflate back to original size
+    Ypred = np.insert(Ypred, dropped, np.nan)
+    Y = np.insert(Y.to_numpy(), dropped, np.nan)
+
+    if union is True:
+        # Reduce to Alter subjects
+        Ypred = Ypred[indices]
+        Y = Y[indices]
+    else:
+        # Remove Alter cases
+        Ypred = np.delete(Ypred, indices)
+        Y = np.delete(Y, indices)
+
+    # Remove any missing cases
+    Ypred = Ypred[np.isfinite(Y)]
+    Y = Y[np.isfinite(Y)]
+
+    return Y, Ypred, np.sqrt(r2_score(Y, Ypred))

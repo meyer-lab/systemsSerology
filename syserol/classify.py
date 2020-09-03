@@ -33,7 +33,7 @@ def class_predictions(X, methodLR):
 
 def two_way_classifications():
     """ Predict classifications of subjects by progression (EC/VC vs TP/UP) or by viremia (EC/TP vs VC/UP) - Alter methods"""
-    df_merged = importAlterDF(function=False)
+    df_merged = importAlterDF(function=False, subjects=True)
 
     # Subset, Z score
     X = df_merged.drop(

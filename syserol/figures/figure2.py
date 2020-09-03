@@ -7,8 +7,7 @@ import numpy as np
 import seaborn as sns
 from ..regression import (
     function_elastic_net,
-    noCMTF_function_prediction,
-    ourSubjects_function_prediction,
+    function_prediction
 )
 from ..dataImport import functions
 from ..classify import class_predictions, two_way_classifications
@@ -26,8 +25,8 @@ def makeFigure():
         _, _, acc = function_elastic_net(func)  # Alter Function Predictions
         accuracies[ii] = acc  # store accuracies
     for i, func in enumerate(functions):
-        _, _, accuracy = noCMTF_function_prediction(
-            tensorFac, function=func
+        _, _, accuracy = function_prediction(
+            tensorFac, function=func, evaluation="Alter", enet=True
         )  # our prediction accuracies
         accuracies[i + 6] = accuracy  # store
 
@@ -38,11 +37,12 @@ def makeFigure():
     functions_df = pd.DataFrame(data)  # Function Prediction DataFrame, Figure 2B
 
     # Subjects left out of Alter
-    preds = np.zeros([81, 12])
+    preds = np.empty([83, 12])
+    preds.fill(np.nan)
     for i, func in enumerate(functions):
-        Y, Y_pred = ourSubjects_function_prediction(tensorFac, function=func)
-        preds[:, i] = Y
-        preds[:, i + 6] = Y_pred
+        Y, Y_pred, _ = function_prediction(tensorFac, function=func, evaluation="notAlter", enet=True)
+        preds[0:len(Y), i] = Y
+        preds[0:len(Y_pred), i + 6] = Y_pred
 
     df = pd.DataFrame(
         preds,

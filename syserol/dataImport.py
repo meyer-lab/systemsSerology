@@ -85,7 +85,8 @@ def importFunction():
 
     return df, mapped
 
-def importAlterDF(function=True):
+
+def importAlterDF(function=True, subjects=False):
     """ Recreate Alter DF, Import Luminex, Luminex-IGG, Subject group pairs, and Glycan into DF"""
     df = importLuminex()
     lum = df.pivot(index="subject", columns="variable", values="value")
@@ -96,19 +97,26 @@ def importAlterDF(function=True):
     if function is True:
         func, _ = importFunction()
     else:
+        func = None
+    if subjects is True:
         func = load_file("meta-subjects")
 
     igg = importIGG()
     igg = igg.pivot(index="subject", columns="variable", values="value")
-    data_frames = [lum, glyc, func, igg]
+    subj = load_file("meta-subjects")["subject"]
+    data_frames = [lum, glyc, igg, func, subj]
     df_merged = reduce(
         lambda left, right: pd.merge(left, right, on=["subject"], how="inner"),
         data_frames,
     )
-    df_merged = df_merged.dropna()
 
     return df_merged
 
+def AlterIndices():
+    df = importAlterDF()
+    subjects, _, _ = getAxes()
+
+    return np.array([subjects.index(subject) for i, subject in enumerate(df["subject"])])
 
 @lru_cache()
 def createCube():
