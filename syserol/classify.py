@@ -8,8 +8,8 @@ from sklearn.svm import SVC
 from scipy.stats import zscore
 from syserol.dataImport import (
     load_file,
-    importLuminex,
-    importIGG,
+    functions,
+    importAlterDF,
 )
 
 
@@ -20,49 +20,37 @@ def getClassY(df):
     return Y1, Y2
 
 
-def class_predictions(subjects_matrix, methodLR):
+def class_predictions(X, methodLR):
     """ Predict Subject Class with Decomposed Tensor Data """
     # Load Data
     cp, nv = getClassY(load_file("meta-subjects"))
 
     # Controller/Progressor classification
-    _, cp_accuracy, _ = ClassifyHelper(subjects_matrix, cp, methodLR)
+    _, cp_accuracy, _ = ClassifyHelper(X, cp, methodLR)
 
     # Viremic/Nonviremic classification
-    _, nv_accuracy, _ = ClassifyHelper(subjects_matrix, nv, methodLR)
+    _, nv_accuracy, _ = ClassifyHelper(X, nv, methodLR)
 
     return cp_accuracy, nv_accuracy
 
 
 def two_way_classifications():
     """ Predict classifications of subjects by progression (EC/VC vs TP/UP) or by viremia (EC/TP vs VC/UP) - Alter methods"""
-    # Import Luminex, Luminex-IGG, Subject group pairs, and Glycan into DF
-    df = importLuminex()
-    lum = df.pivot(index="subject", columns="variable", values="value")
-    subj = load_file("meta-subjects")
-    igg = importIGG()
-
-    igg = igg.pivot(index="subject", columns="variable", values="value")
-    data_frames = [lum, subj, igg]
-    df_merged = reduce(
-        lambda left, right: pd.merge(left, right, on=["subject"], how="inner"),
-        data_frames,
-    )
-    df_merged = df_merged.dropna()
+    df_merged = importAlterDF()
+    df_merged = df_merged.drop(functions, axis=1)
 
     # Subset, Z score
-    df_class = df_merged[["class.cp", "class.nv"]]
-    df_variables = df_merged.drop(
+    X = df_merged.drop(
         ["subject", "class.etuv", "class.cp", "class.nv"], axis=1
     )
-    df_variables = df_variables.apply(zscore)
-    Y1, Y2 = getClassY(df_class)
+    X = X.apply(zscore)
+    Y1, Y2 = getClassY(df_merged)
 
     # Predict Controller vs. Progressor
-    _, accuracyCvP, confusionCvP = ClassifyHelper(df_variables, Y1, True)
+    _, accuracyCvP, confusionCvP = ClassifyHelper(X, Y1, True)
 
     # Predict Viremic vs. Nonviremic
-    _, accuracyVvN, confusionVvN = ClassifyHelper(df_variables, Y2, True)
+    _, accuracyVvN, confusionVvN = ClassifyHelper(X, Y2, True)
 
     return accuracyCvP, accuracyVvN, confusionCvP, confusionVvN
 
