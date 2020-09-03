@@ -85,13 +85,19 @@ def importFunction():
 
     return df, mapped
 
-def importAlterDF():
+def importAlterDF(function=True):
     """ Recreate Alter DF, Import Luminex, Luminex-IGG, Subject group pairs, and Glycan into DF"""
     df = importLuminex()
     lum = df.pivot(index="subject", columns="variable", values="value")
     _, df2 = importGlycan()
     glyc = df2.pivot(index="subject", columns="variable", values="value")
-    func, _ = importFunction()
+
+    # Should we import functions or classes?
+    if function is True:
+        func, _ = importFunction()
+    else:
+        func = load_file("meta-subjects")
+
     igg = importIGG()
     igg = igg.pivot(index="subject", columns="variable", values="value")
     data_frames = [lum, glyc, func, igg]
