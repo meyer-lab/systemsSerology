@@ -1,5 +1,5 @@
 """
-This creates a copy of Paper Figure 2, with different prediction strategies in place
+This creates a copy of Paper Figure 2, with SVR prediction strategies in place
 """
 
 import pandas as pd
@@ -7,8 +7,7 @@ import numpy as np
 import seaborn as sns
 from syserol.regression import (
     function_elastic_net,
-    SVR_noCMTF_function_prediction,
-    SVR_ourSubjects_function_prediction,
+    function_prediction
 )
 from syserol.dataImport import (
     createCube,
@@ -30,9 +29,9 @@ def makeFigure():
         _, _, acc = function_elastic_net(func)  # Alter Function Predictions
         accuracies[ii] = acc  # store accuracies
     for i, func in enumerate(functions):
-        _, _, accuracy = SVR_noCMTF_function_prediction(
-            tensorFac, function=func
-        )  # our prediction accuracies
+        _, _, accuracy = function_prediction(
+            tensorFac, function=func, evaluate="Alter", enet=False
+        )  # our prediction accuracies, using SVR
         accuracies[i + 6] = accuracy  # store
 
     # Create DataFrame
@@ -41,10 +40,10 @@ def makeFigure():
     data = {"Accuracy": accuracies, "Model": model, "Function": function}
     functions_df = pd.DataFrame(data)  # Function Prediction DataFrame, Figure 2B
 
-    # Subjects left out of Alter
+    # Subjects left out of Alter, predictions using SVR
     preds = np.zeros([81, 12])
     for i, func in enumerate(functions):
-        Y, Y_pred = SVR_ourSubjects_function_prediction(tensorFac, function=func)
+        Y, Y_pred, _ = function_prediction(tensorFac, function=func, evaluate="notAlter", enet=False)
         preds[:, i] = Y
         preds[:, i + 6] = Y_pred
 

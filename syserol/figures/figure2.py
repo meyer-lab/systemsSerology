@@ -7,8 +7,7 @@ import numpy as np
 import seaborn as sns
 from syserol.regression import (
     function_elastic_net,
-    noCMTF_function_prediction,
-    ourSubjects_function_prediction,
+    function_prediction
 )
 from syserol.dataImport import (
     createCube,
@@ -30,73 +29,25 @@ def makeFigure():
         _, _, acc = function_elastic_net(func)  # Alter Function Predictions
         accuracies[ii] = acc  # store accuracies
     for i, func in enumerate(functions):
-        _, _, accuracy = noCMTF_function_prediction(
-            tensorFac, function=func
+        _, _, accuracy = function_prediction(
+            tensorFac, function=func, evaluation="Alter", enet=True
         )  # our prediction accuracies
         accuracies[i + 6] = accuracy  # store
 
     # Create DataFrame
-    model = np.array(
-        [
-            "Alter Model",
-            "Alter Model",
-            "Alter Model",
-            "Alter Model",
-            "Alter Model",
-            "Alter Model",
-            "Our Model",
-            "Our Model",
-            "Our Model",
-            "Our Model",
-            "Our Model",
-            "Our Model",
-        ]
-    )
-    function = np.array(
-        [
-            "ADCD",
-            "ADCC",
-            "ADNP",
-            "CD107a",
-            "IFNy",
-            "MIP1b",
-            "ADCD",
-            "ADCC",
-            "ADNP",
-            "CD107a",
-            "IFNy",
-            "MIP1b",
-        ]
-    )
+    model = np.array([ "Alter Model"] * 6 + ["Our Model"] * 6)
+    function = np.array(functions + functions)
     data = {"Accuracy": accuracies, "Model": model, "Function": function}
     functions_df = pd.DataFrame(data)  # Function Prediction DataFrame, Figure 2B
 
     # Subjects left out of Alter
     preds = np.zeros([81, 12])
     for i, func in enumerate(functions):
-        Y, Y_pred = ourSubjects_function_prediction(tensorFac, function=func)
+        Y, Y_pred, _ = function_prediction(tensorFac, function=func, evaluation="notAlter", enet=True)
         preds[:, i] = Y
         preds[:, i + 6] = Y_pred
 
-    df = pd.DataFrame(
-        preds,
-        columns=[
-            [
-                "ADCD",
-                "ADCC",
-                "ADNP",
-                "CD107a",
-                "IFNy",
-                "MIP1b",
-                "ADCD",
-                "ADCC",
-                "ADNP",
-                "CD107a",
-                "IFNy",
-                "MIP1b",
-            ]
-        ],
-    )
+    df = pd.DataFrame(preds, columns=functions + functions)
     X = pd.melt(df.iloc[:, 0:6])
     Y = pd.melt(df.iloc[:, 6:12])
     X.columns = ["Function", "Value"]
