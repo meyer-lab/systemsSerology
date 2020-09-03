@@ -124,7 +124,7 @@ def makeFigure():
     classes = pd.DataFrame(data)  # Class Predictions DataFrame, Figure 2C
 
     # PLOT DataFrames
-    ax, f = getSetup((5, 4), (2, 2))
+    ax, f = getSetup((6, 5), (2, 2))
     sns.set()
     # Function Plot
     a = sns.pointplot(
@@ -157,7 +157,7 @@ def makeFigure():
     b.plot([-0.5, 5.5], [avg, avg], "--", color="green")
     b.axvspan(-0.5, 0.5, alpha=0.1, color="grey")
     b.set_xlim(-0.5, 1.5)
-    b.set_ylim(0, 1)
+    b.set_ylim(0.4, 1)
     b.grid(False)
     b.xaxis.tick_top()
     b.xaxis.set_label_position("top")

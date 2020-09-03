@@ -15,10 +15,11 @@ def makeFigure():
     for i, name in enumerate(functions):
         Measured, Y_pred, _ = function_elastic_net(name)
         ax[i].scatter(Measured, Y_pred)
-        ax[i].set_ylabel("Predicted", fontsize=12)
-        ax[i].set_xlabel("Measured", fontsize=12)
-        ax[i].set_title(f"{name} Predictability", fontsize=15)
+        ax[i].set_ylabel("Predicted")
+        ax[i].set_xlabel("Measured")
+        ax[i].set_title(name)
         ax[i].plot([Y_pred.min(), Y_pred.max()], [Y_pred.min(), Y_pred.max()], 'k--', lw=4)
+        ax[i].axis('equal')
         subplotLabel(ax)
 
     return f
