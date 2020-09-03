@@ -32,38 +32,8 @@ def makeFigure():
         accuracies[i + 6] = accuracy  # store
 
     # Create DataFrame
-    model = np.array(
-        [
-            "Alter Model",
-            "Alter Model",
-            "Alter Model",
-            "Alter Model",
-            "Alter Model",
-            "Alter Model",
-            "Our Model",
-            "Our Model",
-            "Our Model",
-            "Our Model",
-            "Our Model",
-            "Our Model",
-        ]
-    )
-    function = np.array(
-        [
-            "ADCD",
-            "ADCC",
-            "ADNP",
-            "CD107a",
-            "IFNy",
-            "MIP1b",
-            "ADCD",
-            "ADCC",
-            "ADNP",
-            "CD107a",
-            "IFNy",
-            "MIP1b",
-        ]
-    )
+    model = np.array(["Alter Model"] * 6 + ["Our Model"] * 6)
+    function = np.array(functions + functions)
     data = {"Accuracy": accuracies, "Model": model, "Function": function}
     functions_df = pd.DataFrame(data)  # Function Prediction DataFrame, Figure 2B
 
@@ -76,22 +46,7 @@ def makeFigure():
 
     df = pd.DataFrame(
         preds,
-        columns=[
-            [
-                "ADCD",
-                "ADCC",
-                "ADNP",
-                "CD107a",
-                "IFNy",
-                "MIP1b",
-                "ADCD",
-                "ADCC",
-                "ADNP",
-                "CD107a",
-                "IFNy",
-                "MIP1b",
-            ]
-        ],
+        columns=functions + functions,
     )
     X = pd.melt(df.iloc[:, 0:6])
     Y = pd.melt(df.iloc[:, 6:12])
