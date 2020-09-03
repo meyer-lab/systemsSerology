@@ -71,9 +71,9 @@ def two_way_classifications():
 def ClassifyHelper(X, Y, methodLR):
     """ Function with common Logistic regression methods. """
     if methodLR is True:
-        regr = LogisticRegressionCV(n_jobs=-1)
+        regr = LogisticRegressionCV(n_jobs=-1, max_iter=1000)
         regr.fit(X, Y)
-        clf = LogisticRegression(C=regr.C_[0])
+        clf = LogisticRegression(C=regr.C_[0], max_iter=1000)
     else:
         clf = SVC(kernel="rbf")
 
