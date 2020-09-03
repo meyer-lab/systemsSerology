@@ -83,7 +83,7 @@ def ClassifyHelper(X, Y, methodLR):
     else:
         clf = SVC(kernel="rbf")
 
-    Y_pred = cross_val_predict(clf, X, Y, cv=30)
+    Y_pred = cross_val_predict(clf, X, Y, cv=30, n_jobs=-1)
     confusion = confusion_matrix(Y, Y_pred)
     accuracy = accuracy_score(Y, Y_pred)
     return Y_pred, accuracy, confusion

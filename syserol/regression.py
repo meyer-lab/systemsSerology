@@ -15,10 +15,10 @@ from .dataImport import (
 
 def elasticNetFunc(X, Y):
     """ Function with common elastic net methods. """
-    regr = ElasticNetCV(normalize=True, max_iter=10000, cv=len(Y))
+    regr = ElasticNetCV(normalize=True, max_iter=10000, cv=30)
     regr.fit(X, Y)
     enet = ElasticNet(alpha=regr.alpha_, normalize=True, max_iter=10000)
-    Y_pred = cross_val_predict(enet, X, Y, cv=len(Y))
+    Y_pred = cross_val_predict(enet, X, Y, cv=30, n_jobs=-1)
     rsq = np.sqrt(r2_score(Y, Y_pred))
     return Y_pred, rsq
 
@@ -66,7 +66,7 @@ def SVR_noCMTF_function_prediction(tensorFac, function="ADCC"):
 
     X = df_variables
     Y = df_func[function]
-    Y_pred = cross_val_predict(SVR(), X, Y, cv=10)
+    Y_pred = cross_val_predict(SVR(), X, Y, cv=10, n_jobs=-1)
     accuracy = np.sqrt(r2_score(Y, Y_pred))
     print(f"Accuracy: {accuracy}")
 

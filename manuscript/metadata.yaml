@@ -1,19 +1,15 @@
 ---
-title: "A model describing TYRO3-(AXL)-GAS6 axis attenuating the pro-inflammatory immune response in human M1 macrophages"
+title: "Structured decomposition improves systems serology prediction and interpretation"
 keywords:
-  - A
-  - B
-  - C
+  - tensor factorization
+  - systems serology
+  - HIV
+  - immunology
 lang: en-US
 authors:
   -
-    name: Edward J. Richards
-    initials: EJR
-    affiliations:
-      - Koch Institute for Integrative Cancer Research, Massachusetts Institute of Technology, Cambridge, MA
-  -
-    name: Marc Creixell
-    initials: MC
+    name: Madeleine Murphy
+    initials: MM
     affiliations:
       - Department of Bioengineering, University of California, Los Angeles
   -
