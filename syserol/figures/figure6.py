@@ -5,15 +5,15 @@ This creates a copy of Paper Figure 2, with different prediction strategies in p
 import pandas as pd
 import numpy as np
 import seaborn as sns
-from syserol.regression import (
+from ..regression import (
     function_elastic_net,
     SVR_noCMTF_function_prediction,
     SVR_ourSubjects_function_prediction,
 )
-from syserol.dataImport import functions
-from syserol.classify import class_predictions, two_way_classifications
-from syserol.figures.common import subplotLabel, getSetup
-from syserol.tensor import perform_CMTF
+from ..dataImport import functions
+from ..classify import class_predictions, two_way_classifications
+from .common import subplotLabel, getSetup
+from ..tensor import perform_CMTF
 
 
 def makeFigure():

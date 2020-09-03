@@ -2,7 +2,7 @@
 This creates Figure 5.
 """
 import numpy as np
-from syserol.figures.common import subplotLabel, getSetup
+from .common import subplotLabel, getSetup
 from ..regression import noCMTF_function_prediction
 from ..dataImport import functions
 from ..tensor import perform_CMTF

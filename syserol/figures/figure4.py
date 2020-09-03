@@ -2,9 +2,9 @@
 This creates Figure 4.
 """
 
-from syserol.regression import function_elastic_net
 from .common import subplotLabel, getSetup
 from ..dataImport import functions
+from ..regression import function_elastic_net
 
 
 def makeFigure():
