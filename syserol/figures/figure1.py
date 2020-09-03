@@ -17,8 +17,8 @@ def makeFigure():
     matrixArr = np.empty(comps.size)
     for i, compp in enumerate(comps):
         _, _, tensorR2X, matrixR2X = perform_CMTF(r=compp)
-        tensorArr[i-1] = tensorR2X
-        matrixArr[i-1] = matrixR2X
+        tensorArr[i] = tensorR2X
+        matrixArr[i] = matrixR2X
 
     ax[0].scatter(comps, tensorArr, label="Tensor R2X")
     ax[0].scatter(comps, matrixArr, label="Matrix R2X")
