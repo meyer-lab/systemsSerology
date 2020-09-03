@@ -1,6 +1,5 @@
 """ Regression methods using Factorized Data. """
 from functools import reduce
-import numpy as np
 import pandas as pd
 from sklearn.model_selection import cross_val_predict
 from sklearn.linear_model import LogisticRegressionCV, LogisticRegression
@@ -9,91 +8,61 @@ from sklearn.svm import SVC
 from scipy.stats import zscore
 from syserol.dataImport import (
     load_file,
-    importLuminex,
-    importIGG,
     importAlterDF,
-    AlterIndices
 )
 
 
-def 2class_predictions(subjects_matrix, SVC=True):
-    """ Predict Subject Class with Decomposed Tensor Data"""
-    # Load Data
-    classes = load_file("meta-subjects")
-    classes = classes.replace(
-        to_replace=["controller", "progressor", "viremic", "nonviremic"],
-        value=[1, 0, 1, 0],
-    )
-    cp = np.array(classes["class.cp"])
-    nv = np.array(classes["class.nv"])
+def getClassY(df):
+    """ Extract Ys for classification. """
+    Y1 = (df["class.cp"] == "controller").astype(int)  # controllers are 1s, progressors are 0s
+    Y2 = (df["class.nv"] == "viremic").astype(int)  # viremic = 1, nonviremic = 0
+    return Y1, Y2
 
-    indices = AlterIndices()
+
+def class_predictions(X, methodLR):
+    """ Predict Subject Class with Decomposed Tensor Data """
+    # Load Data
+    cp, nv = getClassY(load_file("meta-subjects"))
+
     # Controller/Progressor classification
-    Y = cp
-    if SVC == True:
-        # Kernel = RBF
-        # Run SVM classifier model
-        y_pred1 = cross_val_predict(SVC(kernel="rbf"), subjects_matrix, Y, cv=20)
-    else:
-        regr = LogisticRegressionCV(penalty="elasticnet", solver="saga", l1_ratios=[0.0, 0.1, 0.5, 0.9, 1.0])
-        regr.fit(subjects_matrix, Y)
-        y_pred1 = cross_val_predict(LogisticRegression(penalty="elasticnet", solver="saga", C=regr.C_[0], l1_ratio=regr.l1_ratio_[0]), subjects_matrix, Y)
-    # Calculate accuracy for Alter included subjects only
-    cp_accuracy = accuracy_score(Y[indices], y_pred1[indices])
+    _, cp_accuracy, _ = ClassifyHelper(X, cp, methodLR)
 
     # Viremic/Nonviremic classification
-    Y = nv
-    if SVC == True:
-        # Kernel = RBF
-        # Run SVM classifier model
-        y_pred2 = cross_val_predict(SVC(kernel="rbf"), subjects_matrix, Y, cv=20)
-    else:
-        regr = LogisticRegressionCV(penalty="elasticnet", solver="saga", l1_ratios=[0.0, 0.1, 0.5, 0.9, 1.0])
-        regr.fit(subjects_matrix, Y)
-        y_pred2 = cross_val_predict(LogisticRegression(penalty="elasticnet", solver="saga", C=regr.C_[0], l1_ratio=regr.l1_ratio_[0]), subjects_matrix, Y)
-    # Calculate accuracy for Alter included subjects only
-    nv_accuracy = accuracy_score(Y[indices], y_pred2[indices])
+    _, nv_accuracy, _ = ClassifyHelper(X, nv, methodLR)
 
     return cp_accuracy, nv_accuracy
 
 
 def two_way_classifications():
     """ Predict classifications of subjects by progression (EC/VC vs TP/UP) or by viremia (EC/TP vs VC/UP) - Alter methods"""
-    # Import Luminex, Luminex-IGG, Subject group pairs into DF
-    df = importAlterDF()
-    subj = load_file("meta-subjects")
-    df_merged = df.merge(subj, on="subject", how="inner")
-    df_merged = df_merged.dropna()
+    df_merged = importAlterDF(function=False)
 
     # Subset, Z score
-    df_class = df_merged[["class.cp", "class.nv"]]
-    df_variables = df_merged.drop(
+    X = df_merged.drop(
         ["subject", "class.etuv", "class.cp", "class.nv"], axis=1
     )
-    df_variables = df_variables.apply(zscore)
+    X = X.apply(zscore)
+    Y1, Y2 = getClassY(df_merged)
 
     # Predict Controller vs. Progressor
-    Y1 = df_class["class.cp"]
-    Y1 = (Y1 == "controller").astype(int)  # controllers are 1s, progressors are 0s
-    X1 = df_variables
-
-    Y_pred1 = cross_val_predict(LogisticRegressionCV(), X1, Y1)
-    model1 = LogisticRegressionCV().fit(X1, Y1)
-
-    confusionCvP = confusion_matrix(Y1, Y_pred1)
-    accuracyCvP = accuracy_score(Y1, Y_pred1)
-    print(f"Confusion Matrix Controller vs. Progressor: {confusionCvP} \n")
+    _, accuracyCvP, confusionCvP = ClassifyHelper(X, Y1, True)
 
     # Predict Viremic vs. Nonviremic
-    Y2 = df_class["class.nv"]
-    Y2 = (Y2 == "viremic").astype(int)  # viremic = 1, nonviremic = 0
-    X2 = df_variables
-
-    Y_pred2 = cross_val_predict(LogisticRegressionCV(), X2, Y2)
-    model2 = LogisticRegressionCV().fit(X2, Y2)
-
-    confusionVvN = confusion_matrix(Y2, Y_pred2)
-    accuracyVvN = accuracy_score(Y2, Y_pred2)
-    print(f"Confusion Matrix Viremic vs. Nonviremic: {confusionVvN} \n")
+    _, accuracyVvN, confusionVvN = ClassifyHelper(X, Y2, True)
 
     return accuracyCvP, accuracyVvN, confusionCvP, confusionVvN
+
+
+def ClassifyHelper(X, Y, methodLR):
+    """ Function with common Logistic regression methods. """
+    if methodLR is True:
+        regr = LogisticRegressionCV(n_jobs=-1, max_iter=1000)
+        regr.fit(X, Y)
+        clf = LogisticRegression(C=regr.C_[0], max_iter=1000)
+    else:
+        clf = SVC(kernel="rbf")
+
+    Y_pred = cross_val_predict(clf, X, Y, cv=30, n_jobs=-1)
+    confusion = confusion_matrix(Y, Y_pred)
+    accuracy = accuracy_score(Y, Y_pred)
+    return Y_pred, accuracy, confusion
