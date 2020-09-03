@@ -37,7 +37,7 @@ def function_elastic_net(function="ADCC"):
 
     # perform regression
     Y = df_func[function]
-    Y_pred = elasticNetFunc(df_variables, Y)
+    Y_pred, _ = elasticNetFunc(df_variables, Y)
 
     return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))
 
@@ -53,7 +53,7 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all", enet=True)
     Y = Y[np.isfinite(Y)]
 
     if enet is True:
-        Y_pred = elasticNetFunc(X, Y)
+        Y_pred, _ = elasticNetFunc(X, Y)
     else:
         Y_pred = cross_val_predict(SVR(), X, Y, cv=10, n_jobs=-1)
 
