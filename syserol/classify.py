@@ -1,6 +1,4 @@
 """ Regression methods using Factorized Data. """
-from functools import reduce
-import pandas as pd
 from sklearn.model_selection import cross_val_predict
 from sklearn.linear_model import LogisticRegressionCV, LogisticRegression
 from sklearn.metrics import accuracy_score, confusion_matrix
