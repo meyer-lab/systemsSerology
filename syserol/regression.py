@@ -15,9 +15,9 @@ from .dataImport import (
 
 def elasticNetFunc(X, Y):
     """ Function with common elastic net methods. """
-    regr = ElasticNetCV(normalize=True, max_iter=10000, cv=30)
+    regr = ElasticNetCV(normalize=True, max_iter=10000, cv=30, n_jobs=-1)
     regr.fit(X, Y)
-    enet = ElasticNet(alpha=regr.alpha_, normalize=True, max_iter=10000)
+    enet = ElasticNet(alpha=regr.alpha_, l1_ratio=regr.l1_ratio_, normalize=True, max_iter=10000)
     Y_pred = cross_val_predict(enet, X, Y, cv=30, n_jobs=-1)
     rsq = np.sqrt(r2_score(Y, Y_pred))
     return Y_pred, rsq

@@ -26,7 +26,7 @@ def makeFigure():
     ax[0].set_xlabel("Number of Components")
     ax[0].legend()
     ax[0].set_ylim(0, 1)
-    ax[0].set_xlim(0, np.amax(comps))
+    ax[0].set_xlim(1, np.amax(comps))
 
     # Add subplot labels
     subplotLabel(ax)

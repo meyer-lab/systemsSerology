@@ -1,12 +1,10 @@
 """
 Tensor decomposition methods
 """
-from functools import lru_cache
 import numpy as np
 import tensorly as tl
 from tensorly.kruskal_tensor import KruskalTensor
 from tensorly.decomposition import parafac
-from .dataImport import createCube
 
 
 def calcR2X(data, factor):
@@ -36,12 +34,6 @@ def cmtf(Y, mask_matrix, init):
         error_old = error_new
 
     return KruskalTensor((None, [A, np.transpose(V)]))
-
-
-@lru_cache()
-def perform_CMTF_def(r):
-    cube, glyCube = createCube()
-    return perform_CMTF(cube, glyCube, r)
 
 
 def perform_CMTF(tensorIn, matrixIn, r):
