@@ -5,37 +5,34 @@ This creates Paper Figure 2.
 import pandas as pd
 import numpy as np
 import seaborn as sns
-from syserol.regression import (
+from ..regression import (
     function_elastic_net,
-    function_prediction
+    noCMTF_function_prediction,
+    ourSubjects_function_prediction,
 )
-from syserol.dataImport import (
-    createCube,
-    functions
-)
-from syserol.classify import 2class_predictions, two_way_classifications
-from syserol.figures.common import subplotLabel, getSetup
-from syserol.tensor import perform_CMTF
+from ..dataImport import functions
+from ..classify import class_predictions, two_way_classifications
+from .common import subplotLabel, getSetup
+from ..tensor import perform_CMTF
 
 
 def makeFigure():
     """ Show Similarity in Prediction of Alter Model and Our Model"""
     # Decompose Cube
-    cube, glyCube = createCube()
-    tensorFac, _, _, _ = perform_CMTF(cube, glyCube, 6)
+    tensorFac, _, _, _ = perform_CMTF()
     # Gather Function Prediction Accuracies
     accuracies = np.zeros(12)
     for ii, func in enumerate(functions):
         _, _, acc = function_elastic_net(func)  # Alter Function Predictions
         accuracies[ii] = acc  # store accuracies
     for i, func in enumerate(functions):
-        _, _, accuracy = function_prediction(
-            tensorFac, function=func, evaluation="Alter", enet=True
+        _, _, accuracy = noCMTF_function_prediction(
+            tensorFac, function=func
         )  # our prediction accuracies
         accuracies[i + 6] = accuracy  # store
 
     # Create DataFrame
-    model = np.array([ "Alter Model"] * 6 + ["Our Model"] * 6)
+    model = np.array(["Alter Model"] * 6 + ["Our Model"] * 6)
     function = np.array(functions + functions)
     data = {"Accuracy": accuracies, "Model": model, "Function": function}
     functions_df = pd.DataFrame(data)  # Function Prediction DataFrame, Figure 2B
@@ -43,11 +40,14 @@ def makeFigure():
     # Subjects left out of Alter
     preds = np.zeros([81, 12])
     for i, func in enumerate(functions):
-        Y, Y_pred, _ = function_prediction(tensorFac, function=func, evaluation="notAlter", enet=True)
+        Y, Y_pred = ourSubjects_function_prediction(tensorFac, function=func)
         preds[:, i] = Y
         preds[:, i + 6] = Y_pred
 
-    df = pd.DataFrame(preds, columns=functions + functions)
+    df = pd.DataFrame(
+        preds,
+        columns=functions + functions,
+    )
     X = pd.melt(df.iloc[:, 0:6])
     Y = pd.melt(df.iloc[:, 6:12])
     X.columns = ["Function", "Value"]
@@ -60,7 +60,7 @@ def makeFigure():
     accuracyCvP, accuracyVvN, _, _ = two_way_classifications()  # Alter accuracies
     # Run our model
     subjects_matrix = tensorFac[1][0]
-    cp_accuracy, nv_accuracy = 2class_predictions(subjects_matrix, SVC=True)  # Our accuracies
+    cp_accuracy, nv_accuracy = class_predictions(subjects_matrix, False)  # Our accuracies
 
     # Create DataFrame
     baselineNV = 0.5083  # datasetEV3/Fc.array/class.nv/lambda.min/score_details.txt "No information rate"
@@ -79,7 +79,7 @@ def makeFigure():
     classes = pd.DataFrame(data)  # Class Predictions DataFrame, Figure 2C
 
     # PLOT DataFrames
-    ax, f = getSetup((5, 4), (2, 2))
+    ax, f = getSetup((6, 5), (2, 2))
     sns.set()
     # Function Plot
     a = sns.pointplot(
@@ -112,7 +112,7 @@ def makeFigure():
     b.plot([-0.5, 5.5], [avg, avg], "--", color="green")
     b.axvspan(-0.5, 0.5, alpha=0.1, color="grey")
     b.set_xlim(-0.5, 1.5)
-    b.set_ylim(0, 1)
+    b.set_ylim(0.4, 1)
     b.grid(False)
     b.xaxis.tick_top()
     b.xaxis.set_label_position("top")
