@@ -1,5 +1,5 @@
 """
-This creates Figure 5.
+This creates Figure S1.
 """
 import numpy as np
 from .common import subplotLabel, getSetup
