@@ -37,11 +37,12 @@ def makeFigure():
     functions_df = pd.DataFrame(data)  # Function Prediction DataFrame, Figure 2B
 
     # Subjects left out of Alter
-    preds = np.zeros([81, 12])
+    preds = np.empty([83, 12])
+    preds.fill(np.nan)
     for i, func in enumerate(functions):
         Y, Y_pred, _ = function_prediction(tensorFac, function=func, evaluation="notAlter", enet=True)
-        preds[:, i] = Y
-        preds[:, i + 6] = Y_pred
+        preds[0:len(Y), i] = Y
+        preds[0:len(Y_pred), i + 6] = Y_pred
 
     df = pd.DataFrame(
         preds,

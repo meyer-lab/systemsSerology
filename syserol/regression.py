@@ -27,10 +27,8 @@ def elasticNetFunc(X, Y):
 def function_elastic_net(function="ADCC"):
     """ Predict functions using elastic net according to Alter methods"""
     # Import Luminex, Luminex-IGG, Function, and Glycan into DF
-    df = importAlterDF()
-    func, _ = importFunction()
-    df_merged = df.merge(func, on="subject", how="inner")
-    df_merged = df_merged.dropna()
+    df = importAlterDF(function=True, subjects=False)
+    df_merged = df.dropna()
     # separate dataframes
     df_func = df_merged[functions]
     df_variables = df_merged.drop(["subject"] + functions, axis=1)
