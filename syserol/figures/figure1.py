@@ -4,7 +4,8 @@ This creates Figure 1.
 
 import numpy as np
 from .common import subplotLabel, getSetup
-from ..tensor import perform_CMTF_def
+from ..dataImport import createCube
+from ..tensor import perform_CMTF
 
 
 def makeFigure():
@@ -12,11 +13,12 @@ def makeFigure():
     # Get list of axis objects
     ax, f = getSetup((10, 10), (1, 1))
 
+    cube, glyCube = createCube()
     comps = np.array([1, 2, 3, 4, 6, 8, 10, 12])
     tensorArr = np.zeros(comps.size)
     matrixArr = np.zeros(comps.size)
     for i, compp in enumerate(comps):
-        _, _, tensorR2X, matrixR2X = perform_CMTF_def(compp)
+        _, _, tensorR2X, matrixR2X = perform_CMTF(cube, glyCube, compp)
         tensorArr[i-1] = tensorR2X
         matrixArr[i-1] = matrixR2X
 
@@ -26,7 +28,7 @@ def makeFigure():
     ax[0].set_xlabel("Number of Components")
     ax[0].legend()
     ax[0].set_ylim(0, 1)
-    ax[0].set_xlim(1, np.amax(comps))
+    ax[0].set_xlim(0, np.amax(comps))
 
     # Add subplot labels
     subplotLabel(ax)

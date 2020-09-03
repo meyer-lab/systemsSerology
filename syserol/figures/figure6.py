@@ -10,16 +10,20 @@ from syserol.regression import (
     SVR_noCMTF_function_prediction,
     SVR_ourSubjects_function_prediction,
 )
-from syserol.dataImport import functions
+from syserol.dataImport import (
+    createCube,
+    functions
+)
 from syserol.classify import class_predictions, two_way_classifications
 from syserol.figures.common import subplotLabel, getSetup
-from syserol.tensor import perform_CMTF_def
+from syserol.tensor import perform_CMTF
 
 
 def makeFigure():
     """ Show Similarity in Prediction of Alter Model and Our Model"""
     # Decompose Cube
-    tensorFac, _, _, _ = perform_CMTF_def(6)
+    cube, glyCube = createCube()
+    tensorFac, _, _, _ = perform_CMTF(cube, glyCube, 6)
     # Gather Function Prediction Accuracies
     accuracies = np.zeros(12)
     for ii, func in enumerate(functions):

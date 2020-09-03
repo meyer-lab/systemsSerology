@@ -4,8 +4,8 @@ This creates Figure 3 for the Paper.
 import pandas as pd
 import numpy as np
 import seaborn as sns
-from syserol.tensor import perform_CMTF_def
-from syserol.dataImport import getAxes, load_file
+from syserol.tensor import perform_CMTF
+from syserol.dataImport import createCube, getAxes, load_file
 from .common import getSetup
 
 
@@ -13,7 +13,8 @@ def makeFigure():
     """ Generate Figure 3 for Paper, Showing Better Interpretation of All Data from Decomposed Tensor"""
     ax, f = getSetup((8, 8), (3, 4))
 
-    tensorFac, matrixFac, _, _ = perform_CMTF_def(6)
+    cube, glyCube = createCube()
+    tensorFac, matrixFac, _, _ = perform_CMTF(cube, glyCube, 6)
 
     # Gather tensor data matrices
     subjects = np.squeeze(tensorFac.factors[0])
