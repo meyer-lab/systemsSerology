@@ -81,8 +81,8 @@ def accuracy_alterSubj(Y, Ypred, dropped, union=True):
         Y = Y[indices]
     else:
         # Remove Alter cases
-        Ypred = Ypred.delete(indices)
-        Y = Y.delete(indices)
+        Ypred = np.delete(Ypred, indices)
+        Y = np.delete(Y, indices)
 
     # Remove any missing cases
     Ypred = Ypred[np.isfinite(Y)]
