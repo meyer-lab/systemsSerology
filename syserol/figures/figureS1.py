@@ -9,12 +9,12 @@ from ..tensor import perform_CMTF
 
 def makeFigure():
     """ Show predicted vs. actual of decomposition prediction. """
-    ax, f = getSetup((10, 10), (3, 2))
+    ax, f = getSetup((7, 5), (2, 3))
     # Plot Actual vs. Predicted Values for each Function
     tensorFac, _, _, _ = perform_CMTF()
     for i, func in enumerate(functions):
         x, y, accuracy = noCMTF_function_prediction(tensorFac, function=func)
-        ax[i].scatter(x, y)
+        ax[i].scatter(x, y, s=2)
         ax[i].set_xlabel("Actual Values")
         ax[i].set_ylabel("Predicted Values")
         m, b = np.polyfit(x, y, 1)  # line of best fit
