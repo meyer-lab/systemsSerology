@@ -37,14 +37,22 @@ def cmtf(Y, mask_matrix, init):
     return KruskalTensor((None, [A, np.transpose(V)]))
 
 
+cacheMissing = None
+
+
 def perform_CMTF(tensorIn=None, matrixIn=None, r=6):
     """ Perform CMTF decomposition. """
+    global cacheMissing
+
     if tensorIn is None:
         tensorIn, matrixIn = createCube()
 
     tensor = np.copy(tensorIn)
     mask = np.isfinite(tensor).astype(int)
     tensor[mask == 0] = 0.0
+
+    if cacheMissing is not None:
+        tensor = tensor * mask + tl.kruskal_to_tensor(cacheMissing, mask=1 - mask)
 
     matrix = np.copy(matrixIn)
     mask_matrix = np.isfinite(matrix).astype(int)
@@ -53,6 +61,7 @@ def perform_CMTF(tensorIn=None, matrixIn=None, r=6):
     # Initialize by running PARAFAC on the 3D tensor
     parafacSettings = {'orthogonalise': 5, 'tol': 1e-9, 'normalize_factors': False, 'n_iter_max': 2000, 'linesearch': True, 'svd_mask_repeats': 1}
     tensorFac = parafac(tensor, r, mask=mask, **parafacSettings)
+    cacheMissing = tensorFac
 
     # Now run CMTF
     matrixFac = cmtf(matrix, mask_matrix=mask_matrix, init=tensorFac)
