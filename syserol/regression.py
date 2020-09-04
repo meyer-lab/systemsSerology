@@ -1,15 +1,12 @@
 """ Regression methods. """
 import numpy as np
-import pandas as pd
 from sklearn.linear_model import ElasticNetCV, ElasticNet
 from sklearn.model_selection import cross_val_predict
 from sklearn.metrics import r2_score
-from sklearn.svm import SVR
 from .dataImport import (
     importFunction,
     functions,
     importAlterDF,
-    getAxes,
     AlterIndices,
 )
 
@@ -40,7 +37,7 @@ def function_elastic_net(function="ADCC"):
     return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))
 
 
-def function_prediction(tensorFac, function="ADCC", evaluation="all", enet=True):
+def function_prediction(tensorFac, function="ADCC", evaluation="all"):
     """ Predict functions using our decomposition and regression methods"""
     func, _ = importFunction()
 
@@ -50,10 +47,7 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all", enet=True)
     X = X[np.isfinite(Y), :]
     Y = Y[np.isfinite(Y)]
 
-    if enet is True:
-        Y_pred, _ = elasticNetFunc(X, Y)
-    else:
-        Y_pred = cross_val_predict(SVR(), X, Y, cv=10, n_jobs=-1)
+    Y_pred, _ = elasticNetFunc(X, Y)
 
     if evaluation == "all":
         return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))
@@ -61,8 +55,8 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all", enet=True)
         return accuracy_alterSubj(Y, Y_pred, dropped[0])
     elif evaluation == "notAlter":
         return accuracy_alterSubj(Y, Y_pred, dropped[0], union=False)
-    else:
-        raise ValueError("Wrong selection for evaluation.")
+
+    raise ValueError("Wrong selection for evaluation.")
 
 
 def accuracy_alterSubj(Y, Ypred, dropped, union=True):
