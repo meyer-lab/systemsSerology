@@ -37,7 +37,7 @@ def cmtf(Y, mask_matrix, init):
     return KruskalTensor((None, [A, np.transpose(V)]))
 
 
-def perform_CMTF(tensorIn=None, matrixIn=None, r=4):
+def perform_CMTF(tensorIn=None, matrixIn=None, r=6):
     """ Perform CMTF decomposition. """
     if tensorIn is None:
         tensorIn, matrixIn = createCube()
@@ -51,7 +51,7 @@ def perform_CMTF(tensorIn=None, matrixIn=None, r=4):
     matrix[mask_matrix == 0] = 0.0
 
     # Initialize by running PARAFAC on the 3D tensor
-    parafacSettings = {'orthogonalise': 100, 'tol': 1e-9, 'normalize_factors': False, 'n_iter_max': 1000, 'linesearch': True}
+    parafacSettings = {'orthogonalise': 10, 'tol': 1e-9, 'normalize_factors': False, 'n_iter_max': 1500, 'linesearch': True, 'svd_mask_repeats': 30}
     tensorFac = parafac(tensor, r, mask=mask, **parafacSettings)
 
     # Now run CMTF
