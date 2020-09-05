@@ -115,8 +115,6 @@ def buildFigure3(legends=True):
             "Groups": subjinfo["class.etuv"],
         }
         df = pd.DataFrame(data)
-        xmax = np.amax(np.absolute(values1))
-        ymax = np.amax(np.absolute(values2))
         a = sns.scatterplot(
             x=f"Component {i+1}",
             y=f"Component {i+2}",
@@ -129,8 +127,6 @@ def buildFigure3(legends=True):
 
         if j == 4 and legends==True:
             a.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
-        a.set_xlim(-xmax, xmax)
-        a.set_ylim(-ymax, ymax)
 
         # Detections
         values1 = receptors[:, i]
@@ -141,8 +137,6 @@ def buildFigure3(legends=True):
             "Receptor": detections,
         }
         df = pd.DataFrame(data)
-        xmax = np.amax(np.absolute(values1))
-        ymax = np.amax(np.absolute(values2))
         markers = (
             "o",
             "X",
@@ -180,8 +174,6 @@ def buildFigure3(legends=True):
         )
         if j == 4 and legends==True:
             b.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
-        b.set_xlim(-xmax, xmax)
-        b.set_ylim(-ymax, ymax)
 
         # Antigens
         values1 = antigens[:, i]
@@ -192,8 +184,6 @@ def buildFigure3(legends=True):
             "Antigens": antigen,
         }
         df = pd.DataFrame(data)
-        xmax = np.amax(np.absolute(values1))
-        ymax = np.amax(np.absolute(values2))
         markers = (
             "o",
             "v",
@@ -251,8 +241,6 @@ def buildFigure3(legends=True):
 
         if j == 4 and legends==True:
             c.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
-        c.set_xlim(-xmax, xmax)
-        c.set_ylim(-ymax, ymax)
 
         # Glycans
         values1 = glyc[:, i]
@@ -264,8 +252,6 @@ def buildFigure3(legends=True):
             "FB": glycaninf["FB"],
         }
         df = pd.DataFrame(data)
-        xmax = np.amax(np.absolute(values1))
-        ymax = np.amax(np.absolute(values2))
         d = sns.scatterplot(
             x=f"Component {i+1}",
             y=f"Component {i+2}",
@@ -279,12 +265,13 @@ def buildFigure3(legends=True):
 
         if j == 4 and legends==True:
             d.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
-        d.set_xlim(-xmax, xmax)
-        d.set_ylim(-ymax, ymax)
 
     ax[0].set_title("Subjects", fontsize=15)
     ax[1].set_title("Receptors", fontsize=15)
     ax[2].set_title("Antigens", fontsize=15)
     ax[3].set_title("Glycans", fontsize=15)
+
+    for aa in ax:
+        aa.axis('equal')
 
     return f
