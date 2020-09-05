@@ -126,7 +126,9 @@ def buildFigure3(legends=True):
             legend="brief" if j == 4 and legends==True else False,
             ax=ax[j],
         )
-        a.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
+
+        if j == 4 and legends==True:
+            a.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
         a.set_xlim(-xmax, xmax)
         a.set_ylim(-ymax, ymax)
 
@@ -176,7 +178,8 @@ def buildFigure3(legends=True):
             legend="brief" if j == 4 and legends==True else False,
             ax=ax[j + 1],
         )
-        b.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
+        if j == 4 and legends==True:
+            b.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
         b.set_xlim(-xmax, xmax)
         b.set_ylim(-ymax, ymax)
 
@@ -245,7 +248,9 @@ def buildFigure3(legends=True):
             legend="brief" if j == 4 and legends==True else False,
             ax=ax[j + 2],
         )
-        c.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
+
+        if j == 4 and legends==True:
+            c.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
         c.set_xlim(-xmax, xmax)
         c.set_ylim(-ymax, ymax)
 
@@ -271,7 +276,9 @@ def buildFigure3(legends=True):
             legend="brief" if j == 4 and legends==True else False,
             ax=ax[j + 3],
         )
-        d.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
+
+        if j == 4 and legends==True:
+            d.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
         d.set_xlim(-xmax, xmax)
         d.set_ylim(-ymax, ymax)
 
