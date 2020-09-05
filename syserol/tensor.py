@@ -5,7 +5,7 @@ import numpy as np
 import tensorly as tl
 from tensorly.kruskal_tensor import KruskalTensor
 from tensorly.decomposition import parafac
-from .dataImport import createCube
+from .dataImport import createCube, load_cache
 
 
 def calcR2X(data, factor):
@@ -37,12 +37,9 @@ def cmtf(Y, mask_matrix, init):
     return KruskalTensor((None, [A, np.transpose(V)]))
 
 
-cacheMissing = None
-
-
 def perform_CMTF(tensorIn=None, matrixIn=None, r=6):
     """ Perform CMTF decomposition. """
-    global cacheMissing
+    cacheMissing = load_cache()
 
     if tensorIn is None:
         tensorIn, matrixIn = createCube()
@@ -61,7 +58,6 @@ def perform_CMTF(tensorIn=None, matrixIn=None, r=6):
     # Initialize by running PARAFAC on the 3D tensor
     parafacSettings = {'orthogonalise': 5, 'tol': 1e-9, 'normalize_factors': False, 'n_iter_max': 2000, 'linesearch': True, 'svd_mask_repeats': 1}
     tensorFac = parafac(tensor, r, mask=mask, **parafacSettings)
-    cacheMissing = tensorFac
 
     # Now run CMTF
     matrixFac = cmtf(matrix, mask_matrix=mask_matrix, init=tensorFac)
