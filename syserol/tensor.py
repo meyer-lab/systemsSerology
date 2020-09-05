@@ -37,7 +37,7 @@ def cmtf(Y, mask_matrix, init):
     return KruskalTensor((None, [A, np.transpose(V)]))
 
 
-def perform_CMTF(tensorIn=None, matrixIn=None, r=4):
+def perform_CMTF(tensorIn=None, matrixIn=None, r=8):
     """ Perform CMTF decomposition. """
     cacheMissing = load_cache()
 
