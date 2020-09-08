@@ -281,7 +281,8 @@ def buildFigure3(legends=True, heatmap=False):
         sns.heatmap(ant, cmap="PRGn", center=0, yticklabels="auto", ax=ax[2])
 
         glycans = pd.DataFrame(scale(glyc, with_mean=False), columns=[f"Component {i}" for i in np.arange(1, 13)], index=glycaninf["glycan"])
-        sns.heatmap(glycans, cmap="PRGn", center=0, yticklabels="auto", ax=ax[3])
+        plt = sns.heatmap(glycans, cmap="PRGn", center=0, yticklabels="auto", ax=ax[3])
+        plt.set_ylabel("")
 
     ax[0].set_title("Subjects", fontsize=15)
     ax[1].set_title("Receptors", fontsize=15)
