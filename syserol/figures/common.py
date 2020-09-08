@@ -272,16 +272,16 @@ def buildFigure3(legends=True, heatmap=False):
         ax, f = getSetup((6, 5), (2, 2))
 
         subs = pd.DataFrame(scale(subjects, with_mean=False), columns = [f"Component {i}" for i in np.arange(1, 13)])
-        sns.heatmap(subs, ax=ax[0])
+        sns.heatmap(subs, cmap="PRGn", center=0, ax=ax[0])
 
         rec = pd.DataFrame(scale(receptors, with_mean=False), columns = [f"Component {i}" for i in np.arange(1, 13)], index=detections)
-        sns.heatmap(rec, yticklabels=True, ax=ax[1])
+        sns.heatmap(rec, cmap="PRGn", center=0, yticklabels="auto", ax=ax[1])
 
         ant = pd.DataFrame(scale(antigens, with_mean=False), columns=[f"Component {i}" for i in np.arange(1, 13)], index=antigen)
-        sns.heatmap(ant, yticklabels=True, ax=ax[2])
+        sns.heatmap(ant, cmap="PRGn", center=0, yticklabels="auto", ax=ax[2])
 
         glycans = pd.DataFrame(scale(glyc, with_mean=False), columns=[f"Component {i}" for i in np.arange(1, 13)], index=glycaninf["glycan"])
-        sns.heatmap(glycans, yticklabels=True, ax=ax[3])
+        sns.heatmap(glycans, cmap="PRGn", center=0, yticklabels="auto", ax=ax[3])
 
     ax[0].set_title("Subjects", fontsize=15)
     ax[1].set_title("Receptors", fontsize=15)
