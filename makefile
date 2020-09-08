@@ -6,7 +6,7 @@ all: pylint.log $(patsubst %, figure%.svg, $(flist))
 venv: venv/bin/activate
 
 venv/bin/activate: requirements.txt
-	test -d venv || virtualenv venv
+	virtualenv --clear venv
 	. venv/bin/activate && pip install --prefer-binary -Uqr requirements.txt
 	touch venv/bin/activate
 
