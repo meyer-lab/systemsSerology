@@ -1,5 +1,4 @@
 """ Data import and processing. """
-import pickle
 from functools import reduce
 from functools import lru_cache
 from os.path import join, dirname
@@ -16,11 +15,6 @@ def load_file(name):
     )
 
     return data
-
-
-def load_cache():
-    """ Load cache for missingness handling. """
-    return pickle.load(open(join(path_here, "syserol/data/cache.p"), "rb"))
 
 
 def importLuminex(antigen=None):
