@@ -52,7 +52,7 @@ def perform_CMTF(tensorIn=None, matrixIn=None, r=6):
 
     # Initialize by running PARAFAC on the 3D tensor
     nMax = 400
-    parafacSettings = {'orthogonalise': nMax / 2, 'tol': 1e-9, 'normalize_factors': True, 'n_iter_max': nMax, 'linesearch': True}
+    parafacSettings = {'orthogonalise': nMax / 2, 'tol': 1e-9, 'normalize_factors': True, 'n_iter_max': nMax}
     tensorFac = parafac(tensor, r, mask=mask, **parafacSettings)
 
     # Now run CMTF
