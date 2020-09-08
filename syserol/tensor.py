@@ -56,7 +56,7 @@ def perform_CMTF(tensorIn=None, matrixIn=None, r=6):
     matrix[mask_matrix == 0] = 0.0
 
     # Initialize by running PARAFAC on the 3D tensor
-    parafacSettings = {'orthogonalise': 200, 'tol': 1e-9, 'normalize_factors': True, 'n_iter_max': 3000, 'linesearch': True}
+    parafacSettings = {'orthogonalise': 1000, 'tol': 1e-9, 'normalize_factors': True, 'n_iter_max': 4000}
     tensorFac = parafac(tensor, r, mask=mask, **parafacSettings)
 
     # Now run CMTF
@@ -82,5 +82,7 @@ def perform_CMTF(tensorIn=None, matrixIn=None, r=6):
 
     tensor_R2XX = calcR2X(tensorIn, tensorFac)
     matrix_R2XX = calcR2X(matrixIn, matrixFac)
+    assert tensor_R2XX > 0.0
+    assert matrix_R2XX > 0.0
 
     return tensorFac, matrixFac, tensor_R2XX, matrix_R2XX
