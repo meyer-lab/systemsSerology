@@ -3,7 +3,7 @@ Tensor decomposition methods
 """
 import numpy as np
 import tensorly as tl
-from tensorly.kruskal_tensor import KruskalTensor
+from tensorly.kruskal_tensor import KruskalTensor, kruskal_normalise
 from tensorly.decomposition import parafac
 from .dataImport import createCube, load_cache
 
@@ -71,6 +71,7 @@ def perform_CMTF(tensorIn=None, matrixIn=None, r=6):
     parafacSettings = {'orthogonalise': True, 'tol': 1e-9, 'normalize_factors': False, 'n_iter_max': 2000}
     tensorFac = parafac(tensor, r, mask=mask, **parafacSettings)
     tensorFac.factors = reorient_factors(tensorFac.factors)
+    tensorFac = kruskal_normalise(tensorFac)
 
     # Now run CMTF
     matrixFac = cmtf(matrix, mask_matrix=mask_matrix, init=tensorFac)
