@@ -16,7 +16,7 @@ def elasticNetFunc(X, Y):
     regr = ElasticNetCV(normalize=True, max_iter=10000, cv=30, n_jobs=-1)
     regr.fit(X, Y)
 
-    if len(regr.coef_) < 50:
+    if regr.coef_.size < 50:
         print(f"Elastic Net Coefficient: {regr.coef_}")
 
     enet = ElasticNet(alpha=regr.alpha_, l1_ratio=regr.l1_ratio_, normalize=True, max_iter=10000)
