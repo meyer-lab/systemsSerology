@@ -57,7 +57,7 @@ def ClassifyHelper(X, Y, methodLR):
         regr = LogisticRegressionCV(n_jobs=-1, max_iter=1000)
         regr.fit(X, Y)
 
-        if len(regr.coef_) < 50:
+        if regr.coef_.size < 50:
             print(f"Classification LR Coefficient: {regr.coef_}")
 
         clf = LogisticRegression(C=regr.C_[0], max_iter=1000)
