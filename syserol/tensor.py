@@ -82,6 +82,7 @@ def perform_CMTF(tensorIn=None, matrixIn=None, r=6):
 
     matrixFacExt = parafac(matrixResid, r, mask=mask_matrix, **parafacSettings)
     ncp = matrixFacExt.rank
+    matrixFacExt = kruskal_normalise(matrixFacExt)
 
     # Incorporate PCA into factorization
     tensorFac.factors[0] = np.concatenate((tensorFac.factors[0], matrixFacExt.factors[0]), axis=1)
@@ -91,7 +92,7 @@ def perform_CMTF(tensorIn=None, matrixIn=None, r=6):
     tensorFac.weights = np.pad(tensorFac.weights, (0, ncp), constant_values=1.0)
     matrixFac.factors[0] = tensorFac.factors[0]
     matrixFac.factors[1] = np.concatenate((matrixFac.factors[1], matrixFacExt.factors[1]), axis=1)
-    matrixFac.weights = np.pad(matrixFac.weights, (0, ncp), constant_values=1.0)
+    matrixFac.weights = np.concatenate((matrixFac.weights, matrixFacExt.weights))
     matrixFac.rank += ncp
 
     tensor_R2XX = calcR2X(tensorIn, tensorFac)
