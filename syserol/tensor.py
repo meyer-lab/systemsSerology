@@ -75,6 +75,7 @@ def perform_CMTF(tensorIn=None, matrixIn=None, r=6):
 
     # Now run CMTF
     matrixFac = cmtf(matrix, mask_matrix=mask_matrix, init=tensorFac)
+    matrixFac = kruskal_normalise(matrixFac)
 
     # Solve for factors on remaining glycosylation matrix variation
     matrixResid = matrixIn - tl.kruskal_to_tensor(matrixFac)
