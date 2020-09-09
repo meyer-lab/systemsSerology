@@ -14,6 +14,18 @@ def calcR2X(data, factor):
     return 1.0 - tensorErr / np.nanvar(data)
 
 
+def reorient_factors(factors):
+    """ This function ensures that factors are negative on at most one direction. """
+    for jj in range(len(factors) - 1):
+        # Calculate the sign of the current factor in each component
+        means = np.sign(np.mean(factors[jj]**3, axis = 0))
+
+        # Update both the current and last factor
+        factors[jj] *= means[np.newaxis, :]
+        factors[-1] *= means[np.newaxis, :]
+    return factors
+
+
 def cmtf(Y, mask_matrix, init):
     """ Calculate the glycosylation matrix components corresponding to the patient components from the tensor. """
     assert tl.is_tensor(Y)
@@ -56,8 +68,9 @@ def perform_CMTF(tensorIn=None, matrixIn=None, r=6):
     matrix[mask_matrix == 0] = 0.0
 
     # Initialize by running PARAFAC on the 3D tensor
-    parafacSettings = {'orthogonalise': 500, 'tol': 1e-9, 'normalize_factors': False, 'n_iter_max': 2000}
+    parafacSettings = {'orthogonalise': True, 'tol': 1e-9, 'normalize_factors': False, 'n_iter_max': 2000}
     tensorFac = parafac(tensor, r, mask=mask, **parafacSettings)
+    tensorFac.factors = reorient_factors(tensorFac.factors)
 
     # Now run CMTF
     matrixFac = cmtf(matrix, mask_matrix=mask_matrix, init=tensorFac)
