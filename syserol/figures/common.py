@@ -273,17 +273,17 @@ def buildFigure3(legends=True, heatmap=False):
         
         cbar_kws = {"orientation":"horizontal"}
         subs = pd.DataFrame(subjects, columns = [f"Component {i}" for i in np.arange(1, 13)], index=subjinfo["class.etuv"])
-        plt = sns.heatmap(subs, cmap="PRGn", center=0, xticklabels=2, yticklabels=50, cbar_kws=cbar_kws, ax=ax[0])
+        plt = sns.heatmap(subs, cmap="PRGn", center=0, xticklabels=True, yticklabels=50, cbar_kws=cbar_kws, ax=ax[0])
         plt.set_ylabel("")
 
         rec = pd.DataFrame(receptors, columns = [f"Component {i}" for i in np.arange(1, 13)], index=detections)
-        sns.heatmap(rec, cmap="PRGn", center=0, xticklabels=2, yticklabels=True, cbar_kws=cbar_kws, ax=ax[1])
+        sns.heatmap(rec, cmap="PRGn", center=0, yticklabels=True, cbar_kws=cbar_kws, ax=ax[1])
 
         ant = pd.DataFrame(antigens, columns=[f"Component {i}" for i in np.arange(1, 13)], index=antigen)
-        sns.heatmap(ant, cmap="PRGn", center=0, xticklabels=2, yticklabels=True, cbar_kws=cbar_kws, ax=ax[2])
+        sns.heatmap(ant, cmap="PRGn", center=0, yticklabels=True, cbar_kws=cbar_kws, ax=ax[2])
 
         glycans = pd.DataFrame(glyc, columns=[f"Component {i}" for i in np.arange(1, 13)], index=glycaninf["glycan"])
-        a = sns.heatmap(glycans, cmap="PRGn", center=0, xticklabels=2, yticklabels=True, cbar_kws=cbar_kws, ax=ax[3])
+        a = sns.heatmap(glycans, cmap="PRGn", center=0, yticklabels=True, cbar_kws=cbar_kws, ax=ax[3])
         a.set_ylabel("")
 
     ax[0].set_title("Subjects", fontsize=15)
