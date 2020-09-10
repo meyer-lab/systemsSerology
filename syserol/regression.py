@@ -15,7 +15,10 @@ def elasticNetFunc(X, Y):
     """ Function with common elastic net methods. """
     regr = ElasticNetCV(normalize=True, max_iter=10000, cv=30, n_jobs=-1)
     regr.fit(X, Y)
-    print(f"Elastic Net Coefficient: {regr.coef_}")
+
+    if regr.coef_.size < 50:
+        print(f"Elastic Net Coefficient: {regr.coef_}")
+
     enet = ElasticNet(alpha=regr.alpha_, l1_ratio=regr.l1_ratio_, normalize=True, max_iter=10000)
     Y_pred = cross_val_predict(enet, X, Y, cv=30, n_jobs=-1)
     rsq = np.sqrt(r2_score(Y, Y_pred))

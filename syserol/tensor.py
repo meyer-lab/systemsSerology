@@ -68,7 +68,7 @@ def perform_CMTF(tensorIn=None, matrixIn=None, r=6):
     matrix[mask_matrix == 0] = 0.0
 
     # Initialize by running PARAFAC on the 3D tensor
-    parafacSettings = {'orthogonalise': True, 'tol': 1e-9, 'normalize_factors': False, 'n_iter_max': 2000}
+    parafacSettings = {'orthogonalise': True, 'tol': 1e-9, 'normalize_factors': False, 'n_iter_max': 1000}
     tensorFac = parafac(tensor, r, mask=mask, **parafacSettings)
     tensorFac.factors = reorient_factors(tensorFac.factors)
     tensorFac = kruskal_normalise(tensorFac)
