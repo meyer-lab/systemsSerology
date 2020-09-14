@@ -86,9 +86,7 @@ def perform_CMTF(tensorIn=None, matrixIn=None, r=6):
     tensorResid = tensor - tl.kruskal_to_tensor(tensorFac)
     tensorFacTwo = deepcopy(tensorFac)
     tensorFacTwo.factors[0] = matrixFacExt.factors[0]
-    tensorFacExt = parafac(tensorResid, r, mask=mask, init=tensorFacTwo, fixed_modes=[0])
-    # TODO: Fix tensorly so that orthogonalize only applies to non-fixed modes
-    # TODO: Explodes when we pass the missingness mask
+    tensorFacExt = parafac(tensorResid, r, mask=mask, init=tensorFacTwo, fixed_modes=[0], n_iter_max=1000, tol=1e-9)
 
     # Incorporate PCA into factorization
     for ii in range(3):
