@@ -79,6 +79,7 @@ def perform_CMTF(tensorIn=None, matrixIn=None, r=6):
     # Solve for factors on remaining glycosylation matrix variation
     matrixResid = matrix - tl.kruskal_to_tensor(matrixFac)
     matrixFacExt = parafac(matrixResid, r, mask=mask_matrix, **parafacSettings)
+    matrixFacExt.factors = reorient_factors(matrixFacExt.factors)
     ncp = matrixFacExt.rank
 
     # Go back to tensor
