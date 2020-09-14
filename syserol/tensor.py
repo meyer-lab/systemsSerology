@@ -86,6 +86,8 @@ def perform_CMTF(tensorIn=None, matrixIn=None, r=6):
     tensorFacTwo = deepcopy(tensorFac)
     tensorFacTwo.factors[0] = matrixFacExt.factors[0]
     tensorFacExt = parafac(tensorResid, r, init=tensorFacTwo, fixed_modes=[0])
+    # TODO: Fix tensorly so that orthogonalize only applies to non-fixed modes
+    # TODO: Explodes when we pass the missingness mask
 
     # Incorporate PCA into factorization
     for ii in range(3):
@@ -102,5 +104,8 @@ def perform_CMTF(tensorIn=None, matrixIn=None, r=6):
     matrix_R2XX = calcR2X(matrixIn, matrixFac)
     tensorFac = kruskal_normalise(tensorFac)
     matrixFac = kruskal_normalise(matrixFac)
+
+    # Reorient the later tensor factors
+    tensorFac.factors[1::] = reorient_factors(tensorFac.factors[1::])
 
     return tensorFac, matrixFac, tensor_R2XX, matrix_R2XX
