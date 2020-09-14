@@ -72,19 +72,14 @@ def perform_CMTF(tensorIn=None, matrixIn=None, r=6):
     parafacSettings = {'orthogonalise': True, 'tol': 1e-9, 'n_iter_max': 1000}
     tensorFac = parafac(tensor, r, mask=mask, **parafacSettings)
     tensorFac.factors = reorient_factors(tensorFac.factors)
-    tensorFac = kruskal_normalise(tensorFac)
 
     # Now run CMTF
     matrixFac = cmtf(matrix, mask_matrix=mask_matrix, init=tensorFac)
-    matrixFac = kruskal_normalise(matrixFac)
 
     # Solve for factors on remaining glycosylation matrix variation
-    matrixResid = matrixIn - tl.kruskal_to_tensor(matrixFac)
-    matrixResid[mask_matrix == 0] = 0.0
-
+    matrixResid = matrix - tl.kruskal_to_tensor(matrixFac)
     matrixFacExt = parafac(matrixResid, r, mask=mask_matrix, **parafacSettings)
     ncp = matrixFacExt.rank
-    matrixFacExt = kruskal_normalise(matrixFacExt)
 
     # Go back to tensor
     tensorResid = tensor - tl.kruskal_to_tensor(tensorFac)
@@ -97,13 +92,15 @@ def perform_CMTF(tensorIn=None, matrixIn=None, r=6):
         tensorFac.factors[ii] = np.concatenate((tensorFac.factors[ii], tensorFacExt.factors[ii]), axis=1)
 
     tensorFac.rank += ncp
-    tensorFac.weights = np.pad(tensorFac.weights, (0, ncp), constant_values=1.0)
+    matrixFac.rank += ncp
+    tensorFac.weights = np.concatenate((tensorFac.weights, tensorFacExt.weights))
     matrixFac.factors[0] = tensorFac.factors[0]
     matrixFac.factors[1] = np.concatenate((matrixFac.factors[1], matrixFacExt.factors[1]), axis=1)
     matrixFac.weights = np.concatenate((matrixFac.weights, matrixFacExt.weights))
-    matrixFac.rank += ncp
 
     tensor_R2XX = calcR2X(tensorIn, tensorFac)
     matrix_R2XX = calcR2X(matrixIn, matrixFac)
+    tensorFac = kruskal_normalise(tensorFac)
+    matrixFac = kruskal_normalise(matrixFac)
 
     return tensorFac, matrixFac, tensor_R2XX, matrix_R2XX
