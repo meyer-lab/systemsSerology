@@ -19,7 +19,7 @@ def reorient_factors(factors):
     """ This function ensures that factors are negative on at most one direction. """
     for jj in range(len(factors) - 1):
         # Calculate the sign of the current factor in each component
-        means = np.sign(np.mean(factors[jj]**3, axis = 0))
+        means = np.sign(np.mean(factors[jj]**3, axis=0))
 
         # Update both the current and last factor
         factors[jj] *= means[np.newaxis, :]
