@@ -62,7 +62,7 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all"):
         gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=3)
         gp.fit(X, Y)
         print(gp.kernel_)
-        Y_pred = gp.predict(X)
+        Y_pred = cross_val_predict(gp, X, Y, cv=30, n_jobs=-1)
 
     if evaluation == "all":
         return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))
