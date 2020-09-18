@@ -2,7 +2,6 @@ numpy==1.19.2
 scipy==1.5.2
 pytest==6.0.2
 pytest-cov==2.10.1
-pylint==2.6.0
 manubot==0.4.1
 pandas==1.1.1
 pandoc-fignos==2.3.1

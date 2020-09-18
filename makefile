@@ -1,7 +1,7 @@
 
 flist = 1 2 3 S1
 
-all: pylint.log $(patsubst %, figure%.svg, $(flist))
+all: $(patsubst %, figure%.svg, $(flist))
 
 venv: venv/bin/activate
 
