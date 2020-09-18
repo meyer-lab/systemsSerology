@@ -3,6 +3,8 @@ import numpy as np
 from sklearn.linear_model import ElasticNetCV, ElasticNet
 from sklearn.model_selection import cross_val_predict
 from sklearn.metrics import r2_score
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C, WhiteKernel
 from .dataImport import (
     importFunction,
     functions,
@@ -36,6 +38,7 @@ def function_elastic_net(function="ADCC"):
 
     # perform regression
     Y = df_func[function]
+
     Y_pred, _ = elasticNetFunc(df_variables, Y)
 
     return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))
@@ -51,7 +54,15 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all"):
     X = X[np.isfinite(Y), :]
     Y = Y[np.isfinite(Y)]
 
-    Y_pred, _ = elasticNetFunc(X, Y)
+    if X.shape[1] > 50:
+        Y_pred, _ = elasticNetFunc(X, Y)
+    else:
+        bnd = (0.1, 1000.0)
+        kernel = C() * RBF(length_scale_bounds=bnd) + C() + WhiteKernel(noise_level_bounds=bnd)
+        gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=3)
+        gp.fit(X, Y)
+        print(gp.kernel_)
+        Y_pred = gp.predict(X)
 
     if evaluation == "all":
         return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))
