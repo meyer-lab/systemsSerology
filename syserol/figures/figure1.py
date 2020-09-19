@@ -12,7 +12,7 @@ def makeFigure():
     # Get list of axis objects
     ax, f = getSetup((3, 3), (1, 1))
 
-    comps = np.array([1, 2, 3, 4, 6, 8, 10, 12])
+    comps = np.array([1, 2, 3, 4, 5, 6, 10])
     tensorArr = np.empty(comps.size)
     matrixArr = np.empty(comps.size)
     for i, compp in enumerate(comps):
