@@ -2,7 +2,6 @@
 from sklearn.model_selection import cross_val_predict
 from sklearn.linear_model import LogisticRegressionCV, LogisticRegression
 from sklearn.metrics import accuracy_score, confusion_matrix
-from sklearn.svm import SVC
 from scipy.stats import zscore
 from syserol.dataImport import (
     load_file,
@@ -17,16 +16,16 @@ def getClassY(df):
     return Y1, Y2
 
 
-def class_predictions(X, methodLR):
+def class_predictions(X):
     """ Predict Subject Class with Decomposed Tensor Data """
     # Load Data
     cp, nv = getClassY(load_file("meta-subjects"))
 
     # Controller/Progressor classification
-    _, cp_accuracy, _ = ClassifyHelper(X, cp, methodLR)
+    _, cp_accuracy, _ = ClassifyHelper(X, cp)
 
     # Viremic/Nonviremic classification
-    _, nv_accuracy, _ = ClassifyHelper(X, nv, methodLR)
+    _, nv_accuracy, _ = ClassifyHelper(X, nv)
 
     return cp_accuracy, nv_accuracy
 
@@ -43,28 +42,25 @@ def two_way_classifications():
     Y1, Y2 = getClassY(df_merged)
 
     # Predict Controller vs. Progressor
-    _, accuracyCvP, confusionCvP = ClassifyHelper(X, Y1, True)
+    _, accuracyCvP, confusionCvP = ClassifyHelper(X, Y1)
 
     # Predict Viremic vs. Nonviremic
-    _, accuracyVvN, confusionVvN = ClassifyHelper(X, Y2, True)
+    _, accuracyVvN, confusionVvN = ClassifyHelper(X, Y2)
 
     return accuracyCvP, accuracyVvN, confusionCvP, confusionVvN
 
 
-def ClassifyHelper(X, Y, methodLR):
+def ClassifyHelper(X, Y):
     """ Function with common Logistic regression methods. """
-    if methodLR is True:
-        regr = LogisticRegressionCV(n_jobs=-1, max_iter=1000)
-        regr.fit(X, Y)
+    regr = LogisticRegressionCV(n_jobs=-1, cv=30, max_iter=1000)
+    regr.fit(X, Y)
 
-        if regr.coef_.size < 50:
-            print(f"Classification LR Coefficient: {regr.coef_}")
+    if regr.coef_.size < 50:
+        print(f"Classification LR Coefficient: {regr.coef_}")
 
-        clf = LogisticRegression(C=regr.C_[0], max_iter=1000)
-    else:
-        clf = SVC(kernel="rbf")
+    clf = LogisticRegression(C=regr.C_[0], max_iter=1000)
 
-    Y_pred = cross_val_predict(clf, X, Y, cv=30, n_jobs=-1)
+    Y_pred = cross_val_predict(clf, X, Y, cv=40, n_jobs=-1)
     confusion = confusion_matrix(Y, Y_pred)
     accuracy = accuracy_score(Y, Y_pred)
     return Y_pred, accuracy, confusion
