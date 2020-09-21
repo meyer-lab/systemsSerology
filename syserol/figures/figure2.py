@@ -56,7 +56,7 @@ def makeFigure():
     subjects_out = subjects_out.drop(columns=["Function1"])  # DataFrame for Figure 2D
 
     # Gather Class Prediction Accuracies
-    accuracyCvP, accuracyVvN, _, _ = two_way_classifications()  # Alter accuracies
+    accuracyCvP, accuracyVvN = two_way_classifications()  # Alter accuracies
     # Run our model
     subjects_matrix = tensorFac[1][0]
     cp_accuracy, nv_accuracy = class_predictions(subjects_matrix)  # Our accuracies

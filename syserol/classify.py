@@ -1,7 +1,7 @@
 """ Regression methods using Factorized Data. """
 from sklearn.model_selection import cross_val_predict
 from sklearn.linear_model import LogisticRegressionCV, LogisticRegression
-from sklearn.metrics import accuracy_score, confusion_matrix
+from sklearn.metrics import accuracy_score
 from scipy.stats import zscore
 from syserol.dataImport import (
     load_file,
@@ -22,10 +22,10 @@ def class_predictions(X):
     cp, nv = getClassY(load_file("meta-subjects"))
 
     # Controller/Progressor classification
-    _, cp_accuracy, _ = ClassifyHelper(X, cp)
+    _, cp_accuracy = ClassifyHelper(X, cp)
 
     # Viremic/Nonviremic classification
-    _, nv_accuracy, _ = ClassifyHelper(X, nv)
+    _, nv_accuracy = ClassifyHelper(X, nv)
 
     return cp_accuracy, nv_accuracy
 
@@ -42,25 +42,24 @@ def two_way_classifications():
     Y1, Y2 = getClassY(df_merged)
 
     # Predict Controller vs. Progressor
-    _, accuracyCvP, confusionCvP = ClassifyHelper(X, Y1)
+    _, accuracyCvP = ClassifyHelper(X, Y1)
 
     # Predict Viremic vs. Nonviremic
-    _, accuracyVvN, confusionVvN = ClassifyHelper(X, Y2)
+    _, accuracyVvN = ClassifyHelper(X, Y2)
 
-    return accuracyCvP, accuracyVvN, confusionCvP, confusionVvN
+    return accuracyCvP, accuracyVvN
 
 
 def ClassifyHelper(X, Y):
     """ Function with common Logistic regression methods. """
-    regr = LogisticRegressionCV(n_jobs=-1, cv=30, max_iter=1000)
-    regr.fit(X, Y)
-
-    if regr.coef_.size < 50:
-        print(f"Classification LR Coefficient: {regr.coef_}")
-
-    clf = LogisticRegression(C=regr.C_[0], max_iter=1000)
+    if X.shape[1] > 50:
+        regr = LogisticRegressionCV(n_jobs=-1, cv=30, max_iter=1000)
+        regr.fit(X, Y)
+        clf = LogisticRegression(C=regr.C_[0], max_iter=1000)
+    else:
+        clf = LogisticRegression(penalty="none", tol=1e-9)
+        clf.fit(X, Y)
+        print(f"Classification LR Coefficient: {clf.coef_}")
 
     Y_pred = cross_val_predict(clf, X, Y, cv=40, n_jobs=-1)
-    confusion = confusion_matrix(Y, Y_pred)
-    accuracy = accuracy_score(Y, Y_pred)
-    return Y_pred, accuracy, confusion
+    return Y_pred, accuracy_score(Y, Y_pred)
