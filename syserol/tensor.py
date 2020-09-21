@@ -3,6 +3,7 @@ Tensor decomposition methods
 """
 from copy import deepcopy
 import numpy as np
+from numpy.random import randn
 import tensorly as tl
 from tensorly.kruskal_tensor import KruskalTensor, kruskal_normalise
 from tensorly.decomposition import parafac
@@ -69,7 +70,7 @@ def perform_CMTF(tensorIn=None, matrixIn=None, r=4):
     matrix[mask_matrix == 0] = 0.0
 
     # Initialize by running PARAFAC on the 3D tensor
-    parafacSettings = {'orthogonalise': 10, 'tol': 1e-9, 'n_iter_max': 1000}
+    parafacSettings = {'orthogonalise': 10, 'tol': 1e-9, 'n_iter_max': 4000}
     tensorFac = parafac(tensor, r, mask=mask, **parafacSettings)
     tensorFac.factors = reorient_factors(tensorFac.factors)
 
@@ -83,18 +84,14 @@ def perform_CMTF(tensorIn=None, matrixIn=None, r=4):
     ncp = matrixFacExt.rank
 
     # Go back to tensor
-    tensorResid = tensor - tl.kruskal_to_tensor(tensorFac)
-    tensorFacTwo = deepcopy(tensorFac)
-    tensorFacTwo.factors[0] = matrixFacExt.factors[0]
-    tensorFacExt = parafac(tensorResid, r, mask=mask, init=tensorFacTwo, fixed_modes=[0], n_iter_max=1000, tol=1e-9)
-
-    # Incorporate PCA into factorization
-    for ii in range(3):
-        tensorFac.factors[ii] = np.concatenate((tensorFac.factors[ii], tensorFacExt.factors[ii]), axis=1)
-
+    tensorFac.factors[0] = np.concatenate((tensorFac.factors[0], matrixFacExt.factors[0]), axis=1)
+    tensorFac.factors[1] = np.concatenate((tensorFac.factors[1], randn(*tensorFac.factors[1].shape)), axis=1)
+    tensorFac.factors[2] = np.concatenate((tensorFac.factors[2], randn(*tensorFac.factors[2].shape)), axis=1)
+    tensorFac.weights = np.concatenate((tensorFac.weights, np.ones_like(tensorFac.weights)))
     tensorFac.rank += ncp
+    tensorFac = parafac(tensor, r * 2, mask=mask, init=tensorFac, fixed_modes=[0], n_iter_max=4000, tol=1e-9)
+    
     matrixFac.rank += ncp
-    tensorFac.weights = np.concatenate((tensorFac.weights, tensorFacExt.weights))
     matrixFac.factors[0] = tensorFac.factors[0]
     matrixFac.factors[1] = np.concatenate((matrixFac.factors[1], matrixFacExt.factors[1]), axis=1)
     matrixFac.weights = np.concatenate((matrixFac.weights, matrixFacExt.weights))
