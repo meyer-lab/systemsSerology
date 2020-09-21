@@ -69,7 +69,7 @@ def perform_CMTF(tensorIn=None, matrixIn=None, r=4):
     matrix[mask_matrix == 0] = 0.0
 
     # Initialize by running PARAFAC on the 3D tensor
-    parafacSettings = {'orthogonalise': 10, 'tol': 1e-9, 'n_iter_max': 2000}
+    parafacSettings = {'orthogonalise': 10, 'tol': 1e-9, 'n_iter_max': 3000}
     tensorFac = parafac(tensor, r, mask=mask, **parafacSettings)
     tensorFac.factors = reorient_factors(tensorFac.factors)
 
@@ -86,7 +86,7 @@ def perform_CMTF(tensorIn=None, matrixIn=None, r=4):
     tensorResid = tensor - tl.kruskal_to_tensor(tensorFac)
     tensorFacTwo = deepcopy(tensorFac)
     tensorFacTwo.factors[0] = matrixFacExt.factors[0]
-    tensorFacExt = parafac(tensorResid, r, mask=mask, init=tensorFacTwo, fixed_modes=[0], n_iter_max=2000, tol=1e-9)
+    tensorFacExt = parafac(tensorResid, r, mask=mask, init=tensorFacTwo, fixed_modes=[0], n_iter_max=3000, tol=1e-9)
 
     # Incorporate PCA into factorization
     for ii in range(3):
