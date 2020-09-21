@@ -70,7 +70,7 @@ def perform_CMTF(tensorIn=None, matrixIn=None, r=4):
     matrix[mask_matrix == 0] = 0.0
 
     # Initialize by running PARAFAC on the 3D tensor
-    parafacSettings = {'orthogonalise': 10, 'tol': 1e-9, 'n_iter_max': 3000}
+    parafacSettings = {'orthogonalise': 10, 'tol': 1e-9, 'n_iter_max': 4000}
     tensorFac = parafac(tensor, r, mask=mask, **parafacSettings)
     tensorFac.factors = reorient_factors(tensorFac.factors)
 
@@ -89,7 +89,7 @@ def perform_CMTF(tensorIn=None, matrixIn=None, r=4):
     tensorFac.factors[2] = np.concatenate((tensorFac.factors[2], randn(*tensorFac.factors[2].shape)), axis=1)
     tensorFac.weights = np.concatenate((tensorFac.weights, np.ones_like(tensorFac.weights)))
     tensorFac.rank += ncp
-    tensorFac = parafac(tensor, r * 2, mask=mask, init=tensorFac, fixed_modes=[0], n_iter_max=3000, tol=1e-9)
+    tensorFac = parafac(tensor, r * 2, mask=mask, init=tensorFac, fixed_modes=[0], n_iter_max=4000, tol=1e-9)
     
     matrixFac.rank += ncp
     matrixFac.factors[0] = tensorFac.factors[0]
