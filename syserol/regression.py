@@ -1,6 +1,6 @@
 """ Regression methods. """
 import numpy as np
-from sklearn.linear_model import ElasticNetCV, ElasticNet
+from sklearn.linear_model import ElasticNetCV, ElasticNet, LinearRegression
 from sklearn.model_selection import cross_val_predict
 from sklearn.metrics import r2_score
 from .dataImport import (
@@ -13,13 +13,15 @@ from .dataImport import (
 
 def elasticNetFunc(X, Y):
     """ Function with common elastic net methods. """
-    regr = ElasticNetCV(normalize=True, max_iter=10000, cv=30, n_jobs=-1, l1_ratio=[0.5, 1.0])
-    regr.fit(X, Y)
+    if X.shape[1] < 50:
+        enet = LinearRegression()
+        enet.fit(X, Y)
+        print(f"Elastic Net Coefficient: {enet.coef_}")
+    else:
+        regr = ElasticNetCV(normalize=True, max_iter=10000, cv=30, n_jobs=-1, l1_ratio=0.8)
+        regr.fit(X, Y)
+        enet = ElasticNet(alpha=regr.alpha_, l1_ratio=regr.l1_ratio_, normalize=True, max_iter=10000)
 
-    if regr.coef_.size < 50:
-        print(f"Elastic Net Coefficient: {regr.coef_}")
-
-    enet = ElasticNet(alpha=regr.alpha_, l1_ratio=regr.l1_ratio_, normalize=True, max_iter=10000)
     Y_pred = cross_val_predict(enet, X, Y, cv=len(Y), n_jobs=-1)
     return Y_pred
 
