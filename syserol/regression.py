@@ -1,7 +1,6 @@
 """ Regression methods. """
 import numpy as np
 from sklearn.linear_model import ElasticNetCV, ElasticNet, LinearRegression
-from sklearn.cross_decomposition import PLSRegression
 from sklearn.model_selection import cross_val_predict
 from sklearn.metrics import r2_score
 from .dataImport import (
