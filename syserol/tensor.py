@@ -16,16 +16,18 @@ def calcR2X(data, factor):
     return 1.0 - tensorErr / np.nanvar(data)
 
 
-def reorient_factors(factors):
+def reorient_factors(tensorFac, matrixFac):
     """ This function ensures that factors are negative on at most one direction. """
-    for jj in range(len(factors) - 1):
+    for jj in range(1, tensorFac.rank):
         # Calculate the sign of the current factor in each component
-        means = np.sign(np.mean(factors[jj]**3, axis=0))
+        means = np.sign(np.mean(tensorFac.factors[jj], axis=0))
 
         # Update both the current and last factor
-        factors[jj] *= means[np.newaxis, :]
-        factors[-1] *= means[np.newaxis, :]
-    return factors
+        tensorFac.factors[jj] *= means[np.newaxis, :]
+        tensorFac.factors[0] *= means[np.newaxis, :]
+        matrixFac.factors[0] *= means[np.newaxis, :]
+        matrixFac.factors[1] *= means[np.newaxis, :]
+    return tensorFac, matrixFac
 
 
 def cmtf(Y, mask_matrix, init):
@@ -72,7 +74,6 @@ def perform_CMTF(tensorIn=None, matrixIn=None, r=4):
     # Initialize by running PARAFAC on the 3D tensor
     parafacSettings = {'orthogonalise': 10, 'tol': 1e-9, 'n_iter_max': 4000}
     tensorFac = parafac(tensor, r, mask=mask, **parafacSettings)
-    tensorFac.factors = reorient_factors(tensorFac.factors)
 
     # Now run CMTF
     matrixFac = cmtf(matrix, mask_matrix=mask_matrix, init=tensorFac)
@@ -80,7 +81,6 @@ def perform_CMTF(tensorIn=None, matrixIn=None, r=4):
     # Solve for factors on remaining glycosylation matrix variation
     matrixResid = matrix - tl.kruskal_to_tensor(matrixFac)
     matrixFacExt = parafac(matrixResid, r, mask=mask_matrix, **parafacSettings)
-    matrixFacExt.factors = reorient_factors(matrixFacExt.factors)
     ncp = matrixFacExt.rank
 
     # Go back to tensor
@@ -96,12 +96,12 @@ def perform_CMTF(tensorIn=None, matrixIn=None, r=4):
     matrixFac.factors[1] = np.concatenate((matrixFac.factors[1], matrixFacExt.factors[1]), axis=1)
     matrixFac.weights = np.concatenate((matrixFac.weights, matrixFacExt.weights))
 
+    # Reorient the later tensor factors
+    tensorFac, matrixFac = reorient_factors(tensorFac, matrixFac)
+
     tensor_R2XX = calcR2X(tensorIn, tensorFac)
     matrix_R2XX = calcR2X(matrixIn, matrixFac)
     tensorFac = kruskal_normalise(tensorFac)
     matrixFac = kruskal_normalise(matrixFac)
-
-    # Reorient the later tensor factors
-    tensorFac.factors[1::] = reorient_factors(tensorFac.factors[1::])
 
     return tensorFac, matrixFac, tensor_R2XX, matrix_R2XX
