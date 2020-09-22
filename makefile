@@ -14,7 +14,7 @@ figure%.svg: venv genFigure.py syserol/figures/figure%.py
 	. venv/bin/activate && ./genFigure.py $*
 
 test: venv
-	. venv/bin/activate && pytest -s -v
+	. venv/bin/activate && pytest -s -v -x
 
 testprofile: venv
 	. venv/bin/activate && python3 -m cProfile -o profile /usr/local/bin/pytest

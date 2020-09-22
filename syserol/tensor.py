@@ -1,7 +1,6 @@
 """
 Tensor decomposition methods
 """
-from copy import deepcopy
 import numpy as np
 from numpy.random import randn
 import tensorly as tl
@@ -18,15 +17,15 @@ def calcR2X(data, factor):
 
 def reorient_factors(tensorFac, matrixFac):
     """ This function ensures that factors are negative on at most one direction. """
-    for jj in range(1, tensorFac.rank):
+    for jj in range(1, len(tensorFac)):
         # Calculate the sign of the current factor in each component
-        means = np.sign(np.mean(tensorFac.factors[jj], axis=0))
+        means = np.sign(np.mean(tensorFac[jj], axis=0))
 
         # Update both the current and last factor
-        tensorFac.factors[jj] *= means[np.newaxis, :]
-        tensorFac.factors[0] *= means[np.newaxis, :]
-        matrixFac.factors[0] *= means[np.newaxis, :]
-        matrixFac.factors[1] *= means[np.newaxis, :]
+        tensorFac[0] *= means[np.newaxis, :]
+        matrixFac[0] *= means[np.newaxis, :]
+        matrixFac[1] *= means[np.newaxis, :]
+        tensorFac[jj] *= means[np.newaxis, :]
     return tensorFac, matrixFac
 
 
@@ -96,12 +95,13 @@ def perform_CMTF(tensorIn=None, matrixIn=None, r=4):
     matrixFac.factors[1] = np.concatenate((matrixFac.factors[1], matrixFacExt.factors[1]), axis=1)
     matrixFac.weights = np.concatenate((matrixFac.weights, matrixFacExt.weights))
 
+    tensorFac = kruskal_normalise(tensorFac)
+    matrixFac = kruskal_normalise(matrixFac)
+
     # Reorient the later tensor factors
-    tensorFac, matrixFac = reorient_factors(tensorFac, matrixFac)
+    tensorFac.factors, matrixFac.factors = reorient_factors(tensorFac.factors, matrixFac.factors)
 
     tensor_R2XX = calcR2X(tensorIn, tensorFac)
     matrix_R2XX = calcR2X(matrixIn, matrixFac)
-    tensorFac = kruskal_normalise(tensorFac)
-    matrixFac = kruskal_normalise(matrixFac)
 
     return tensorFac, matrixFac, tensor_R2XX, matrix_R2XX
