@@ -1,6 +1,6 @@
 """ Regression methods. """
 import numpy as np
-from sklearn.linear_model import ElasticNetCV, ElasticNet
+from sklearn.linear_model import ElasticNetCV, ElasticNet, LinearRegression
 from sklearn.model_selection import cross_val_predict
 from sklearn.metrics import r2_score
 from .dataImport import (
@@ -13,16 +13,17 @@ from .dataImport import (
 
 def elasticNetFunc(X, Y):
     """ Function with common elastic net methods. """
-    regr = ElasticNetCV(normalize=True, max_iter=10000, cv=30, n_jobs=-1)
-    regr.fit(X, Y)
+    if X.shape[1] < 50:
+        enet = LinearRegression()
+        enet.fit(X, Y)
+        print(f"Elastic Net Coefficient: {enet.coef_}")
+    else:
+        regr = ElasticNetCV(normalize=True, max_iter=10000, cv=30, n_jobs=-1, l1_ratio=0.8)
+        regr.fit(X, Y)
+        enet = ElasticNet(alpha=regr.alpha_, l1_ratio=regr.l1_ratio_, normalize=True, max_iter=10000)
 
-    if regr.coef_.size < 50:
-        print(f"Elastic Net Coefficient: {regr.coef_}")
-
-    enet = ElasticNet(alpha=regr.alpha_, l1_ratio=regr.l1_ratio_, normalize=True, max_iter=10000)
-    Y_pred = cross_val_predict(enet, X, Y, cv=30, n_jobs=-1)
-    rsq = np.sqrt(r2_score(Y, Y_pred))
-    return Y_pred, rsq
+    Y_pred = cross_val_predict(enet, X, Y, cv=len(Y), n_jobs=-1)
+    return Y_pred
 
 
 def function_elastic_net(function="ADCC"):
@@ -31,12 +32,11 @@ def function_elastic_net(function="ADCC"):
     df = importAlterDF(function=True, subjects=False)
     df_merged = df.dropna()
     # separate dataframes
-    df_func = df_merged[functions]
+    Y = df_merged[function]
     df_variables = df_merged.drop(["subject"] + functions, axis=1)
 
     # perform regression
-    Y = df_func[function]
-    Y_pred, _ = elasticNetFunc(df_variables, Y)
+    Y_pred = elasticNetFunc(df_variables, Y)
 
     return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))
 
@@ -51,7 +51,7 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all"):
     X = X[np.isfinite(Y), :]
     Y = Y[np.isfinite(Y)]
 
-    Y_pred, _ = elasticNetFunc(X, Y)
+    Y_pred = elasticNetFunc(X, Y)
 
     if evaluation == "all":
         return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))

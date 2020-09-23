@@ -118,11 +118,13 @@ def importAlterDF(function=True, subjects=False):
 
     return df_merged
 
+
 def AlterIndices():
     df = importAlterDF()
     subjects, _, _ = getAxes()
 
     return np.array([subjects.index(subject) for i, subject in enumerate(df["subject"])])
+
 
 @lru_cache()
 def createCube():

@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 from string import ascii_lowercase
-import seaborn as sns
+from sklearn.preprocessing import scale
 import matplotlib
 import svgutils.transform as st
 from matplotlib import gridspec, pyplot as plt
@@ -73,9 +73,7 @@ def overlayCartoon(figFile, cartoonFile, x, y, scalee=1):
     template.append(cartoon)
     template.save(figFile)
 
-def buildFigure3(legends=True):
-    ax, f = getSetup((8, 8), (3, 4))
-
+def buildFigure3(legends=True, heatmap=False):
     tensorFac, matrixFac, _, _ = perform_CMTF()
 
     # Gather tensor data matrices
@@ -102,176 +100,195 @@ def buildFigure3(legends=True):
     _, detections, antigen = getAxes()
     subjinfo = load_file("meta-subjects")
 
-    #Build Figure
-    index = [0, 2, 4]
-    place = [0, 4, 8]
-    for i, j in zip(index, place):
-        # Subjects
-        values1 = subjects[:, i]
-        values2 = subjects[:, i + 1]
-        data = {
-            f"Component {i+1}": values1,
-            f"Component {i+2}": values2,
-            "Groups": subjinfo["class.etuv"],
-        }
-        df = pd.DataFrame(data)
-        a = sns.scatterplot(
-            x=f"Component {i+1}",
-            y=f"Component {i+2}",
-            hue="Groups",
-            data=df,
-            palette="Set1",
-            legend="brief" if j == 4 and legends==True else False,
-            ax=ax[j],
-        )
+    if (heatmap==False):
+        ax, f = getSetup((8, 8), (3, 4))
+        #Build Figure
+        index = [0, 2, 4]
+        place = [0, 4, 8]
+        for i, j in zip(index, place):
+            # Subjects
+            values1 = subjects[:, i]
+            values2 = subjects[:, i + 1]
+            data = {
+                f"Component {i+1}": values1,
+                f"Component {i+2}": values2,
+                "Groups": subjinfo["class.etuv"],
+            }
+            df = pd.DataFrame(data)
+            a = sns.scatterplot(
+                x=f"Component {i+1}",
+                y=f"Component {i+2}",
+                hue="Groups",
+                data=df,
+                palette="Set1",
+                legend="brief" if j == 4 and legends==True else False,
+                ax=ax[j],
+            )
 
-        if j == 4 and legends==True:
-            a.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
+            if j == 4 and legends==True:
+                a.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
 
-        # Detections
-        values1 = receptors[:, i]
-        values2 = receptors[:, i + 1]
-        data = {
-            f"Component {i+1}": values1,
-            f"Component {i+2}": values2,
-            "Receptor": detections,
-        }
-        df = pd.DataFrame(data)
-        markers = (
-            "o",
-            "X",
-            "X",
-            "X",
-            "^",
-            "D",
-            "D",
-            "D",
-            "D",
-            "D",
-            "D",
-            "<",
-            ">",
-            "8",
-            "s",
-            "P",
-            "P",
-            "P",
-            "P",
-            "P",
-            "p",
-            "d",
-        )
-        b = sns.scatterplot(
-            x=f"Component {i+1}",
-            y=f"Component {i+2}",
-            hue="Receptor",
-            style="Receptor",
-            markers=markers,
-            data=df,
-            palette="Set2",
-            legend="brief" if j == 4 and legends==True else False,
-            ax=ax[j + 1],
-        )
-        if j == 4 and legends==True:
-            b.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
+            # Detections
+            values1 = receptors[:, i]
+            values2 = receptors[:, i + 1]
+            data = {
+                f"Component {i+1}": values1,
+                f"Component {i+2}": values2,
+                "Receptor": detections,
+            }
+            df = pd.DataFrame(data)
+            markers = (
+                "o",
+                "X",
+                "X",
+                "X",
+                "^",
+                "D",
+                "D",
+                "D",
+                "D",
+                "D",
+                "D",
+                "<",
+                ">",
+                "8",
+                "s",
+                "P",
+                "P",
+                "P",
+                "P",
+                "P",
+                "p",
+                "d",
+            )
+            b = sns.scatterplot(
+                x=f"Component {i+1}",
+                y=f"Component {i+2}",
+                hue="Receptor",
+                style="Receptor",
+                markers=markers,
+                data=df,
+                palette="Set2",
+                legend="brief" if j == 4 and legends==True else False,
+                ax=ax[j + 1],
+            )
+            if j == 4 and legends==True:
+                b.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
 
-        # Antigens
-        values1 = antigens[:, i]
-        values2 = antigens[:, i + 1]
-        data = {
-            f"Component {i+1}": values1,
-            f"Component {i+2}": values2,
-            "Antigens": antigen,
-        }
-        df = pd.DataFrame(data)
-        markers = (
-            "o",
-            "v",
-            "^",
-            "<",
-            ">",
-            "8",
-            "s",
-            "p",
-            "*",
-            "h",
-            "H",
-            "D",
-            "d",
-            "P",
-            "X",
-            "o",
-            "v",
-            "^",
-            "<",
-            ">",
-            "8",
-            "s",
-            "p",
-            "*",
-            "h",
-            "H",
-            "D",
-            "d",
-            "P",
-            "X",
-            "o",
-            "v",
-            "^",
-            "<",
-            ">",
-            "8",
-            "s",
-            "p",
-            "*",
-            "h",
-            "H",
-        )
-        c = sns.scatterplot(
-            x=f"Component {i+1}",
-            y=f"Component {i+2}",
-            hue="Antigens",
-            style="Antigens",
-            markers=markers,
-            data=df,
-            palette="Set3",
-            legend="brief" if j == 4 and legends==True else False,
-            ax=ax[j + 2],
-        )
+            # Antigens
+            values1 = antigens[:, i]
+            values2 = antigens[:, i + 1]
+            data = {
+                f"Component {i+1}": values1,
+                f"Component {i+2}": values2,
+                "Antigens": antigen,
+            }
+            df = pd.DataFrame(data)
+            markers = (
+                "o",
+                "v",
+                "^",
+                "<",
+                ">",
+                "8",
+                "s",
+                "p",
+                "*",
+                "h",
+                "H",
+                "D",
+                "d",
+                "P",
+                "X",
+                "o",
+                "v",
+                "^",
+                "<",
+                ">",
+                "8",
+                "s",
+                "p",
+                "*",
+                "h",
+                "H",
+                "D",
+                "d",
+                "P",
+                "X",
+                "o",
+                "v",
+                "^",
+                "<",
+                ">",
+                "8",
+                "s",
+                "p",
+                "*",
+                "h",
+                "H",
+            )
+            c = sns.scatterplot(
+                x=f"Component {i+1}",
+                y=f"Component {i+2}",
+                hue="Antigens",
+                style="Antigens",
+                markers=markers,
+                data=df,
+                palette="Set3",
+                legend="brief" if j == 4 and legends==True else False,
+                ax=ax[j + 2],
+            )
 
-        if j == 4 and legends==True:
-            c.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
+            if j == 4 and legends==True:
+                c.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
 
-        # Glycans
-        values1 = glyc[:, i]
-        values2 = glyc[:, i + 1]
-        data = {
-            f"Component {i+1}": values1,
-            f"Component {i+2}": values2,
-            "G": glycaninf["GS"],
-            "FB": glycaninf["FB"],
-        }
-        df = pd.DataFrame(data)
-        d = sns.scatterplot(
-            x=f"Component {i+1}",
-            y=f"Component {i+2}",
-            hue="G",
-            style="FB",
-            data=df,
-            palette="Paired",
-            legend="brief" if j == 4 and legends==True else False,
-            ax=ax[j + 3],
-        )
+            # Glycans
+            values1 = glyc[:, i]
+            values2 = glyc[:, i + 1]
+            data = {
+                f"Component {i+1}": values1,
+                f"Component {i+2}": values2,
+                "G": glycaninf["GS"],
+                "FB": glycaninf["FB"],
+            }
+            df = pd.DataFrame(data)
+            d = sns.scatterplot(
+                x=f"Component {i+1}",
+                y=f"Component {i+2}",
+                hue="G",
+                style="FB",
+                data=df,
+                palette="Paired",
+                legend="brief" if j == 4 and legends==True else False,
+                ax=ax[j + 3],
+            )
 
-        if j == 4 and legends==True:
-            d.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
+            if j == 4 and legends==True:
+                d.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
+        
+        for aa in ax:
+            aa.axis('equal')
+    else:
+        ax, f = getSetup((8, 8), (1, 4))
+        
+        cbar_kws = {"orientation":"horizontal"}
+        subs = pd.DataFrame(subjects, columns = [f"Component {i}" for i in np.arange(1, subjects.shape[1] + 1)], index=subjinfo["class.etuv"])
+        plt = sns.heatmap(subs, cmap="PRGn", center=0, xticklabels=True, yticklabels=50, cbar_kws=cbar_kws, ax=ax[0])
+        plt.set_ylabel("")
+
+        rec = pd.DataFrame(receptors, columns = [f"Component {i}" for i in np.arange(1, subjects.shape[1] + 1)], index=detections)
+        sns.heatmap(rec, cmap="PRGn", center=0, yticklabels=True, cbar_kws=cbar_kws, ax=ax[1])
+
+        ant = pd.DataFrame(antigens, columns=[f"Component {i}" for i in np.arange(1, subjects.shape[1] + 1)], index=antigen)
+        sns.heatmap(ant, cmap="PRGn", center=0, yticklabels=True, cbar_kws=cbar_kws, ax=ax[2])
+
+        glycans = pd.DataFrame(glyc, columns=[f"Component {i}" for i in np.arange(1, subjects.shape[1] + 1)], index=glycaninf["glycan"])
+        a = sns.heatmap(glycans, cmap="PRGn", center=0, yticklabels=True, cbar_kws=cbar_kws, ax=ax[3])
+        a.set_ylabel("")
 
     ax[0].set_title("Subjects", fontsize=15)
     ax[1].set_title("Receptors", fontsize=15)
     ax[2].set_title("Antigens", fontsize=15)
     ax[3].set_title("Glycans", fontsize=15)
-
-    for aa in ax:
-        aa.axis('equal')
 
     return f

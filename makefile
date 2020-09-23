@@ -1,7 +1,7 @@
 
-flist = 1 2 3 4 S1
+flist = 1 2 3 S1
 
-all: pylint.log $(patsubst %, figure%.svg, $(flist))
+all: $(patsubst %, figure%.svg, $(flist))
 
 venv: venv/bin/activate
 
@@ -14,14 +14,11 @@ figure%.svg: venv genFigure.py syserol/figures/figure%.py
 	. venv/bin/activate && ./genFigure.py $*
 
 test: venv
-	. venv/bin/activate && pytest -s -v
+	. venv/bin/activate && pytest -s -v -x
 
 testprofile: venv
 	. venv/bin/activate && python3 -m cProfile -o profile /usr/local/bin/pytest
 	. venv/bin/activate && python3 -m gprof2dot -f pstats --node-thres=5.0 profile | dot -Tsvg -o profile.svg
-
-pylint.log: venv
-	. venv/bin/activate && (pylint --rcfile=./common/pylintrc syserol > pylint.log || echo "pylint exited with $?")
 
 output/manuscript.md: venv manuscript/*.md
 	. venv/bin/activate && manubot process --content-directory=manuscript --output-directory=output --cache-directory=cache --skip-citations --log-level=INFO

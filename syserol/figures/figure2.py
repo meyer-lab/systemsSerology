@@ -45,10 +45,10 @@ def makeFigure():
     subjects_out = pd.DataFrame(data) # DataFrame for Figure 2D
 
     # Gather Class Prediction Accuracies
-    accuracyCvP, accuracyVvN, _, _ = two_way_classifications()  # Alter accuracies
+    accuracyCvP, accuracyVvN = two_way_classifications()  # Alter accuracies
     # Run our model
     subjects_matrix = tensorFac[1][0]
-    cp_accuracy, nv_accuracy = class_predictions(subjects_matrix, False)  # Our accuracies
+    cp_accuracy, nv_accuracy = class_predictions(subjects_matrix)  # Our accuracies
 
     # Create DataFrame
     baselineNV = 0.5083  # datasetEV3/Fc.array/class.nv/lambda.min/score_details.txt "No information rate"
@@ -84,9 +84,9 @@ def makeFigure():
     a.grid(False)
     a.xaxis.tick_top()
     a.xaxis.set_label_position("top")
-    a.tick_params(axis="x", labelsize=10)
-    a.set_ylabel("Accuracy", fontsize=12)
-    a.set_xlabel("Function", fontsize=12)
+    a.tick_params(axis="x")
+    a.set_ylabel("Accuracy")
+    a.set_xlabel("Function")
 
     # Class Plot
     b = sns.scatterplot(
@@ -96,18 +96,19 @@ def makeFigure():
     b.plot([-0.5, 5.5], [avg, avg], "--", color="green")
     b.axvspan(-0.5, 0.5, alpha=0.1, color="grey")
     b.set_xlim(-0.5, 1.5)
-    b.set_ylim(0.4, 1)
+    b.set_ylim(0.45, 1)
     b.grid(False)
     b.xaxis.tick_top()
     b.xaxis.set_label_position("top")
-    b.set_ylabel("Accuracy", fontsize=12)
-    b.set_xlabel("Class Prediction", fontsize=12)
-    b.tick_params(axis="x", labelsize=10)
+    b.set_ylabel("Accuracy")
+    b.set_xlabel("Class Prediction")
+    b.tick_params(axis="x")
 
     # Function Predictions for Values left out of Alter Plot
     c = sns.pointplot(
         x="Function", y="Accuracy", join=False, data=subjects_out, ax=ax[2]
     )
+
     # Formatting
     shades = [-0.5, 1.5, 3.5]
     for i in shades:
@@ -117,9 +118,9 @@ def makeFigure():
     c.grid(False)
     c.xaxis.tick_top()
     c.xaxis.set_label_position("top")
-    c.tick_params(axis="x", labelsize=10)
-    c.set_ylabel("Accuracy", fontsize=12)
-    c.set_xlabel("Function", fontsize=12)
+    c.tick_params(axis="x")
+    c.set_ylabel("Accuracy")
+    c.set_xlabel("Function")
 
     subplotLabel(ax)
 
