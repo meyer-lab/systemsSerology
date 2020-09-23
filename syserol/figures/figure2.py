@@ -36,24 +36,13 @@ def makeFigure():
     functions_df = pd.DataFrame(data)  # Function Prediction DataFrame, Figure 2B
 
     # Subjects left out of Alter
-    preds = np.empty([83, 12])
-    preds.fill(np.nan)
+    accuracies = np.zeros(6)
     for i, func in enumerate(functions):
-        Y, Y_pred, _ = function_prediction(tensorFac, function=func, evaluation="notAlter")
-        preds[0:len(Y), i] = Y
-        preds[0:len(Y_pred), i + 6] = Y_pred
-
-    df = pd.DataFrame(
-        preds,
-        columns=functions + functions,
-    )
-    X = pd.melt(df.iloc[:, 0:6])
-    Y = pd.melt(df.iloc[:, 6:12])
-    X.columns = ["Function", "Value"]
-    Y.columns = ["Function", "Value"]
-    subjects_out = pd.concat([X, Y], axis=1)
-    subjects_out.columns = ["Function", "Value_x", "Function1", "Value_y"]
-    subjects_out = subjects_out.drop(columns=["Function1"])  # DataFrame for Figure 2D
+        _, _, accuracy = function_prediction(tensorFac, function=func, evaluation="notAlter")
+        accuracies[i] = accuracy
+    # Create DataFrame
+    data = {"Accuracy": accuracies, "Function": functions}
+    subjects_out = pd.DataFrame(data) # DataFrame for Figure 2D
 
     # Gather Class Prediction Accuracies
     accuracyCvP, accuracyVvN = two_way_classifications()  # Alter accuracies
@@ -116,11 +105,22 @@ def makeFigure():
     b.tick_params(axis="x")
 
     # Function Predictions for Values left out of Alter Plot
-    c = sns.scatterplot(
-        x="Value_x", y="Value_y", hue="Function", data=subjects_out, ax=ax[2]
+    c = sns.pointplot(
+        x="Function", y="Accuracy", join=False, data=subjects_out, ax=ax[2]
     )
-    c.set_ylabel("Predicted Values")
-    c.set_xlabel("Actual Values")
+
+    # Formatting
+    shades = [-0.5, 1.5, 3.5]
+    for i in shades:
+        c.axvspan(i, i + 1, alpha=0.1, color="grey")
+    c.set_xlim(-0.5, 5.5)
+    c.set_ylim(0, 1)
+    c.grid(False)
+    c.xaxis.tick_top()
+    c.xaxis.set_label_position("top")
+    c.tick_params(axis="x")
+    c.set_ylabel("Accuracy")
+    c.set_xlabel("Function")
 
     subplotLabel(ax)
 
