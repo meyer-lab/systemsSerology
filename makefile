@@ -1,5 +1,5 @@
 
-flist = 1 2 3 S1
+flist = 1 2 3 S1 S2
 
 all: $(patsubst %, figure%.svg, $(flist))
 
