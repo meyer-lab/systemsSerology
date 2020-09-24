@@ -22,7 +22,6 @@ output/manuscript.md: venv manuscript/*.md
 	git remote rm rootstock
 
 output/manuscript.html: venv output/manuscript.md $(patsubst %, output/figure%.svg, $(flist))
-	cp *.svg output/
 	. venv/bin/activate && pandoc --verbose \
 		--defaults=./common/templates/manubot/pandoc/common.yaml \
 		--defaults=./common/templates/manubot/pandoc/html.yaml \

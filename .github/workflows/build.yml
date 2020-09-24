@@ -8,6 +8,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - name: Cache references
+      uses: actions/cache@v2
+      with:
+        path: ~/cache
+        key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
     - name: Install dependencies
       run: |
         git submodule update --init --recursive && make clean
@@ -15,7 +20,6 @@ jobs:
     - name: Build figures
       run: make all -j 3
     - name: Build manuscript
-      if: github.ref == 'refs/heads/master'
       run: make output/manuscript.html
     - name: Upload files
       uses: actions/upload-artifact@v2
