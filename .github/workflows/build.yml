@@ -17,6 +17,11 @@ jobs:
     - name: Build manuscript
       if: github.ref == 'refs/heads/master'
       run: make output/manuscript.html
+    - name: Upload files
+      uses: actions/upload-artifact@v2
+      with:
+        name: files
+        path: output/*.svg
     - name: Deploy 🚀
       uses: JamesIves/github-pages-deploy-action@releases/v3
       if: github.ref == 'refs/heads/master'
