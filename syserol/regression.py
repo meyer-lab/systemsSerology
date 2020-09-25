@@ -44,12 +44,15 @@ def function_elastic_net(function="ADCC"):
 def function_prediction(tensorFac, function="ADCC", evaluation="all"):
     """ Predict functions using our decomposition and regression methods"""
     func, _ = importFunction()
+    indices = AlterIndices()
 
     Y = func[function]
     X = tensorFac[1][0]  # subjects x components matrix
-    dropped = np.nonzero(np.isnan(Y.to_numpy()))
-    X = X[np.isfinite(Y), :]
-    Y = Y[np.isfinite(Y)]
+    notAlter = np.delete(np.arange(181), indices)
+    dropped = np.unique(np.concatenate((np.nonzero(np.isnan(Y.to_numpy()))[0], notAlter)))
+    X = X[indices, :]
+    Y = Y[indices][np.isfinite(Y)]
+    X = X[np.where(Y)]
 
     Y_pred = elasticNetFunc(X, Y)
 
