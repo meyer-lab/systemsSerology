@@ -51,7 +51,7 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all"):
     notAlter = np.delete(np.arange(181), indices)
     dropped = np.unique(np.concatenate((np.nonzero(np.isnan(Y.to_numpy()))[0], notAlter)))
     Y = Y[indices][np.isfinite(Y)]
-    X = X[np.where(Y.index)]
+    X = X[Y.index]
 
     Y_pred = elasticNetFunc(X, Y)
 
