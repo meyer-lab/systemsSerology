@@ -50,18 +50,17 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all"):
     X = tensorFac[1][0]  # subjects x components matrix
     notAlter = np.delete(np.arange(181), indices)
     dropped = np.unique(np.concatenate((np.nonzero(np.isnan(Y.to_numpy()))[0], notAlter)))
-    X = X[indices, :]
     Y = Y[indices][np.isfinite(Y)]
-    X = X[np.where(Y)]
+    X = X[np.where(Y.index)]
 
     Y_pred = elasticNetFunc(X, Y)
 
     if evaluation == "all":
         return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))
     elif evaluation == "Alter":
-        return accuracy_alterSubj(Y, Y_pred, dropped[0])
+        return accuracy_alterSubj(Y, Y_pred, dropped)
     elif evaluation == "notAlter":
-        return accuracy_alterSubj(Y, Y_pred, dropped[0], union=False)
+        return accuracy_alterSubj(Y, Y_pred, dropped, union=False)
 
     raise ValueError("Wrong selection for evaluation.")
 
@@ -69,10 +68,12 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all"):
 def accuracy_alterSubj(Y, Ypred, dropped, union=True):
     """ Calculate the Accuracy for Only Subjects Included in Alter """
     indices = AlterIndices()
+    Y = Y.to_numpy()
 
     # Inflate back to original size
-    Ypred = np.insert(Ypred, dropped, np.nan)
-    Y = np.insert(Y.to_numpy(), dropped, np.nan)
+    for i, drop_idx in enumerate(dropped):
+        Ypred = np.insert(Ypred, drop_idx, np.nan)
+        Y = np.insert(Y, drop_idx, np.nan)
 
     if union is True:
         # Reduce to Alter subjects
