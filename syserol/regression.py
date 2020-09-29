@@ -22,8 +22,8 @@ def elasticNetFunc(X, Y):
         regr.fit(X, Y)
         enet = ElasticNet(alpha=regr.alpha_, l1_ratio=regr.l1_ratio_, normalize=True, max_iter=10000)
 
-    Y_pred = cross_val_predict(enet, X, Y, cv=len(Y), n_jobs=-1)
-    return Y_pred
+    
+    return enet
 
 
 def function_elastic_net(function="ADCC"):
@@ -36,8 +36,8 @@ def function_elastic_net(function="ADCC"):
     df_variables = df_merged.drop(["subject"] + functions, axis=1)
 
     # perform regression
-    Y_pred = elasticNetFunc(df_variables, Y)
-
+    enet = elasticNetFunc(df_variables, Y)
+    Y_pred = cross_val_predict(enet, df_variables, Y, cv=len(Y), n_jobs=-1)
     return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))
 
 
@@ -50,17 +50,25 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all"):
     X = tensorFac[1][0]  # subjects x components matrix
     notAlter = np.delete(np.arange(181), indices)
     dropped = np.unique(np.concatenate((np.nonzero(np.isnan(Y.to_numpy()))[0], notAlter)))
-    Y = Y[indices][np.isfinite(Y)]
-    X = X[np.where(Y.index)]
+    Y_notAlter = Y[dropped][np.isfinite(Y)]
+    X_notAlter = X[Y_notAlter.index]
+    Y_Alter = Y[indices][np.isfinite(Y)]
+    X_Alter = X[Y_Alter.index]
+    Y = Y[np.isfinite(Y)]
+    X = X[Y.index]
 
-    Y_pred = elasticNetFunc(X, Y)
+    enet = elasticNetFunc(X_Alter, Y_Alter)
+
 
     if evaluation == "all":
+        Y_pred = cross_val_predict(enet, X, Y, cv=len(Y), n_jobs=-1)
         return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))
     elif evaluation == "Alter":
-        return accuracy_alterSubj(Y, Y_pred, dropped)
+        Y_pred = cross_val_predict(enet, X_Alter, Y_Alter, cv=len(Y_Alter), n_jobs=-1)
+        return Y_Alter, Y_pred, np.sqrt(r2_score(Y_Alter, Y_pred))
     elif evaluation == "notAlter":
-        return accuracy_alterSubj(Y, Y_pred, dropped, union=False)
+        Y_pred = cross_val_predict(enet, X_notAlter, Y_notAlter, cv=len(Y_notAlter), n_jobs=-1)
+        return Y_notAlter, Y_pred, np.sqrt(r2_score(Y_notAlter, Y_pred))
 
     raise ValueError("Wrong selection for evaluation.")
 
