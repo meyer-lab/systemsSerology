@@ -73,27 +73,3 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all"):
     raise ValueError("Wrong selection for evaluation.")
 
 
-def accuracy_alterSubj(Y, Ypred, dropped, union=True):
-    """ Calculate the Accuracy for Only Subjects Included in Alter """
-    indices = AlterIndices()
-    Y = Y.to_numpy()
-
-    # Inflate back to original size
-    for i, drop_idx in enumerate(dropped):
-        Ypred = np.insert(Ypred, drop_idx, np.nan)
-        Y = np.insert(Y, drop_idx, np.nan)
-
-    if union is True:
-        # Reduce to Alter subjects
-        Ypred = Ypred[indices]
-        Y = Y[indices]
-    else:
-        # Remove Alter cases
-        Ypred = np.delete(Ypred, indices)
-        Y = np.delete(Y, indices)
-
-    # Remove any missing cases
-    Ypred = Ypred[np.isfinite(Y)]
-    Y = Y[np.isfinite(Y)]
-
-    return Y, Ypred, np.sqrt(r2_score(Y, Ypred))
