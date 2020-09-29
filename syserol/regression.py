@@ -11,21 +11,6 @@ from .dataImport import (
 )
 
 
-def elasticNetFunc(X, Y):
-    """ Function with common elastic net methods. """
-    if X.shape[1] < 50:
-        enet = LinearRegression()
-        enet.fit(X, Y)
-        print(f"Elastic Net Coefficient: {enet.coef_}")
-    else:
-        regr = ElasticNetCV(normalize=True, max_iter=10000, cv=30, n_jobs=-1, l1_ratio=0.8)
-        regr.fit(X, Y)
-        enet = ElasticNet(alpha=regr.alpha_, l1_ratio=regr.l1_ratio_, normalize=True, max_iter=10000)
-
-    
-    return enet
-
-
 def function_elastic_net(function="ADCC"):
     """ Predict functions using elastic net according to Alter methods"""
     # Import Luminex, Luminex-IGG, Function, and Glycan into DF
@@ -36,7 +21,12 @@ def function_elastic_net(function="ADCC"):
     df_variables = df_merged.drop(["subject"] + functions, axis=1)
 
     # perform regression
-    enet = elasticNetFunc(df_variables, Y)
+    regr = ElasticNetCV(normalize=True, max_iter=10000, cv=30, n_jobs=-1, l1_ratio=0.8)
+    regr.fit(df_variables, Y)
+    enet = ElasticNet(
+        alpha=regr.alpha_, l1_ratio=regr.l1_ratio_, normalize=True, max_iter=10000
+    )
+
     Y_pred = cross_val_predict(enet, df_variables, Y, cv=len(Y), n_jobs=-1)
     return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))
 
@@ -48,8 +38,14 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all"):
 
     Y = func[function]
     X = tensorFac[1][0]  # subjects x components matrix
-    notAlter = np.delete(np.arange(181), np.unique(np.concatenate((indices, np.where(np.isnan(Y))[0]))))
-    dropped = np.unique(np.concatenate((np.nonzero(np.isnan(Y.to_numpy()))[0], notAlter)))
+
+    # Split patients for various analysis methods
+    notAlter = np.delete(
+        np.arange(181), np.unique(np.concatenate((indices, np.where(np.isnan(Y))[0])))
+    )
+    dropped = np.unique(
+        np.concatenate((np.nonzero(np.isnan(Y.to_numpy()))[0], notAlter))
+    )
     Y_notAlter = Y[dropped][np.isfinite(Y)]
     X_notAlter = X[Y_notAlter.index]
     Y_Alter = Y[indices][np.isfinite(Y)]
@@ -57,7 +53,10 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all"):
     Y = Y[np.isfinite(Y)]
     X = X[Y.index]
 
-    enet = elasticNetFunc(X_Alter, Y_Alter)
+    # Perform Regression
+    enet = LinearRegression()
+    enet.fit(X_Alter, Y_Alter)
+    print(f"Elastic Net Coefficient: {enet.coef_}")
 
     if evaluation == "all":
         Y_pred_Alter = enet.predict(X_Alter)
@@ -74,5 +73,3 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all"):
         return Y_notAlter, Y_pred, np.sqrt(r2_score(Y_notAlter, Y_pred))
 
     raise ValueError("Wrong selection for evaluation.")
-
-
