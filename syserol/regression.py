@@ -48,7 +48,7 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all"):
 
     Y = func[function]
     X = tensorFac[1][0]  # subjects x components matrix
-    notAlter = np.delete(np.arange(181), indices)
+    notAlter = np.delete(np.arange(181), np.unique(np.concatenate((indices, np.where(np.isnan(Y))[0]))))
     dropped = np.unique(np.concatenate((np.nonzero(np.isnan(Y.to_numpy()))[0], notAlter)))
     Y_notAlter = Y[dropped][np.isfinite(Y)]
     X_notAlter = X[Y_notAlter.index]
@@ -59,15 +59,18 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all"):
 
     enet = elasticNetFunc(X_Alter, Y_Alter)
 
-
     if evaluation == "all":
-        Y_pred = cross_val_predict(enet, X, Y, cv=len(Y), n_jobs=-1)
+        Y_pred_Alter = enet.predict(X_Alter)
+        Y_pred_notAlter = enet.predict(X_notAlter)
+        for i, drop_idx in enumerate(notAlter):
+            Y_pred_Alter = np.insert(Y_pred_Alter, drop_idx, Y_pred_notAlter[i])
+        Y_pred = Y_pred_Alter
         return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))
     elif evaluation == "Alter":
         Y_pred = cross_val_predict(enet, X_Alter, Y_Alter, cv=len(Y_Alter), n_jobs=-1)
         return Y_Alter, Y_pred, np.sqrt(r2_score(Y_Alter, Y_pred))
     elif evaluation == "notAlter":
-        Y_pred = cross_val_predict(enet, X_notAlter, Y_notAlter, cv=len(Y_notAlter), n_jobs=-1)
+        Y_pred = enet.predict(X_notAlter)
         return Y_notAlter, Y_pred, np.sqrt(r2_score(Y_notAlter, Y_pred))
 
     raise ValueError("Wrong selection for evaluation.")
