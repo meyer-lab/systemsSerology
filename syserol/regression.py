@@ -39,15 +39,10 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all"):
     Y = func[function]
     X = tensorFac[1][0]  # subjects x components matrix
 
-    # Split patients for various analysis methods
-    notAlter = np.delete(
-        np.arange(181), np.unique(np.concatenate((indices, np.where(np.isnan(Y))[0])))
-    )
-    dropped = np.unique(
-        np.concatenate((np.nonzero(np.isnan(Y.to_numpy()))[0], notAlter))
-    )
-    Y_notAlter = Y[dropped][np.isfinite(Y)]
-    Y_Alter = Y[indices][np.isfinite(Y)]
+    Y_notAlter = Y.drop(Y.index[indices])
+    Y_notAlter = Y_notAlter[np.isfinite(Y_notAlter)]
+    Y_Alter = Y[indices]
+    Y_Alter = Y_Alter[np.isfinite(Y_Alter)]
 
     # Perform Regression
     enet = LinearRegression().fit(X[Y_Alter.index], Y_Alter)

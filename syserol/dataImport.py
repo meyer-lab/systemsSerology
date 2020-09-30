@@ -123,7 +123,7 @@ def AlterIndices():
     df = importAlterDF()
     subjects, _, _ = getAxes()
 
-    return sorted(np.array([subjects.index(subject) for i, subject in enumerate(df["subject"])]))
+    return np.array([subjects.index(subject) for i, subject in enumerate(df["subject"])])
 
 
 @lru_cache()
