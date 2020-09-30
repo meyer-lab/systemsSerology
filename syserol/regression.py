@@ -55,21 +55,20 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all"):
     X = X[Y.index]
 
     # Perform Regression
-    enet = LinearRegression()
-    enet.fit(X_Alter, Y_Alter)
-    print(f"Elastic Net Coefficient: {enet.coef_}")
+    enet = LinearRegression().fit(X_Alter, Y_Alter)
+    print(f"LR Coefficient: {enet.coef_}")
+
+    Y_pred_notAlter = enet.predict(X_notAlter)
+    Y_pred_Alter = cross_val_predict(enet, X_Alter, Y_Alter, cv=len(Y_Alter), n_jobs=-1)
 
     if evaluation == "all":
-        Y_pred_Alter = cross_val_predict(enet, X_Alter, Y_Alter, cv=len(Y_Alter), n_jobs=-1)
-        Y_pred_notAlter = enet.predict(X_notAlter)
-        Y_pred_Alter = np.hstack((Y_pred_Alter, Y_pred_notAlter))
-        Y_pred = Y_pred_Alter
-        return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))
+        Y_pred = np.hstack((Y_pred_Alter, Y_pred_notAlter))
     elif evaluation == "Alter":
-        Y_pred = cross_val_predict(enet, X_Alter, Y_Alter, cv=len(Y_Alter), n_jobs=-1)
-        return Y_Alter, Y_pred, np.sqrt(r2_score(Y_Alter, Y_pred))
+        Y_pred = Y_pred_Alter
+        Y = Y_Alter
     elif evaluation == "notAlter":
-        Y_pred = enet.predict(X_notAlter)
-        return Y_notAlter, Y_pred, np.sqrt(r2_score(Y_notAlter, Y_pred))
+        Y_pred = Y_pred_notAlter
+        Y = Y_notAlter
 
-    raise ValueError("Wrong selection for evaluation.")
+    assert Y.shape == Y_pred.shape
+    return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))
