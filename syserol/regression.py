@@ -11,21 +11,6 @@ from .dataImport import (
 )
 
 
-def elasticNetFunc(X, Y):
-    """ Function with common elastic net methods. """
-    if X.shape[1] < 50:
-        enet = LinearRegression()
-        enet.fit(X, Y)
-        print(f"Elastic Net Coefficient: {enet.coef_}")
-    else:
-        regr = ElasticNetCV(normalize=True, max_iter=10000, cv=30, n_jobs=-1, l1_ratio=0.8)
-        regr.fit(X, Y)
-        enet = ElasticNet(alpha=regr.alpha_, l1_ratio=regr.l1_ratio_, normalize=True, max_iter=10000)
-
-    Y_pred = cross_val_predict(enet, X, Y, cv=len(Y), n_jobs=-1)
-    return Y_pred
-
-
 def function_elastic_net(function="ADCC"):
     """ Predict functions using elastic net according to Alter methods"""
     # Import Luminex, Luminex-IGG, Function, and Glycan into DF
@@ -36,52 +21,43 @@ def function_elastic_net(function="ADCC"):
     df_variables = df_merged.drop(["subject"] + functions, axis=1)
 
     # perform regression
-    Y_pred = elasticNetFunc(df_variables, Y)
+    regr = ElasticNetCV(normalize=True, max_iter=10000, cv=30, n_jobs=-1, l1_ratio=0.8)
+    regr.fit(df_variables, Y)
+    enet = ElasticNet(
+        alpha=regr.alpha_, l1_ratio=regr.l1_ratio_, normalize=True, max_iter=10000
+    )
 
+    Y_pred = cross_val_predict(enet, df_variables, Y, cv=len(Y), n_jobs=-1)
     return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))
 
 
 def function_prediction(tensorFac, function="ADCC", evaluation="all"):
     """ Predict functions using our decomposition and regression methods"""
     func, _ = importFunction()
+    indices = AlterIndices()
 
     Y = func[function]
     X = tensorFac[1][0]  # subjects x components matrix
-    dropped = np.nonzero(np.isnan(Y.to_numpy()))
-    X = X[np.isfinite(Y), :]
-    Y = Y[np.isfinite(Y)]
 
-    Y_pred = elasticNetFunc(X, Y)
+    Y_notAlter = Y.drop(Y.index[indices])
+    Y_notAlter = Y_notAlter[np.isfinite(Y_notAlter)]
+    Y_Alter = Y[indices]
+    Y_Alter = Y_Alter[np.isfinite(Y_Alter)]
+
+    # Perform Regression
+    enet = LinearRegression().fit(X[Y_Alter.index], Y_Alter)
+    print(f"LR Coefficient: {enet.coef_}")
+
+    Y_pred_notAlter = enet.predict(X[Y_notAlter.index])
+    Y_pred_Alter = cross_val_predict(enet, X[Y_Alter.index], Y_Alter, cv=len(Y_Alter), n_jobs=-1)
 
     if evaluation == "all":
-        return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))
+        Y_pred = np.concatenate((Y_pred_Alter, Y_pred_notAlter))
+        Y = np.concatenate((Y_Alter, Y_notAlter))
     elif evaluation == "Alter":
-        return accuracy_alterSubj(Y, Y_pred, dropped[0])
+        Y, Y_pred = Y_Alter, Y_pred_Alter
     elif evaluation == "notAlter":
-        return accuracy_alterSubj(Y, Y_pred, dropped[0], union=False)
+        Y, Y_pred = Y_notAlter, Y_pred_notAlter
 
-    raise ValueError("Wrong selection for evaluation.")
-
-
-def accuracy_alterSubj(Y, Ypred, dropped, union=True):
-    """ Calculate the Accuracy for Only Subjects Included in Alter """
-    indices = AlterIndices()
-
-    # Inflate back to original size
-    Ypred = np.insert(Ypred, dropped, np.nan)
-    Y = np.insert(Y.to_numpy(), dropped, np.nan)
-
-    if union is True:
-        # Reduce to Alter subjects
-        Ypred = Ypred[indices]
-        Y = Y[indices]
-    else:
-        # Remove Alter cases
-        Ypred = np.delete(Ypred, indices)
-        Y = np.delete(Y, indices)
-
-    # Remove any missing cases
-    Ypred = Ypred[np.isfinite(Y)]
-    Y = Y[np.isfinite(Y)]
-
-    return Y, Ypred, np.sqrt(r2_score(Y, Ypred))
+    assert Y.shape == Y_pred.shape
+    return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))
