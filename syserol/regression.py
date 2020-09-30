@@ -52,7 +52,7 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all"):
     Y_pred_Alter = cross_val_predict(enet, X[Y_Alter.index], Y_Alter, cv=len(Y_Alter), n_jobs=-1)
 
     if evaluation == "all":
-        Y_pred = np.hstack((Y_pred_Alter, Y_pred_notAlter))
+        Y_pred = np.concatenate((Y_pred_Alter, Y_pred_notAlter))
     elif evaluation == "Alter":
         Y, Y_pred = Y_Alter, Y_pred_Alter
     elif evaluation == "notAlter":
