@@ -1,5 +1,6 @@
 """ Regression methods. """
 import numpy as np
+import pandas as pd
 from sklearn.linear_model import ElasticNetCV, ElasticNet, LinearRegression
 from sklearn.model_selection import cross_val_predict
 from sklearn.metrics import r2_score
@@ -50,7 +51,7 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all"):
     X_notAlter = X[Y_notAlter.index]
     Y_Alter = Y[indices][np.isfinite(Y)]
     X_Alter = X[Y_Alter.index]
-    Y = Y[np.isfinite(Y)]
+    Y = pd.concat((Y_Alter, Y_notAlter))
     X = X[Y.index]
 
     # Perform Regression
@@ -59,10 +60,9 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all"):
     print(f"Elastic Net Coefficient: {enet.coef_}")
 
     if evaluation == "all":
-        Y_pred_Alter = enet.predict(X_Alter)
+        Y_pred_Alter = cross_val_predict(enet, X_Alter, Y_Alter, cv=len(Y_Alter), n_jobs=-1)
         Y_pred_notAlter = enet.predict(X_notAlter)
-        for i, drop_idx in enumerate(notAlter):
-            Y_pred_Alter = np.insert(Y_pred_Alter, drop_idx, Y_pred_notAlter[i])
+        Y_pred_Alter = np.hstack((Y_pred_Alter, Y_pred_notAlter))
         Y_pred = Y_pred_Alter
         return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))
     elif evaluation == "Alter":
