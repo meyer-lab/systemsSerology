@@ -1,6 +1,5 @@
 """ Regression methods. """
 import numpy as np
-import pandas as pd
 from sklearn.linear_model import ElasticNetCV, ElasticNet, LinearRegression
 from sklearn.model_selection import cross_val_predict
 from sklearn.metrics import r2_score
@@ -48,27 +47,21 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all"):
         np.concatenate((np.nonzero(np.isnan(Y.to_numpy()))[0], notAlter))
     )
     Y_notAlter = Y[dropped][np.isfinite(Y)]
-    X_notAlter = X[Y_notAlter.index]
     Y_Alter = Y[indices][np.isfinite(Y)]
-    X_Alter = X[Y_Alter.index]
-    Y = pd.concat((Y_Alter, Y_notAlter))
-    X = X[Y.index]
 
     # Perform Regression
-    enet = LinearRegression().fit(X_Alter, Y_Alter)
+    enet = LinearRegression().fit(X[Y_Alter.index], Y_Alter)
     print(f"LR Coefficient: {enet.coef_}")
 
-    Y_pred_notAlter = enet.predict(X_notAlter)
-    Y_pred_Alter = cross_val_predict(enet, X_Alter, Y_Alter, cv=len(Y_Alter), n_jobs=-1)
+    Y_pred_notAlter = enet.predict(X[Y_notAlter.index])
+    Y_pred_Alter = cross_val_predict(enet, X[Y_Alter.index], Y_Alter, cv=len(Y_Alter), n_jobs=-1)
 
     if evaluation == "all":
         Y_pred = np.hstack((Y_pred_Alter, Y_pred_notAlter))
     elif evaluation == "Alter":
-        Y_pred = Y_pred_Alter
-        Y = Y_Alter
+        Y, Y_pred = Y_Alter, Y_pred_Alter
     elif evaluation == "notAlter":
-        Y_pred = Y_pred_notAlter
-        Y = Y_notAlter
+        Y, Y_pred = Y_notAlter, Y_pred_notAlter
 
     assert Y.shape == Y_pred.shape
     return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))
