@@ -7,6 +7,7 @@ from jax import jit, grad
 from scipy.optimize import minimize
 from numpy.random import randn
 import tensorly as tl
+from tensorly.decomposition import parafac
 from tensorly.kruskal_tensor import KruskalTensor, kruskal_normalise
 from .dataImport import createCube
 
@@ -68,14 +69,17 @@ def perform_CMTF(tensorIn=None, matrixIn=None, r=4):
     tensorIn[tmask] = 0.0
     matrixIn[mmask] = 0.0
 
-    nP = (np.sum(tensorIn.shape) + matrixIn.shape[1]) * r
     cost_jax = jit(cost, static_argnums=(1, 2, 3, 4, 5))
     cost_grad = jit(grad(cost, 0), static_argnums=(1, 2, 3, 4, 5))
 
     def hvp(x, v, *args):
         return grad(lambda x: jnp.vdot(cost_grad(x, *args), v))(x)
 
-    res = minimize(cost_jax, randn(nP), jac=cost_grad, hessp=hvp, method="trust-ncg", args=(tensorIn, matrixIn, tmask, mmask, r), options={"disp": True})
+    facInit = parafac(tensorIn, r, mask=tmask, n_iter_max=2, orthogonalise=True)
+    x0 = np.concatenate((np.ravel(facInit.factors[0]), np.ravel(facInit.factors[1]), np.ravel(facInit.factors[2])))
+    x0 = np.concatenate((x0, randn(matrixIn.shape[1] * r)))
+
+    res = minimize(cost_jax, x0, jac=cost_grad, hessp=hvp, method="trust-ncg", args=(tensorIn, matrixIn, tmask, mmask, r), options={"disp": True})
 
     tensorFac, matrixFac = buildTensors(res.x, tensorIn, matrixIn, r)
     tensorFac = kruskal_normalise(tensorFac)
@@ -86,5 +90,10 @@ def perform_CMTF(tensorIn=None, matrixIn=None, r=4):
 
     tensor_R2XX = calcR2X(tensorIn, tensorFac)
     matrix_R2XX = calcR2X(matrixIn, matrixFac)
+
+    for ii in range(3):
+        tensorFac.factors[ii] = np.array(tensorFac.factors[ii])
+    for ii in range(2):
+        matrixFac.factors[ii] = np.array(matrixFac.factors[ii])
 
     return tensorFac, matrixFac, tensor_R2XX, matrix_R2XX
