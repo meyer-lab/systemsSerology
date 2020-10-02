@@ -3,7 +3,7 @@ Tensor decomposition methods
 """
 import numpy as np
 import jax.numpy as jnp
-from jax import jit, value_and_grad
+from jax import jit, grad
 from scipy.optimize import minimize
 from numpy.random import randn
 import tensorly as tl
@@ -69,9 +69,13 @@ def perform_CMTF(tensorIn=None, matrixIn=None, r=4):
     matrixIn[mmask] = 0.0
 
     nP = (np.sum(tensorIn.shape) + matrixIn.shape[1]) * r
-    cost_jax = jit(value_and_grad(cost, 0), static_argnums=(1, 2, 3, 4, 5))
+    cost_jax = jit(cost, static_argnums=(1, 2, 3, 4, 5))
+    cost_grad = jit(grad(cost, 0), static_argnums=(1, 2, 3, 4, 5))
 
-    res = minimize(cost_jax, randn(nP), jac=True, args=(tensorIn, matrixIn, tmask, mmask, r), options={"disp": True})
+    def hvp(x, v, *args):
+        return grad(lambda x: jnp.vdot(cost_grad(x, *args), v))(x)
+
+    res = minimize(cost_jax, randn(nP), jac=cost_grad, hessp=hvp, method="trust-ncg", args=(tensorIn, matrixIn, tmask, mmask, r), options={"disp": True})
 
     tensorFac, matrixFac = buildTensors(res.x, tensorIn, matrixIn, r)
     tensorFac = kruskal_normalise(tensorFac)
