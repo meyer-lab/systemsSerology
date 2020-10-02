@@ -27,7 +27,7 @@ jobs:
         name: files
         path: output/*.svg
     - name: Deploy 🚀
-      uses: JamesIves/github-pages-deploy-action@releases/v3
+      uses: JamesIves/github-pages-deploy-action@3.6.2
       if: github.ref == 'refs/heads/master'
       with:
         ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
