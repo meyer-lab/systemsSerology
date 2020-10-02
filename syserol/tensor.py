@@ -2,12 +2,15 @@
 Tensor decomposition methods
 """
 import numpy as np
+import jax.numpy as jnp
+from jax import jit, value_and_grad
+from scipy.optimize import minimize
 from numpy.random import randn
 import tensorly as tl
 from tensorly.kruskal_tensor import KruskalTensor, kruskal_normalise
-from tensorly.decomposition import parafac
-from .dataImport import createCube, load_cache
+from .dataImport import createCube
 
+tl.set_backend('jax')
 
 def calcR2X(data, factor):
     """ Calculate R2X. """
@@ -29,72 +32,48 @@ def reorient_factors(tensorFac, matrixFac):
     return tensorFac, matrixFac
 
 
-def cmtf(Y, mask_matrix, init):
-    """ Calculate the glycosylation matrix components corresponding to the patient components from the tensor. """
-    assert tl.is_tensor(Y)
+def buildTensors(pIn, tensor, matrix, r):
+    """ Use parameter vector to build kruskal tensors. """
+    assert tensor.shape[0] == matrix.shape[0]
+    nA = tensor.shape[0]*r
+    nB = tensor.shape[1]*r
+    nC = tensor.shape[2]*r
 
-    # initialize values
-    A = init.factors[0]
+    A = jnp.reshape(pIn[:nA], (tensor.shape[0], r))
+    B = jnp.reshape(pIn[nA:nA+nB], (tensor.shape[1], r))
+    C = jnp.reshape(pIn[nA+nB:nA+nB+nC], (tensor.shape[2], r))
+    G = jnp.reshape(pIn[nA+nB+nC:], (matrix.shape[1], r))
 
-    # alternating least squares
-    for iteration in range(10 ** 4):
-        V = np.linalg.lstsq(A, Y, rcond=-1)[0]
+    return KruskalTensor((None, [A, B, C])), KruskalTensor((None, [A, G]))
 
-        # Perform masking
-        Y = Y * mask_matrix + A @ V * (1 - mask_matrix)
 
-        error_new = np.linalg.norm(Y - A @ V)
-        if iteration > 2 and (np.absolute(error_old - error_new) <= 1e-12):
-            break
-
-        error_old = error_new
-
-    return KruskalTensor((None, [A, np.transpose(V)]))
+def cost(pIn, tensor, matrix, tmask, mmask, r):
+    tensF, matF = buildTensors(pIn, tensor, matrix, r)
+    tensor = jnp.array(tensor)
+    matrix = jnp.array(matrix)
+    reconT = tl.kruskal_to_tensor(tensF)
+    reconM = tl.kruskal_to_tensor(matF)
+    tensor = tensor*(1 - tmask) + reconT*tmask
+    matrix = matrix*(1 - mmask) + reconM*mmask
+    return jnp.linalg.norm(reconT - tensor) + jnp.linalg.norm(reconM - matrix) + 0.0000001 * jnp.linalg.norm(pIn)
 
 
 def perform_CMTF(tensorIn=None, matrixIn=None, r=4):
     """ Perform CMTF decomposition. """
-    cacheMissing = load_cache()
-
     if tensorIn is None:
         tensorIn, matrixIn = createCube()
 
-    tensor = np.copy(tensorIn)
-    mask = np.isfinite(tensor).astype(int)
-    tensor[mask == 0] = 0.0
+    tmask = np.isnan(tensorIn)
+    mmask = np.isnan(matrixIn)
+    tensorIn[tmask] = 0.0
+    matrixIn[mmask] = 0.0
 
-    if cacheMissing is not None:
-        tensor = tensor * mask + tl.kruskal_to_tensor(cacheMissing, mask=1 - mask)
+    nP = (np.sum(tensorIn.shape) + matrixIn.shape[1]) * r
+    cost_jax = jit(value_and_grad(cost, 0), static_argnums=(1, 2, 3, 4, 5))
 
-    matrix = np.copy(matrixIn)
-    mask_matrix = np.isfinite(matrix).astype(int)
-    matrix[mask_matrix == 0] = 0.0
+    res = minimize(cost_jax, randn(nP), jac=True, args=(tensorIn, matrixIn, tmask, mmask, r), options={"disp": True})
 
-    # Initialize by running PARAFAC on the 3D tensor
-    parafacSettings = {'orthogonalise': 10, 'tol': 1e-9, 'n_iter_max': 4000}
-    tensorFac = parafac(tensor, r, mask=mask, **parafacSettings)
-
-    # Now run CMTF
-    matrixFac = cmtf(matrix, mask_matrix=mask_matrix, init=tensorFac)
-
-    # Solve for factors on remaining glycosylation matrix variation
-    matrixResid = matrix - tl.kruskal_to_tensor(matrixFac)
-    matrixFacExt = parafac(matrixResid, r, mask=mask_matrix, **parafacSettings)
-    ncp = matrixFacExt.rank
-
-    # Go back to tensor
-    tensorFac.factors[0] = np.concatenate((tensorFac.factors[0], matrixFacExt.factors[0]), axis=1)
-    tensorFac.factors[1] = np.concatenate((tensorFac.factors[1], randn(*tensorFac.factors[1].shape)), axis=1)
-    tensorFac.factors[2] = np.concatenate((tensorFac.factors[2], randn(*tensorFac.factors[2].shape)), axis=1)
-    tensorFac.weights = np.concatenate((tensorFac.weights, np.ones_like(tensorFac.weights)))
-    tensorFac.rank += ncp
-    tensorFac = parafac(tensor, r * 2, mask=mask, init=tensorFac, fixed_modes=[0], n_iter_max=4000, tol=1e-9)
-    
-    matrixFac.rank += ncp
-    matrixFac.factors[0] = tensorFac.factors[0]
-    matrixFac.factors[1] = np.concatenate((matrixFac.factors[1], matrixFacExt.factors[1]), axis=1)
-    matrixFac.weights = np.concatenate((matrixFac.weights, matrixFacExt.weights))
-
+    tensorFac, matrixFac = buildTensors(res.x, tensorIn, matrixIn, r)
     tensorFac = kruskal_normalise(tensorFac)
     matrixFac = kruskal_normalise(matrixFac)
 

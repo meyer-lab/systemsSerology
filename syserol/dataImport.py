@@ -18,11 +18,6 @@ def load_file(name):
     return data
 
 
-def load_cache():
-    """ Load cache for missingness handling. """
-    return pickle.load(open(join(path_here, "syserol/data/cache.p"), "rb"))
-
-
 def importLuminex(antigen=None):
     """ Import the Luminex measurements. Subset if only a specific antigen is needed. """
     df = load_file("data-luminex")
