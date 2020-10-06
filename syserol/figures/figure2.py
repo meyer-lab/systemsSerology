@@ -21,13 +21,13 @@ def makeFigure():
     tensorFac, _, _, _ = perform_CMTF()
     # Gather Function Prediction Accuracies
     accuracies = np.zeros(12)
-    for ii, func in enumerate(functions):
-        _, _, acc = function_elastic_net(func)  # Alter Function Predictions
-        accuracies[ii] = acc  # store accuracies
-    for i, func in enumerate(functions):
+    alter_function_preds = function_elastic_net()  # Alter Function Predictions
+    for ii, result in enumerate(alter_function_preds):
+        accuracies[ii] = result[0]  # store accuracies
+    our_function_preds = function_prediction(tensorFac, evaluation="Alter")
+    for i, func in enumerate(our_function_preds):
         # our prediction accuracies
-        _, _, accuracy = function_prediction(tensorFac, function=func, evaluation="Alter")
-        accuracies[i + 6] = accuracy  # store
+        accuracies[i + ii] = func[0]  # store
 
     # Create DataFrame
     model = ["Alter Model"] * 6 + ["Our Model"] * 6
@@ -37,9 +37,9 @@ def makeFigure():
 
     # Subjects left out of Alter
     accuracies = np.zeros(6)
-    for i, func in enumerate(functions):
-        _, _, accuracy = function_prediction(tensorFac, function=func, evaluation="notAlter")
-        accuracies[i] = accuracy
+    not_Alter_function_preds = function_prediction(tensorFac, evaluation="notAlter")
+    for i, func in enumerate(not_Alter_function_preds):
+        accuracies[i] = func[0]
     # Create DataFrame
     data = {"Accuracy": accuracies, "Function": functions}
     subjects_out = pd.DataFrame(data) # DataFrame for Figure 2D

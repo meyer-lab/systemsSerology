@@ -12,14 +12,15 @@ def makeFigure():
     ax, f = getSetup((7, 5), (2, 3))
     # Plot Actual vs. Predicted Values for each Function
     tensorFac, _, _, _ = perform_CMTF()
-    for i, func in enumerate(functions):
-        x, y, accuracy = function_prediction(tensorFac, function=func, evaluation="all")
+    all_function_preds = function_prediction(tensorFac, evaluation="all")
+    for i, func in enumerate(all_function_preds):
+        x, y = func[1], func[2]
         ax[i].scatter(x, y, s=2)
         ax[i].set_xlabel("Actual Values")
         ax[i].set_ylabel("Predicted Values")
         m, b = np.polyfit(x, y, 1)  # line of best fit
         ax[i].plot(x, m * x + b, 'k--', color="red")
-        ax[i].text(1, 1, f"Accuracy Score: {round(accuracy, 3)}", {"color": "red", "fontsize": 10}, horizontalalignment="right",
+        ax[i].text(1, 1, f"Accuracy Score: {round(func[0], 3)}", {"color": "red", "fontsize": 10}, horizontalalignment="right",
                    verticalalignment="bottom", transform=ax[i].transAxes)
         ax[i].set_title(func)
         ax[i].axis('equal')
