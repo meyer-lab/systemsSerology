@@ -12,3 +12,5 @@ seaborn==0.11.0
 svgutils==0.3.1
 git+git://github.com/tensorly/tensorly.git@master
 scikit-learn==0.23.2
+jax==0.2.0
+jaxlib==0.1.55
