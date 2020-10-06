@@ -12,16 +12,13 @@ def makeFigure():
     # Get list of axis objects
     ax, f = getSetup((3, 3), (1, 1))
 
-    comps = np.arange(1, 13)
+    comps = np.arange(1, 11)
     tensorArr = np.empty(comps.size)
-    matrixArr = np.empty(comps.size)
     for i, compp in enumerate(comps):
-        _, _, tensorR2X, matrixR2X = perform_CMTF(r=compp)
+        _, _, tensorR2X = perform_CMTF(r=compp)
         tensorArr[i] = tensorR2X
-        matrixArr[i] = matrixR2X
 
-    ax[0].scatter(comps, tensorArr, label="Tensor R2X")
-    ax[0].scatter(comps, matrixArr, label="Matrix R2X")
+    ax[0].scatter(comps, tensorArr)
     ax[0].set_ylabel("R2X")
     ax[0].set_xlabel("Number of Components")
     ax[0].legend()

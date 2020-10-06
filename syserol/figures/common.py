@@ -74,7 +74,7 @@ def overlayCartoon(figFile, cartoonFile, x, y, scalee=1):
     template.save(figFile)
 
 def buildFigure3(legends=True, heatmap=False):
-    tensorFac, matrixFac, _, _ = perform_CMTF()
+    tensorFac, matrixFac, _ = perform_CMTF()
 
     # Gather tensor data matrices
     subjects = np.squeeze(tensorFac.factors[0])
