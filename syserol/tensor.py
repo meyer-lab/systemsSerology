@@ -15,10 +15,11 @@ from .dataImport import createCube
 tl.set_backend('jax')
 config.update("jax_enable_x64", True)
 
-def calcR2X(data, factor):
+def calcR2X(tensorIn, matrixIn, tensorFac, matrixFac):
     """ Calculate R2X. """
-    tensorErr = np.nanvar(tl.kruskal_to_tensor(factor) - data)
-    return 1.0 - tensorErr / np.nanvar(data)
+    tErr = np.nanvar(tl.kruskal_to_tensor(tensorFac) - tensorIn)
+    mErr = np.nanvar(tl.kruskal_to_tensor(tensorFac) - tensorIn)
+    return 1.0 - (tErr + mErr) / (np.nanvar(tensorIn) + np.nanvar(matrixIn))
 
 
 def reorient_factors(tensorFac, matrixFac):
@@ -75,7 +76,7 @@ def perform_CMTF(tensorIn=None, matrixIn=None, r=6):
     x0 = np.concatenate((np.ravel(facInit.factors[0]), np.ravel(facInit.factors[1]), np.ravel(facInit.factors[2])))
     x0 = np.concatenate((x0, randn(matrixIn.shape[1] * r)))
 
-    res = minimize(cost_jax, x0, method='CG', jac=cost_grad, args=(tensorIn, matrixIn, tmask, mmask, r), options={"maxiter": 8000})
+    res = minimize(cost_jax, x0, method='CG', jac=cost_grad, args=(tensorIn, matrixIn, tmask, mmask, r), options={"maxiter": 9000})
     tensorFac, matrixFac = buildTensors(res.x, tensorIn, matrixIn, r)
     tensorFac = kruskal_normalise(tensorFac)
     matrixFac = kruskal_normalise(matrixFac)
@@ -83,12 +84,11 @@ def perform_CMTF(tensorIn=None, matrixIn=None, r=6):
     # Reorient the later tensor factors
     tensorFac.factors, matrixFac.factors = reorient_factors(tensorFac.factors, matrixFac.factors)
 
-    tensor_R2XX = calcR2X(tensorIn, tensorFac)
-    matrix_R2XX = calcR2X(matrixIn, matrixFac)
+    R2X = calcR2X(tensorIn, matrixIn, tensorFac, matrixFac)
 
     for ii in range(3):
         tensorFac.factors[ii] = np.array(tensorFac.factors[ii])
     for ii in range(2):
         matrixFac.factors[ii] = np.array(matrixFac.factors[ii])
 
-    return tensorFac, matrixFac, tensor_R2XX, matrix_R2XX
+    return tensorFac, matrixFac, R2X

@@ -12,7 +12,7 @@ def makeFigure():
     """ Show ADCC Values with Each Component"""
     ax, f = getSetup((7, 5), (2, 3))
 
-    tensorFac, _, _, _ = perform_CMTF()
+    tensorFac, _, _ = perform_CMTF()
     components = tensorFac[1][0] #subjects x components
     df, _ = importFunction()
     subjects = np.in1d(np.arange(181), AlterIndices())

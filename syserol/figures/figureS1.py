@@ -11,7 +11,7 @@ def makeFigure():
     """ Show predicted vs. actual of decomposition prediction. """
     ax, f = getSetup((7, 5), (2, 3))
     # Plot Actual vs. Predicted Values for each Function
-    tensorFac, _, _, _ = perform_CMTF()
+    tensorFac, _, _ = perform_CMTF()
     for i, func in enumerate(functions):
         x, y, accuracy = function_prediction(tensorFac, function=func, evaluation="all")
         ax[i].scatter(x, y, s=2)

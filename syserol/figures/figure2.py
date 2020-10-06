@@ -18,7 +18,7 @@ from ..tensor import perform_CMTF
 def makeFigure():
     """ Show Similarity in Prediction of Alter Model and Our Model"""
     # Decompose Cube
-    tensorFac, _, _, _ = perform_CMTF()
+    tensorFac, _, _ = perform_CMTF()
     # Gather Function Prediction Accuracies
     accuracies = np.zeros(12)
     for ii, func in enumerate(functions):

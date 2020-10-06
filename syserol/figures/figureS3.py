@@ -8,7 +8,7 @@ from ..dataImport import load_file
 def makeFigure():
     ax, f = getSetup((6, 2), (1, 3))
 
-    tensorFac, matrixFac, _, _ = perform_CMTF()
+    tensorFac, matrixFac, _ = perform_CMTF()
     subjects = np.squeeze(tensorFac.factors[0])
 
     subjinfo = load_file("meta-subjects")
