@@ -22,7 +22,7 @@ def makeFigure():
         ax[i].plot(x, m * x + b, 'k--', color="red")
         ax[i].text(1, 1, f"Accuracy Score: {round(func[0], 3)}", {"color": "red", "fontsize": 10}, horizontalalignment="right",
                    verticalalignment="bottom", transform=ax[i].transAxes)
-        ax[i].set_title(func)
+        ax[i].set_title(functions[i])
         ax[i].axis('equal')
 
     subplotLabel(ax)
