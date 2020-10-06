@@ -6,7 +6,7 @@ from ..tensor import perform_CMTF
 from ..dataImport import load_file
 
 def makeFigure():
-    ax, f = getSetup((8, 8), (1, 3))
+    ax, f = getSetup((6, 2), (1, 3))
 
     tensorFac, matrixFac, _, _ = perform_CMTF()
     subjects = np.squeeze(tensorFac.factors[0])
