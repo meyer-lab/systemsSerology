@@ -54,11 +54,11 @@ def cost(pIn, tensor, matrix, tmask, mmask, r):
     tensF, matF = buildTensors(pIn, tensor, matrix, r)
     cost = jnp.linalg.norm(tl.kruskal_to_tensor(tensF, mask=1 - tmask) - tensor) # Tensor cost
     cost += jnp.linalg.norm(tl.kruskal_to_tensor(matF, mask=1 - mmask) - matrix) # Matrix cost
-    cost += 0.001 * jnp.linalg.norm(pIn)
+    cost += 0.01 * jnp.linalg.norm(pIn)
     return cost
 
 
-def perform_CMTF(tensorIn=None, matrixIn=None, r=8):
+def perform_CMTF(tensorIn=None, matrixIn=None, r=6):
     """ Perform CMTF decomposition. """
     if tensorIn is None:
         tensorIn, matrixIn = createCube()
@@ -75,7 +75,7 @@ def perform_CMTF(tensorIn=None, matrixIn=None, r=8):
     x0 = np.concatenate((np.ravel(facInit.factors[0]), np.ravel(facInit.factors[1]), np.ravel(facInit.factors[2])))
     x0 = np.concatenate((x0, randn(matrixIn.shape[1] * r)))
 
-    res = minimize(cost_jax, x0, method='CG', jac=cost_grad, args=(tensorIn, matrixIn, tmask, mmask, r), options={"disp": True, "maxiter": 5000})
+    res = minimize(cost_jax, x0, method='CG', jac=cost_grad, args=(tensorIn, matrixIn, tmask, mmask, r), options={"disp": True, "maxiter": 8000})
     tensorFac, matrixFac = buildTensors(res.x, tensorIn, matrixIn, r)
     tensorFac = kruskal_normalise(tensorFac)
     matrixFac = kruskal_normalise(matrixFac)
