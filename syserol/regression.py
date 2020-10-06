@@ -11,7 +11,7 @@ from .dataImport import (
 )
 
 
-def function_elastic_net(function="ADCC"):
+def function_elastic_net():
     """ Predict functions using elastic net according to Alter methods"""
     # Import Luminex, Luminex-IGG, Function, and Glycan into DF
     df = importAlterDF(function=True, subjects=False)
@@ -36,7 +36,6 @@ def function_elastic_net(function="ADCC"):
 
 def function_prediction(tensorFac, evaluation="all"):
     """ Predict functions using our decomposition and regression methods"""
-
     func, _ = importFunction()
     indices = AlterIndices()
     our_function_results = []

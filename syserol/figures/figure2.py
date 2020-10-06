@@ -27,7 +27,7 @@ def makeFigure():
     our_function_preds = function_prediction(tensorFac, evaluation="Alter")
     for i, func in enumerate(our_function_preds):
         # our prediction accuracies
-        accuracies[i + ii] = func[0]  # store
+        accuracies[i + 6] = func[0]  # store
 
     # Create DataFrame
     model = ["Alter Model"] * 6 + ["Our Model"] * 6
