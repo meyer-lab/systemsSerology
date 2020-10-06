@@ -15,10 +15,11 @@ from .dataImport import createCube
 tl.set_backend('jax')
 config.update("jax_enable_x64", True)
 
-def calcR2X(data, factor):
+def calcR2X(tensorIn, matrixIn, tensorFac, matrixFac):
     """ Calculate R2X. """
-    tensorErr = np.nanvar(tl.kruskal_to_tensor(factor) - data)
-    return 1.0 - tensorErr / np.nanvar(data)
+    tErr = np.nanvar(tl.kruskal_to_tensor(tensorFac) - tensorIn)
+    mErr = np.nanvar(tl.kruskal_to_tensor(tensorFac) - tensorIn)
+    return 1.0 - (tErr + mErr) / (np.nanvar(tensorIn) + np.nanvar(matrixIn))
 
 
 def reorient_factors(tensorFac, matrixFac):
@@ -52,15 +53,13 @@ def buildTensors(pIn, tensor, matrix, r):
 
 def cost(pIn, tensor, matrix, tmask, mmask, r):
     tensF, matF = buildTensors(pIn, tensor, matrix, r)
-    tDiff = (tl.kruskal_to_tensor(tensF) - tensor) * (1 - tmask)
-    mDiff = (tl.kruskal_to_tensor(matF) - matrix) * (1 - mmask)
-    cost = jnp.linalg.norm(tDiff) # Tensor cost
-    cost += jnp.linalg.norm(mDiff) # Matrix cost
-    cost += 10 * jnp.linalg.norm(pIn, ord=9)
+    cost = jnp.linalg.norm(tl.kruskal_to_tensor(tensF, mask=1 - tmask) - tensor) # Tensor cost
+    cost += jnp.linalg.norm(tl.kruskal_to_tensor(matF, mask=1 - mmask) - matrix) # Matrix cost
+    cost += 0.1 * jnp.linalg.norm(pIn)
     return cost
 
 
-def perform_CMTF(tensorIn=None, matrixIn=None, r=8):
+def perform_CMTF(tensorIn=None, matrixIn=None, r=6):
     """ Perform CMTF decomposition. """
     if tensorIn is None:
         tensorIn, matrixIn = createCube()
@@ -73,11 +72,11 @@ def perform_CMTF(tensorIn=None, matrixIn=None, r=8):
     cost_jax = jit(cost, static_argnums=(1, 2, 3, 4, 5))
     cost_grad = jit(grad(cost, 0), static_argnums=(1, 2, 3, 4, 5))
 
-    facInit = parafac(tensorIn, r, mask=tmask, n_iter_max=30, orthogonalise=True)
+    facInit = parafac(tensorIn, r, mask=tmask, n_iter_max=50, orthogonalise=True)
     x0 = np.concatenate((np.ravel(facInit.factors[0]), np.ravel(facInit.factors[1]), np.ravel(facInit.factors[2])))
     x0 = np.concatenate((x0, randn(matrixIn.shape[1] * r)))
 
-    res = minimize(cost_jax, x0, method='CG', jac=cost_grad, args=(tensorIn, matrixIn, tmask, mmask, r), options={"gtol": 1e-7, "disp": True, "maxiter": 5000})
+    res = minimize(cost_jax, x0, method='CG', jac=cost_grad, args=(tensorIn, matrixIn, tmask, mmask, r), options={"maxiter": 9000})
     tensorFac, matrixFac = buildTensors(res.x, tensorIn, matrixIn, r)
     tensorFac = kruskal_normalise(tensorFac)
     matrixFac = kruskal_normalise(matrixFac)
@@ -85,12 +84,11 @@ def perform_CMTF(tensorIn=None, matrixIn=None, r=8):
     # Reorient the later tensor factors
     tensorFac.factors, matrixFac.factors = reorient_factors(tensorFac.factors, matrixFac.factors)
 
-    tensor_R2XX = calcR2X(tensorIn, tensorFac)
-    matrix_R2XX = calcR2X(matrixIn, matrixFac)
+    R2X = calcR2X(tensorIn, matrixIn, tensorFac, matrixFac)
 
     for ii in range(3):
         tensorFac.factors[ii] = np.array(tensorFac.factors[ii])
     for ii in range(2):
         matrixFac.factors[ii] = np.array(matrixFac.factors[ii])
 
-    return tensorFac, matrixFac, tensor_R2XX, matrix_R2XX
+    return tensorFac, matrixFac, R2X

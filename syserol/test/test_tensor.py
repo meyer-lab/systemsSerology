@@ -11,7 +11,7 @@ def test_R2X():
     cube, glyCube = createCube()
     arr = []
     for i in range(1, 3):
-        facT, facM, tensorR2X, _ = perform_CMTF(cube, glyCube, i)
+        facT, facM, tensorR2X = perform_CMTF(cube, glyCube, i)
         assert np.all(np.isfinite(facT.factors[0]))
         assert np.all(np.isfinite(facT.factors[1]))
         assert np.all(np.isfinite(facT.factors[2]))
