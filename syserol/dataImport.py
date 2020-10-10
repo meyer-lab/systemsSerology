@@ -120,6 +120,16 @@ def AlterIndices():
 
     return np.array([subjects.index(subject) for i, subject in enumerate(df["subject"])])
 
+def binaryCube():
+    cube, _ = createCube()
+    indices = AlterIndices()
+    notAlter = np.delete(np.arange(181), indices)
+
+    cube[indices, :, :] = True
+    cube[notAlter, : :] = False
+
+    return cube
+
 
 @lru_cache()
 def createCube():
