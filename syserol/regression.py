@@ -1,5 +1,6 @@
 """ Regression methods. """
 import numpy as np
+import pandas as pd
 from sklearn.linear_model import ElasticNetCV, ElasticNet, LinearRegression
 from sklearn.model_selection import cross_val_predict
 from sklearn.metrics import r2_score
@@ -28,8 +29,26 @@ def function_elastic_net(function="ADCC"):
     )
 
     Y_pred = cross_val_predict(enet, df_variables, Y, cv=len(Y), n_jobs=-1)
-    return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))
+    return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred)), regr.coef_
 
+def Alter_weights():
+    """ Analyze Coefficients used in Alter Function Prediction"""
+    df = importAlterDF(function=True, subjects=False)
+    df_merged = df.dropna()
+    df_variables = df_merged.drop(["subject"] + functions, axis=1)
+
+    #Gather Coefficients
+    df_new = pd.DataFrame(columns=df_variables.columns)
+    for i in functions:
+        _, _, _, coef = function_elastic_net(i)
+        df_new = df_new.append(pd.DataFrame(coef.reshape(1, -1), columns=list(df_variables)))
+    df_new.index = functions
+
+    ADCC_coef = df_new.loc["ADCC"]
+    ADCC_coef = ADCC_coef[(ADCC_coef != 0)] # weighted coefficients for ADCC
+    df_coefs = df_new.loc[:, (df_new != 0).any(axis=0)] # All functions' weighted coefficients
+
+    return df_coefs, ADCC_coef
 
 def function_prediction(tensorFac, function="ADCC", evaluation="all"):
     """ Predict functions using our decomposition and regression methods"""
