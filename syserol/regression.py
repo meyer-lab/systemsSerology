@@ -44,11 +44,8 @@ def Alter_weights():
         df_new = df_new.append(pd.DataFrame(coef.reshape(1, -1), columns=list(df_variables)))
     df_new.index = functions
 
-    ADCC_coef = df_new.loc["ADCC"]
-    ADCC_coef = ADCC_coef[(ADCC_coef != 0)] # weighted coefficients for ADCC
     df_coefs = df_new.loc[:, (df_new != 0).any(axis=0)] # All functions' weighted coefficients
-
-    return df_coefs, ADCC_coef
+    return df_coefs
 
 def function_prediction(tensorFac, function="ADCC", evaluation="all"):
     """ Predict functions using our decomposition and regression methods"""
