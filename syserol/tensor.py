@@ -63,7 +63,7 @@ def cost(pIn, tensor, matrix, tmask, mmask, r):
     return cost
 
 
-def perform_CMTF(tensorIn=None, matrixIn=None, r=6):
+def perform_CMTF(tensorIn=None, matrixIn=None, r=5):
     """ Perform CMTF decomposition. """
     if tensorIn is None:
         tensorIn, matrixIn = createCube()
