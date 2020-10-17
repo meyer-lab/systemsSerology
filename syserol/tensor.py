@@ -63,7 +63,7 @@ def cost(pIn, tensor, matrix, tmask, mmask, r):
     return cost
 
 
-def perform_CMTF(tensorIn=None, matrixIn=None, r=5):
+def perform_CMTF(tensorIn=None, matrixIn=None, r=6):
     """ Perform CMTF decomposition. """
     if tensorIn is None:
         tensorIn, matrixIn = createCube()
@@ -85,7 +85,7 @@ def perform_CMTF(tensorIn=None, matrixIn=None, r=5):
     x0 = np.concatenate((np.ravel(facInit.factors[0]), np.ravel(facInit.factors[1]), np.ravel(facInit.factors[2])))
     x0 = np.concatenate((x0, randn(matrixIn.shape[1] * r)))
 
-    res = minimize(cost_jax, x0, method='trust-ncg', jac=cost_grad, hessp=jit_hvp, args=(tensorIn, matrixIn, tmask, mmask, r), options={"maxiter": 100, "disp": True})
+    res = minimize(cost_jax, x0, method='trust-ncg', jac=cost_grad, hessp=jit_hvp, args=(tensorIn, matrixIn, tmask, mmask, r), options={"maxiter": 200})
     tensorFac, matrixFac = buildTensors(res.x, tensorIn, matrixIn, r)
     tensorFac = kruskal_normalise(tensorFac)
     matrixFac = kruskal_normalise(matrixFac)
