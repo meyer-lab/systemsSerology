@@ -23,7 +23,7 @@ def makeFigure():
         else:
             subjType[i] = "Leftout Alter"
 
-    for i in np.arange(1, 7):
+    for i in np.arange(1, components.shape[1]+1):
         data = {"ADCC": df["ADCC"], f"Component {i}": components[:, i-1], "Subjects":subjType}
         df = pd.DataFrame(data)
         sns.scatterplot(x=f"Component {i}", y="ADCC", hue="Subjects", data=df, ax=ax[i-1])
