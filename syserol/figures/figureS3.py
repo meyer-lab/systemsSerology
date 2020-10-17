@@ -13,8 +13,8 @@ def makeFigure():
 
     subjinfo = load_file("meta-subjects")
 
-    index = [0, 2]
-    place = [0, 1]
+    index = [0, 2, 4]
+    place = [0, 1, 2]
     for i, j in zip(index, place):
         # Subjects
         values1 = subjects[:, i]
