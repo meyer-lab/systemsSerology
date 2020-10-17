@@ -22,7 +22,7 @@ def makeFigure():
     # Gather Function Prediction Accuracies
     accuracies = np.zeros(12)
     for ii, func in enumerate(functions):
-        _, _, acc = function_elastic_net(func)  # Alter Function Predictions
+        _, _, acc, _ = function_elastic_net(func)  # Alter Function Predictions
         accuracies[ii] = acc  # store accuracies
     for i, func in enumerate(functions):
         # our prediction accuracies
