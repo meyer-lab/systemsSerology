@@ -55,7 +55,7 @@ def cost(pIn, tensor, matrix, tmask, mmask, r):
     tensF, matF = buildTensors(pIn, tensor, matrix, r)
     cost = jnp.linalg.norm(tl.kruskal_to_tensor(tensF, mask=1 - tmask) - tensor) # Tensor cost
     cost += jnp.linalg.norm(tl.kruskal_to_tensor(matF, mask=1 - mmask) - matrix) # Matrix cost
-    cost += 0.02 * jnp.linalg.norm(pIn)
+    cost += 0.1 * jnp.linalg.norm(pIn)
 
     recp = tensF.factors[1]
     cost += 0.01 * jnp.linalg.norm(2.0 * recp[1, :] - recp[2, :] - recp[3, :])
