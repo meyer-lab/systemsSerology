@@ -56,6 +56,10 @@ def cost(pIn, tensor, matrix, tmask, mmask, r):
     cost = jnp.linalg.norm(tl.kruskal_to_tensor(tensF, mask=1 - tmask) - tensor) # Tensor cost
     cost += jnp.linalg.norm(tl.kruskal_to_tensor(matF, mask=1 - mmask) - matrix) # Matrix cost
     cost += 0.1 * jnp.linalg.norm(pIn)
+
+    recp = tensF.factors[1]
+    cost += 0.01 * jnp.linalg.norm(2.0 * recp[1, :] - recp[2, :] - recp[3, :])
+    cost += 0.01 * jnp.linalg.norm(2.0 * recp[5, :] - recp[6, :] - recp[7, :])
     return cost
 
 
@@ -72,11 +76,16 @@ def perform_CMTF(tensorIn=None, matrixIn=None, r=6):
     cost_jax = jit(cost, static_argnums=(1, 2, 3, 4, 5))
     cost_grad = jit(grad(cost, 0), static_argnums=(1, 2, 3, 4, 5))
 
+    def hvp(x, v, *args):
+        return grad(lambda x: jnp.vdot(cost_grad(x, *args), v))(x)
+
+    jit_hvp = jit(hvp, static_argnums=(2, 3, 4, 5, 6))
+
     facInit = parafac(tensorIn, r, mask=tmask, n_iter_max=50, orthogonalise=True)
     x0 = np.concatenate((np.ravel(facInit.factors[0]), np.ravel(facInit.factors[1]), np.ravel(facInit.factors[2])))
     x0 = np.concatenate((x0, randn(matrixIn.shape[1] * r)))
 
-    res = minimize(cost_jax, x0, method='CG', jac=cost_grad, args=(tensorIn, matrixIn, tmask, mmask, r), options={"maxiter": 9000})
+    res = minimize(cost_jax, x0, method='trust-ncg', jac=cost_grad, hessp=jit_hvp, args=(tensorIn, matrixIn, tmask, mmask, r), options={"maxiter": 1000})
     tensorFac, matrixFac = buildTensors(res.x, tensorIn, matrixIn, r)
     tensorFac = kruskal_normalise(tensorFac)
     matrixFac = kruskal_normalise(matrixFac)
