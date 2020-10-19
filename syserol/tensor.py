@@ -55,7 +55,7 @@ def cost(pIn, tensor, matrix, tmask, mmask, r):
     tensF, matF = buildTensors(pIn, tensor, matrix, r)
     cost = jnp.linalg.norm(tl.kruskal_to_tensor(tensF, mask=1 - tmask) - tensor) # Tensor cost
     cost += jnp.linalg.norm(tl.kruskal_to_tensor(matF, mask=1 - mmask) - matrix) # Matrix cost
-    cost += jnp.linalg.norm(pIn, ord=5)
+    cost += 0.1 * jnp.linalg.norm(pIn)
 
     recp = tensF.factors[1]
     cost += 0.01 * jnp.linalg.norm(2.0 * recp[1, :] - recp[2, :] - recp[3, :])
@@ -87,8 +87,8 @@ def perform_CMTF(tensorIn=None, matrixIn=None, r=6):
 
     res = minimize(cost_jax, x0, method='trust-ncg', jac=cost_grad, hessp=jit_hvp, args=(tensorIn, matrixIn, tmask, mmask, r))
     tensorFac, matrixFac = buildTensors(res.x, tensorIn, matrixIn, r)
-    #tensorFac = kruskal_normalise(tensorFac)
-    #matrixFac = kruskal_normalise(matrixFac)
+    tensorFac = kruskal_normalise(tensorFac)
+    matrixFac = kruskal_normalise(matrixFac)
 
     # Reorient the later tensor factors
     tensorFac.factors, matrixFac.factors = reorient_factors(tensorFac.factors, matrixFac.factors)
