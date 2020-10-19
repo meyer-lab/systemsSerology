@@ -65,7 +65,7 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all"):
     regr.fit(X[Y_Alter.index], Y_Alter)
     enet = ElasticNet(
         alpha=regr.alpha_, l1_ratio=regr.l1_ratio_, normalize=True, max_iter=10000
-    )
+    ).fit(X[Y_Alter.index], Y_Alter)
     print(f"LR Coefficient: {enet.coef_}")
 
     Y_pred_notAlter = enet.predict(X[Y_notAlter.index])
