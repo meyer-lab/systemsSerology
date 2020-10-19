@@ -81,7 +81,7 @@ def perform_CMTF(tensorIn=None, matrixIn=None, r=6):
 
     jit_hvp = jit(hvp, static_argnums=(2, 3, 4, 5, 6))
 
-    facInit = parafac(tensorIn, r, mask=tmask, n_iter_max=50, orthogonalise=True)
+    facInit = parafac(tensorIn, r, mask=tmask, n_iter_max=100, orthogonalise=True)
     x0 = np.concatenate((np.ravel(facInit.factors[0]), np.ravel(facInit.factors[1]), np.ravel(facInit.factors[2])))
     x0 = np.concatenate((x0, randn(matrixIn.shape[1] * r)))
 
