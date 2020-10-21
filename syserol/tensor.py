@@ -61,13 +61,13 @@ def cost(pIn, tensor, matrix, tmask, mmask, r):
     return cost
 
 
-def perform_CMTF(tensorIn=None, matrixIn=None, r=6):
+def perform_CMTF(tensorOrig=None, matrixOrig=None, r=6):
     """ Perform CMTF decomposition. """
-    if tensorIn is None:
-        tensorIn, matrixIn = createCube()
-        tensorIn = tensorIn.copy()
-        matrixIn = matrixIn.copy()
+    if tensorOrig is None:
+        tensorOrig, matrixOrig = createCube()
 
+    tensorIn = tensorOrig.copy()
+    matrixIn = matrixOrig.copy()
     tmask = np.isnan(tensorIn)
     mmask = np.isnan(matrixIn)
     tensorIn[tmask] = 0.0
@@ -81,18 +81,18 @@ def perform_CMTF(tensorIn=None, matrixIn=None, r=6):
 
     jit_hvp = jit(hvp, static_argnums=(2, 3, 4, 5, 6))
 
-    facInit = parafac(tensorIn, r, mask=tmask, n_iter_max=400, orthogonalise=10, verbose=True)
+    facInit = parafac(tensorIn.copy(), r, mask=tmask, n_iter_max=400, orthogonalise=10)
     x0 = np.concatenate((np.ravel(facInit.factors[0]), np.ravel(facInit.factors[1]), np.ravel(facInit.factors[2])))
     x0 = np.concatenate((x0, randn(matrixIn.shape[1] * r)))
 
-    res = minimize(cost_jax, x0, method='trust-ncg', jac=cost_grad, hessp=jit_hvp, args=(tensorIn, matrixIn, tmask, mmask, r), options={"maxiter": 200})
+    res = minimize(cost_jax, x0, method='trust-ncg', jac=cost_grad, hessp=jit_hvp, args=(tensorIn, matrixIn, tmask, mmask, r), options={"maxiter": 300})
     tensorFac, matrixFac = buildTensors(res.x, tensorIn, matrixIn, r)
     tensorFac = kruskal_normalise(tensorFac)
     matrixFac = kruskal_normalise(matrixFac)
 
     # Reorient the later tensor factors
-    #tensorFac.factors, matrixFac.factors = reorient_factors(tensorFac.factors, matrixFac.factors)
+    tensorFac.factors, matrixFac.factors = reorient_factors(tensorFac.factors, matrixFac.factors)
 
-    R2X = calcR2X(tensorIn, matrixIn, tensorFac, matrixFac)
+    R2X = calcR2X(tensorOrig, tensorOrig, tensorFac, matrixFac)
 
     return tensorFac, matrixFac, R2X
