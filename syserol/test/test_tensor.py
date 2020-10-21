@@ -16,7 +16,6 @@ def test_R2X():
         assert np.all(np.isfinite(facT.factors[2]))
         assert np.allclose(facT.factors[0], facM.factors[0])
         arr.append(tensorR2X)
-    print(arr)
     for j in range(len(arr) - 1):
         assert arr[j] < arr[j + 1]
     # confirm R2X is >= 0 and <=1

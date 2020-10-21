@@ -95,4 +95,9 @@ def perform_CMTF(tensorOrig=None, matrixOrig=None, r=6):
 
     R2X = calcR2X(tensorOrig, tensorOrig, tensorFac, matrixFac)
 
+    for ii in range(3):
+        tensorFac.factors[ii] = np.array(tensorFac.factors[ii])
+    for ii in range(2):
+        matrixFac.factors[ii] = np.array(matrixFac.factors[ii])
+
     return tensorFac, matrixFac, R2X
