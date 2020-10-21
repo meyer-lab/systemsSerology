@@ -12,7 +12,7 @@ from tensorly.decomposition import parafac
 from tensorly.kruskal_tensor import KruskalTensor, kruskal_normalise
 from .dataImport import createCube
 
-tl.set_backend('jax')
+tl.set_backend('numpy')
 config.update("jax_enable_x64", True)
 
 def calcR2X(tensorIn, matrixIn, tensorFac, matrixFac):
@@ -52,10 +52,12 @@ def buildTensors(pIn, tensor, matrix, r):
 
 
 def cost(pIn, tensor, matrix, tmask, mmask, r):
+    tl.set_backend('jax')
     tensF, matF = buildTensors(pIn, tensor, matrix, r)
     cost = jnp.linalg.norm(tl.kruskal_to_tensor(tensF, mask=1 - tmask) - tensor) # Tensor cost
     cost += jnp.linalg.norm(tl.kruskal_to_tensor(matF, mask=1 - mmask) - matrix) # Matrix cost
     cost += 1e-6 * jnp.linalg.norm(pIn)
+    tl.set_backend('numpy')
     return cost
 
 
@@ -63,6 +65,8 @@ def perform_CMTF(tensorIn=None, matrixIn=None, r=6):
     """ Perform CMTF decomposition. """
     if tensorIn is None:
         tensorIn, matrixIn = createCube()
+        tensorIn = tensorIn.copy()
+        matrixIn = matrixIn.copy()
 
     tmask = np.isnan(tensorIn)
     mmask = np.isnan(matrixIn)
@@ -77,23 +81,18 @@ def perform_CMTF(tensorIn=None, matrixIn=None, r=6):
 
     jit_hvp = jit(hvp, static_argnums=(2, 3, 4, 5, 6))
 
-    facInit = parafac(tensorIn, r, mask=tmask, n_iter_max=200, orthogonalise=10)
+    facInit = parafac(tensorIn, r, mask=tmask, n_iter_max=400, orthogonalise=10, verbose=True)
     x0 = np.concatenate((np.ravel(facInit.factors[0]), np.ravel(facInit.factors[1]), np.ravel(facInit.factors[2])))
     x0 = np.concatenate((x0, randn(matrixIn.shape[1] * r)))
 
-    res = minimize(cost_jax, x0, method='trust-ncg', jac=cost_grad, hessp=jit_hvp, args=(tensorIn, matrixIn, tmask, mmask, r), options={"maxiter": 1000})
+    res = minimize(cost_jax, x0, method='trust-ncg', jac=cost_grad, hessp=jit_hvp, args=(tensorIn, matrixIn, tmask, mmask, r), options={"maxiter": 200})
     tensorFac, matrixFac = buildTensors(res.x, tensorIn, matrixIn, r)
     tensorFac = kruskal_normalise(tensorFac)
     matrixFac = kruskal_normalise(matrixFac)
 
     # Reorient the later tensor factors
-    tensorFac.factors, matrixFac.factors = reorient_factors(tensorFac.factors, matrixFac.factors)
+    #tensorFac.factors, matrixFac.factors = reorient_factors(tensorFac.factors, matrixFac.factors)
 
     R2X = calcR2X(tensorIn, matrixIn, tensorFac, matrixFac)
-
-    for ii in range(3):
-        tensorFac.factors[ii] = np.array(tensorFac.factors[ii])
-    for ii in range(2):
-        matrixFac.factors[ii] = np.array(matrixFac.factors[ii])
 
     return tensorFac, matrixFac, R2X
