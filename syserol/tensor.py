@@ -9,7 +9,7 @@ from scipy.optimize import minimize
 from numpy.random import randn
 import tensorly as tl
 from tensorly.decomposition import parafac
-from tensorly.kruskal_tensor import KruskalTensor, kruskal_normalise
+from tensorly.kruskal_tensor import KruskalTensor, kruskal_normalise, khatri_rao
 from .dataImport import createCube
 
 tl.set_backend('numpy')
@@ -36,13 +36,23 @@ def reorient_factors(tensorFac, matrixFac):
     return tensorFac, matrixFac
 
 
-def buildTensors(pIn, tensor, matrix, r):
+def buildTensors(pIn, tensor, matrix, tmask, r):
     """ Use parameter vector to build kruskal tensors. """
     assert tensor.shape[0] == matrix.shape[0]
     nn = np.array(tensor.shape) * r
-    A = jnp.reshape(pIn[:nn[0]], (tensor.shape[0], r))
-    B = jnp.reshape(pIn[nn[0]:nn[0]+nn[1]], (tensor.shape[1], r))
-    C = jnp.reshape(pIn[nn[0]+nn[1]:np.sum(nn)], (tensor.shape[2], r))
+    B = jnp.reshape(pIn[:nn[1]], (tensor.shape[1], r))
+    C = jnp.reshape(pIn[nn[1]:], (tensor.shape[2], r))
+
+    # Solve for A
+    pseudo_inverse = jnp.ones((r, r)) * jnp.dot(jnp.conj(B.T), B) * jnp.dot(jnp.conj(C.T), C)
+
+    unfolded = np.reshape(tensor, (tensor.shape[0], -1))
+    unfolded_mask = ~np.any(np.reshape(tmask, (tmask.shape[0], -1)), axis=0)
+    unfolded = jnp.array(unfolded[:, unfolded_mask])
+    kr_factors = tl.kr([B, C])[unfolded_mask, :]
+    mttkrp = jnp.dot(unfolded, kr_factors)
+
+    A = tl.solve(jnp.conj(pseudo_inverse.T), mttkrp.T).T
 
     # Solve for the glycan matrix fit
     selPat = np.all(np.isfinite(matrix), axis=1)
@@ -54,7 +64,7 @@ def buildTensors(pIn, tensor, matrix, r):
 
 def cost(pIn, tensor, matrix, tmask, r):
     tl.set_backend('jax')
-    tensF, matF = buildTensors(pIn, tensor, matrix, r)
+    tensF, matF = buildTensors(pIn, tensor, matrix, tmask, r)
     matrix = matrix.copy()
     mmask = np.isnan(matrix)
     matrix[mmask] = 0.0
@@ -82,12 +92,12 @@ def perform_CMTF(tensorOrig=None, matrixOrig=None, r=6):
 
     jit_hvp = jit(hvp, static_argnums=(2, 3, 4, 5))
 
-    CPinit = parafac(tensorIn.copy(), r, mask=tmask, n_iter_max=800, orthogonalise=10)
-    x0 = np.concatenate((np.ravel(CPinit.factors[0]), np.ravel(CPinit.factors[1]), np.ravel(CPinit.factors[2])))
+    CPinit = parafac(tensorIn.copy(), r, mask=tmask, n_iter_max=100, orthogonalise=10)
+    x0 = np.concatenate((np.ravel(CPinit.factors[1]), np.ravel(CPinit.factors[2])))
 
     rgs = (tensorIn, matrixIn, tmask, r)
     res = minimize(cost_jax, x0, method='trust-ncg', jac=cost_grad, hessp=jit_hvp, args=rgs, options={"disp": True, "maxiter": 2000})
-    tensorFac, matrixFac = buildTensors(res.x, tensorIn, matrixIn, r)
+    tensorFac, matrixFac = buildTensors(res.x, tensorIn, matrixIn, tmask, r)
     tensorFac = kruskal_normalise(tensorFac)
     matrixFac = kruskal_normalise(matrixFac)
 
