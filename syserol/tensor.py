@@ -82,10 +82,10 @@ def perform_CMTF(tensorOrig=None, matrixOrig=None, r=6):
 
     jit_hvp = jit(hvp, static_argnums=(2, 3, 4, 5))
 
-    facInit = parafac(tensorIn.copy(), r, mask=tmask, n_iter_max=100, orthogonalise=10)
+    facInit = parafac(tensorIn.copy(), r, mask=tmask, n_iter_max=400, orthogonalise=10)
     x0 = np.concatenate((np.ravel(facInit.factors[0]), np.ravel(facInit.factors[1]), np.ravel(facInit.factors[2])))
 
-    res = minimize(cost_jax, x0, method='trust-ncg', jac=cost_grad, hessp=jit_hvp, args=(tensorIn, matrixIn, tmask, r), options={"disp": True, "maxiter": 100})
+    res = minimize(cost_jax, x0, method='trust-ncg', jac=cost_grad, hessp=jit_hvp, args=(tensorIn, matrixIn, tmask, r), options={"disp": True, "maxiter": 200})
     tensorFac, matrixFac = buildTensors(res.x, tensorIn, matrixIn, r)
     tensorFac = kruskal_normalise(tensorFac)
     matrixFac = kruskal_normalise(matrixFac)
