@@ -13,8 +13,8 @@ from ..tensor import perform_CMTF
 
 def makeFigure():
     """ Plot Function Prediction Accuracies across Components"""
-    components = np.array(np.arange(1, 11))
-    comp_accuracies = np.zeros_like(components)
+    components = np.arange(1, 11)
+    comp_accuracies = np.zeros(components.shape)
     for i in components:
         func_accuracies = np.zeros(6)
         tensorFac, _, _ = perform_CMTF(None, None, i)
