@@ -52,7 +52,7 @@ def buildTensors(pIn, tensor, matrix, tmask, r):
     kr_factors = tl.kr([B, C])[unfolded_mask, :]
     mttkrp = jnp.dot(unfolded, kr_factors)
 
-    A = tl.solve(jnp.conj(pseudo_inverse.T), mttkrp.T).T
+    A = jnp.linalg.solve(jnp.conj(pseudo_inverse.T), mttkrp.T).T
 
     # Solve for the glycan matrix fit
     selPat = np.all(np.isfinite(matrix), axis=1)
@@ -70,7 +70,7 @@ def cost(pIn, tensor, matrix, tmask, r):
     matrix[mmask] = 0.0
     cost = jnp.linalg.norm(tl.kruskal_to_tensor(tensF, mask=1 - tmask) - tensor) # Tensor cost
     cost += jnp.linalg.norm(tl.kruskal_to_tensor(matF, mask=1 - mmask) - matrix) # Matrix cost
-    cost += 1e-6 * jnp.linalg.norm(pIn)
+    cost += 1e-9 * jnp.linalg.norm(pIn)
     tl.set_backend('numpy')
     return cost
 
@@ -92,7 +92,7 @@ def perform_CMTF(tensorOrig=None, matrixOrig=None, r=6):
 
     jit_hvp = jit(hvp, static_argnums=(2, 3, 4, 5))
 
-    CPinit = parafac(tensorIn.copy(), r, mask=tmask, n_iter_max=100, orthogonalise=10)
+    CPinit = parafac(tensorIn.copy(), r, mask=tmask, n_iter_max=200, orthogonalise=10)
     x0 = np.concatenate((np.ravel(CPinit.factors[1]), np.ravel(CPinit.factors[2])))
 
     rgs = (tensorIn, matrixIn, tmask, r)
