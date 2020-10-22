@@ -52,14 +52,7 @@ def two_way_classifications():
 
 def ClassifyHelper(X, Y):
     """ Function with common Logistic regression methods. """
-    if X.shape[1] > 50:
-        regr = LogisticRegressionCV(n_jobs=-1, cv=30, max_iter=1000)
-        regr.fit(X, Y)
-        clf = LogisticRegression(C=regr.C_[0], max_iter=1000)
-    else:
-        clf = LogisticRegression(penalty="none", tol=1e-9)
-        clf.fit(X, Y)
-        print(f"Classification LR Coefficient: {clf.coef_}")
-
+    regr = LogisticRegressionCV(n_jobs=-1, cv=40, max_iter=1000).fit(X, Y)
+    clf = LogisticRegression(C=regr.C_[0], max_iter=1000).fit(X, Y)
     Y_pred = cross_val_predict(clf, X, Y, cv=40, n_jobs=-1)
     return Y_pred, accuracy_score(Y, Y_pred)
