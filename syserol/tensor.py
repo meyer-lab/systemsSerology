@@ -18,7 +18,7 @@ config.update("jax_enable_x64", True)
 def calcR2X(tensorIn, matrixIn, tensorFac, matrixFac):
     """ Calculate R2X. """
     tErr = np.nanvar(tl.kruskal_to_tensor(tensorFac) - tensorIn)
-    mErr = np.nanvar(tl.kruskal_to_tensor(tensorFac) - tensorIn)
+    mErr = np.nanvar(tl.kruskal_to_tensor(matrixFac) - matrixIn)
     return 1.0 - (tErr + mErr) / (np.nanvar(tensorIn) + np.nanvar(matrixIn))
 
 
@@ -93,7 +93,7 @@ def perform_CMTF(tensorOrig=None, matrixOrig=None, r=6):
     # Reorient the later tensor factors
     tensorFac.factors, matrixFac.factors = reorient_factors(tensorFac.factors, matrixFac.factors)
 
-    R2X = calcR2X(tensorOrig, tensorOrig, tensorFac, matrixFac)
+    R2X = calcR2X(tensorOrig, matrixIn, tensorFac, matrixFac)
 
     for ii in range(3):
         tensorFac.factors[ii] = np.array(tensorFac.factors[ii])
