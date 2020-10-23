@@ -18,16 +18,11 @@ from ..tensor import perform_CMTF
 def makeFigure():
     """ Show Similarity in Prediction of Alter Model and Our Model"""
     # Decompose Cube
-    tensorFac, _, _ = perform_CMTF()
+    tFac, _, _ = perform_CMTF()
+
     # Gather Function Prediction Accuracies
-    accuracies = np.zeros(12)
-    for ii, func in enumerate(functions):
-        _, _, acc, _ = function_elastic_net(func)  # Alter Function Predictions
-        accuracies[ii] = acc  # store accuracies
-    for i, func in enumerate(functions):
-        # our prediction accuracies
-        _, _, accuracy = function_prediction(tensorFac, function=func, evaluation="Alter")
-        accuracies[i + 6] = accuracy  # store
+    accuracies = [function_elastic_net(f)[2] for f in functions]
+    accuracies = accuracies + [function_prediction(tFac, function=f, evaluation="Alter")[2] for f in functions]
 
     # Create DataFrame
     model = ["Alter Model"] * 6 + ["Our Model"] * 6
@@ -36,10 +31,8 @@ def makeFigure():
     functions_df = pd.DataFrame(data)  # Function Prediction DataFrame, Figure 2B
 
     # Subjects left out of Alter
-    accuracies = np.zeros(6)
-    for i, func in enumerate(functions):
-        _, _, accuracy = function_prediction(tensorFac, function=func, evaluation="notAlter")
-        accuracies[i] = accuracy
+    accuracies = [function_prediction(tFac, function=f, evaluation="notAlter")[2] for f in functions]
+
     # Create DataFrame
     data = {"Accuracy": accuracies, "Function": functions}
     subjects_out = pd.DataFrame(data) # DataFrame for Figure 2D
@@ -47,8 +40,7 @@ def makeFigure():
     # Gather Class Prediction Accuracies
     accuracyCvP, accuracyVvN = two_way_classifications()  # Alter accuracies
     # Run our model
-    subjects_matrix = tensorFac[1][0]
-    cp_accuracy, nv_accuracy = class_predictions(subjects_matrix)  # Our accuracies
+    cp_accuracy, nv_accuracy = class_predictions(tFac[1][0])  # Our accuracies
 
     # Create DataFrame
     baselineNV = 0.5083  # datasetEV3/Fc.array/class.nv/lambda.min/score_details.txt "No information rate"
