@@ -18,7 +18,7 @@ config.update("jax_enable_x64", True)
 def calcR2X(tensorIn, matrixIn, tensorFac, matrixFac):
     """ Calculate R2X. """
     tErr = np.nanvar(tl.kruskal_to_tensor(tensorFac) - tensorIn)
-    mErr = np.nanvar(tl.kruskal_to_tensor(tensorFac) - tensorIn)
+    mErr = np.nanvar(tl.kruskal_to_tensor(matrixFac) - matrixIn)
     return 1.0 - (tErr + mErr) / (np.nanvar(tensorIn) + np.nanvar(matrixIn))
 
 
@@ -43,7 +43,6 @@ def buildTensors(pIn, tensor, matrix, tmask, r):
     A = jnp.reshape(pIn[:nn[0]], (tensor.shape[0], r))
     B = jnp.reshape(pIn[nn[0]:nn[1]], (tensor.shape[1], r))
     C = jnp.reshape(pIn[nn[1]:], (tensor.shape[2], r))
-    # TODO: Directly solve for C?
 
     # Solve for the glycan matrix fit
     selPat = np.all(np.isfinite(matrix), axis=1)
@@ -82,7 +81,7 @@ def perform_CMTF(tensorOrig=None, matrixOrig=None, r=6):
 
     jit_hvp = jit(hvp, static_argnums=(2, 3, 4, 5))
 
-    CPinit = parafac(tensorIn.copy(), r, mask=tmask, n_iter_max=200, orthogonalise=10)
+    CPinit = parafac(tensorIn.copy(), r, mask=tmask, n_iter_max=400, orthogonalise=10)
     x0 = np.concatenate((np.ravel(CPinit.factors[0]), np.ravel(CPinit.factors[1]), np.ravel(CPinit.factors[2])))
 
     rgs = (tensorIn, matrixIn, tmask, r)
@@ -94,7 +93,7 @@ def perform_CMTF(tensorOrig=None, matrixOrig=None, r=6):
     # Reorient the later tensor factors
     tensorFac.factors, matrixFac.factors = reorient_factors(tensorFac.factors, matrixFac.factors)
 
-    R2X = calcR2X(tensorOrig, tensorOrig, tensorFac, matrixFac)
+    R2X = calcR2X(tensorOrig, matrixIn, tensorFac, matrixFac)
 
     for ii in range(3):
         tensorFac.factors[ii] = np.array(tensorFac.factors[ii])
