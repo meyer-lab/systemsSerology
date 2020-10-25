@@ -3,7 +3,7 @@ Tensor decomposition methods
 """
 import numpy as np
 import jax.numpy as jnp
-from jax import jit, grad
+from jax import jit, grad, jvp
 from jax.config import config
 from scipy.optimize import minimize
 from numpy.random import randn
@@ -77,15 +77,15 @@ def perform_CMTF(tensorOrig=None, matrixOrig=None, r=6):
     cost_grad = jit(grad(cost, 0), static_argnums=(1, 2, 3, 4))
 
     def hvp(x, v, *args):
-        return grad(lambda x: jnp.vdot(cost_grad(x, *args), v))(x)
+        return jvp(lambda xx: cost_grad(xx, *args), (x, ), (v, ))[1]
 
     jit_hvp = jit(hvp, static_argnums=(2, 3, 4, 5))
 
-    CPinit = parafac(tensorIn.copy(), r, mask=tmask, n_iter_max=400, orthogonalise=10)
+    CPinit = parafac(tensorIn.copy(), r, mask=tmask, n_iter_max=100, orthogonalise=10)
     x0 = np.concatenate((np.ravel(CPinit.factors[0]), np.ravel(CPinit.factors[1]), np.ravel(CPinit.factors[2])))
 
     rgs = (tensorIn, matrixIn, tmask, r)
-    res = minimize(cost_jax, x0, method='trust-ncg', jac=cost_grad, hessp=jit_hvp, args=rgs, options={"disp": True, "maxiter": 400})
+    res = minimize(cost_jax, x0, method='trust-krylov', jac=cost_grad, hessp=jit_hvp, args=rgs, options={"maxiter": 200})
     tensorFac, matrixFac = buildTensors(res.x, tensorIn, matrixIn, tmask, r)
     tensorFac = kruskal_normalise(tensorFac)
     matrixFac = kruskal_normalise(matrixFac)
