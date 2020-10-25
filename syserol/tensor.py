@@ -3,7 +3,7 @@ Tensor decomposition methods
 """
 import numpy as np
 import jax.numpy as jnp
-from jax import jit, grad
+from jax import jit, grad, jvp
 from jax.config import config
 from scipy.optimize import minimize
 import tensorly as tl
