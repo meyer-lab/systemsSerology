@@ -18,8 +18,6 @@ def getClassY(df):
 
 def class_predictions(X):
     """ Predict Subject Class with Decomposed Tensor Data """
-    X = zscore(X, axis=1)
-
     # Load Data
     cp, nv = getClassY(load_file("meta-subjects"))
 
