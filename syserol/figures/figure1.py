@@ -21,7 +21,7 @@ def makeFigure():
     for i in comps:
         tFac, _, R2X = perform_CMTF(r=i)
         tensorArr[i - 1] = R2X
-        accur = [function_prediction(tFac, function=f, evaluation="Alter")[2] for f in functions]
+        accur = [function_prediction(tFac, function=f, evaluation="all")[2] for f in functions]
         comp_accuracies[i - 1] = np.mean(accur)
 
     ax[0].scatter(comps, tensorArr)
