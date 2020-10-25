@@ -3,10 +3,9 @@ Tensor decomposition methods
 """
 import numpy as np
 import jax.numpy as jnp
-from jax import jit, grad, jvp
+from jax import jit, grad
 from jax.config import config
 from scipy.optimize import minimize
-from numpy.random import randn
 import tensorly as tl
 from tensorly.decomposition import parafac
 from tensorly.kruskal_tensor import KruskalTensor, kruskal_normalise, khatri_rao
@@ -76,16 +75,18 @@ def perform_CMTF(tensorOrig=None, matrixOrig=None, r=6):
     cost_jax = jit(cost, static_argnums=(1, 2, 3, 4))
     cost_grad = jit(grad(cost, 0), static_argnums=(1, 2, 3, 4))
 
-    def hvp(x, v, *args):
-        return jvp(lambda xx: cost_grad(xx, *args), (x, ), (v, ))[1]
+    def costt(*args):
+        return np.array(cost_jax(*args))
 
-    jit_hvp = jit(hvp, static_argnums=(2, 3, 4, 5))
+    def gradd(*args):
+        return np.array(cost_grad(*args))
 
     CPinit = parafac(tensorIn.copy(), r, mask=tmask, n_iter_max=100, orthogonalise=10)
     x0 = np.concatenate((np.ravel(CPinit.factors[0]), np.ravel(CPinit.factors[1]), np.ravel(CPinit.factors[2])))
 
     rgs = (tensorIn, matrixIn, tmask, r)
-    res = minimize(cost_jax, x0, method='trust-krylov', jac=cost_grad, hessp=jit_hvp, args=rgs, options={"maxiter": 600})
+    res = minimize(costt, x0, method='L-BFGS-B', jac=gradd, args=rgs, options={"maxiter": 5000})
+
     tensorFac, matrixFac = buildTensors(res.x, tensorIn, matrixIn, tmask, r)
     tensorFac = kruskal_normalise(tensorFac)
     matrixFac = kruskal_normalise(matrixFac)
