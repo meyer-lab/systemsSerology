@@ -5,7 +5,6 @@ This creates Figure 1.
 import numpy as np
 from .common import subplotLabel, getSetup
 from ..regression import function_prediction
-from ..classify import class_predictions
 from ..tensor import perform_CMTF
 from ..dataImport import functions
 
@@ -23,7 +22,6 @@ def makeFigure():
         tFac, _, R2X = perform_CMTF(r=i)
         tensorArr[i - 1] = R2X
         accur = [function_prediction(tFac, function=f, evaluation="all")[2] for f in functions]
-        accur = accur + list(class_predictions(tFac))
         comp_accuracies[i - 1] = np.mean(accur)
 
     ax[0].scatter(comps, tensorArr)
