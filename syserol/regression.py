@@ -65,6 +65,7 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all"):
     regr.fit(X, Y)
     enet = ElasticNet(alpha=regr.alpha_, l1_ratio=regr.l1_ratio_, normalize=True, max_iter=10000)
     Y_pred = cross_val_predict(enet, X, Y, cv=len(Y), n_jobs=-1)
+    coef = cross_val_predict(enet, X, Y, cv=len(Y), n_jobs=-1, method="get_params")
 
     if evaluation == "all":
         Y, Y_pred = Y, Y_pred
@@ -76,4 +77,4 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all"):
         raise ValueError("Bad evaluation selection.")
 
     assert Y.shape == Y_pred.shape
-    return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))
+    return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred)), coef
