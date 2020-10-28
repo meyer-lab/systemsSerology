@@ -63,9 +63,9 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all"):
     # Perform Regression
     regr = ElasticNetCV(normalize=True, max_iter=10000, cv=30, n_jobs=-1, l1_ratio=0.8)
     regr.fit(X, Y)
-    enet = ElasticNet(alpha=regr.alpha_, l1_ratio=regr.l1_ratio_, normalize=True, max_iter=10000)
+    enet = ElasticNet(alpha=regr.alpha_, l1_ratio=regr.l1_ratio_, normalize=True, max_iter=10000).fit(X, Y)
+    coef = enet.coef_
     Y_pred = cross_val_predict(enet, X, Y, cv=len(Y), n_jobs=-1)
-    coef = cross_val_predict(enet, X, Y, cv=len(Y), n_jobs=-1, method="get_params")
 
     if evaluation == "all":
         Y, Y_pred = Y, Y_pred
