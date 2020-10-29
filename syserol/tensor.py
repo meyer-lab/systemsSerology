@@ -58,7 +58,7 @@ def cost(pIn, tensor, matrix, tmask, r):
     matrix[mmask] = 0.0
     cost = jnp.linalg.norm(tl.kruskal_to_tensor(tensF, mask=1 - tmask) - tensor) # Tensor cost
     cost += jnp.linalg.norm(tl.kruskal_to_tensor(matF, mask=1 - mmask) - matrix) # Matrix cost
-    cost += 1e-9 * jnp.linalg.norm(pIn)
+    cost += 1e-12 * jnp.linalg.norm(pIn)
     tl.set_backend('numpy')
     return cost
 
