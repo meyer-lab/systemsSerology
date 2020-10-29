@@ -31,7 +31,7 @@ def makeFigure():
     model = ["Alter Model"] * 6 + ["Our Model"] * 6 + ["Excluded Cases"] * 6
     function = functions + functions + functions
     data = {"Accuracy": accuracies, "Model": model, "Function": function}
-    functions_df = pd.DataFrame(data)  # Function Prediction DataFrame, Figure 2B
+    functions_df = pd.DataFrame(data)  # Function Prediction DataFrame, Figure 2A
 
     # Gather Class Prediction Accuracies
     accuracyCvP, accuracyVvN = two_way_classifications()  # Alter accuracies
@@ -48,7 +48,7 @@ def makeFigure():
     category = ["Progression"] * 3 + ["Viremia"] * 3
     model = ["Alter Model", "Our Model", "Baseline"] * 2
     data = {"Accuracies": accuracies, "Class": category, "Model": model}
-    classes = pd.DataFrame(data)  # Class Predictions DataFrame, Figure 2C
+    classes = pd.DataFrame(data)  # Class Predictions DataFrame, Figure 2B
 
     """Provide details about our model"""
     #Factor data
@@ -107,24 +107,6 @@ def makeFigure():
     b.set_ylabel("Accuracy")
     b.set_xlabel("Class Prediction")
     b.tick_params(axis="x")
-
-    # Function Predictions for Values left out of Alter Plot
-    c = sns.pointplot(
-        x="Function", y="Accuracy", join=False, data=subjects_out, ax=ax[2]
-    )
-
-    # Formatting
-    shades = [-0.5, 1.5, 3.5]
-    for i in shades:
-        c.axvspan(i, i + 1, alpha=0.1, color="grey")
-    c.set_xlim(-0.5, 5.5)
-    c.set_ylim(0, 1)
-    c.grid(False)
-    c.xaxis.tick_top()
-    c.xaxis.set_label_position("top")
-    c.tick_params(axis="x")
-    c.set_ylabel("Accuracy")
-    c.set_xlabel("Function")
 
     #Component Weights
     sns.set()
