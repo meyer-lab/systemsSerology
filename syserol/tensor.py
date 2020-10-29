@@ -8,7 +8,7 @@ from jax.config import config
 from scipy.optimize import minimize
 import tensorly as tl
 from tensorly.decomposition import parafac
-from tensorly.kruskal_tensor import KruskalTensor, kruskal_normalise
+from tensorly.cp_tensor import CPTensor, cp_normalize
 from .dataImport import createCube
 
 tl.set_backend('numpy')
@@ -16,8 +16,8 @@ config.update("jax_enable_x64", True)
 
 def calcR2X(tensorIn, matrixIn, tensorFac, matrixFac):
     """ Calculate R2X. """
-    tErr = np.nanvar(tl.kruskal_to_tensor(tensorFac) - tensorIn)
-    mErr = np.nanvar(tl.kruskal_to_tensor(matrixFac) - matrixIn)
+    tErr = np.nanvar(tl.cp_to_tensor(tensorFac) - tensorIn)
+    mErr = np.nanvar(tl.cp_to_tensor(matrixFac) - matrixIn)
     return 1.0 - (tErr + mErr) / (np.nanvar(tensorIn) + np.nanvar(matrixIn))
 
 
@@ -36,7 +36,7 @@ def reorient_factors(tFac, mFac):
 
 
 def buildTensors(pIn, tensor, matrix, tmask, r):
-    """ Use parameter vector to build kruskal tensors. """
+    """ Use parameter vector to build cp tensors. """
     assert tensor.shape[0] == matrix.shape[0]
     nn = np.cumsum(tensor.shape) * r
     A = jnp.reshape(pIn[:nn[0]], (tensor.shape[0], r))
@@ -47,7 +47,7 @@ def buildTensors(pIn, tensor, matrix, tmask, r):
     selPat = np.all(np.isfinite(matrix), axis=1)
     G = jnp.linalg.lstsq(A[selPat, :], matrix[selPat, :])[0]
 
-    return KruskalTensor((None, [A, B, C])), KruskalTensor((None, [A, G.T]))
+    return CPTensor((None, [A, B, C])), CPTensor((None, [A, G.T]))
 
 
 def cost(pIn, tensor, matrix, tmask, r):
@@ -56,9 +56,9 @@ def cost(pIn, tensor, matrix, tmask, r):
     matrix = matrix.copy()
     mmask = np.isnan(matrix)
     matrix[mmask] = 0.0
-    cost = jnp.linalg.norm(tl.kruskal_to_tensor(tensF, mask=1 - tmask) - tensor) # Tensor cost
-    cost += jnp.linalg.norm(tl.kruskal_to_tensor(matF, mask=1 - mmask) - matrix) # Matrix cost
-    cost += 1e-9 * jnp.linalg.norm(pIn)
+    cost = jnp.linalg.norm(tl.cp_to_tensor(tensF, mask=1 - tmask) - tensor) # Tensor cost
+    cost += jnp.linalg.norm(tl.cp_to_tensor(matF, mask=1 - mmask) - matrix) # Matrix cost
+    cost += 1e-12 * jnp.linalg.norm(pIn)
     tl.set_backend('numpy')
     return cost
 
@@ -87,8 +87,8 @@ def perform_CMTF(tensorOrig=None, matrixOrig=None, r=6):
     rgs = (tensorIn, matrixIn, tmask, r)
     res = minimize(costt, x0, method='L-BFGS-B', jac=gradd, args=rgs, options={"maxiter": 100000})
     tensorFac, matrixFac = buildTensors(res.x, tensorIn, matrixIn, tmask, r)
-    tensorFac = kruskal_normalise(tensorFac)
-    matrixFac = kruskal_normalise(matrixFac)
+    tensorFac = cp_normalize(tensorFac)
+    matrixFac = cp_normalize(matrixFac)
 
     # Reorient the later tensor factors
     tensorFac.factors, matrixFac.factors = reorient_factors(tensorFac.factors, matrixFac.factors)
