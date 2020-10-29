@@ -22,12 +22,12 @@ def class_predictions(X):
     cp, nv = getClassY(load_file("meta-subjects"))
 
     # Controller/Progressor classification
-    _, cp_accuracy, coef_cp = ClassifyHelper(X, cp)
+    _, cp_accuracy = ClassifyHelper(X, cp)
 
     # Viremic/Nonviremic classification
-    _, nv_accuracy, coef_nv = ClassifyHelper(X, nv)
+    _, nv_accuracy = ClassifyHelper(X, nv)
 
-    return cp_accuracy, nv_accuracy, coef_cp, coef_nv
+    return cp_accuracy, nv_accuracy
 
 
 def two_way_classifications():
@@ -42,10 +42,10 @@ def two_way_classifications():
     Y1, Y2 = getClassY(df_merged)
 
     # Predict Controller vs. Progressor
-    _, accuracyCvP, _ = ClassifyHelper(X, Y1)
+    _, accuracyCvP = ClassifyHelper(X, Y1)
 
     # Predict Viremic vs. Nonviremic
-    _, accuracyVvN, _ = ClassifyHelper(X, Y2)
+    _, accuracyVvN = ClassifyHelper(X, Y2)
 
     return accuracyCvP, accuracyVvN
 
@@ -54,6 +54,5 @@ def ClassifyHelper(X, Y):
     """ Function with common Logistic regression methods. """
     regr = LogisticRegressionCV(n_jobs=-1, cv=40, max_iter=1000).fit(X, Y)
     clf = LogisticRegression(C=regr.C_[0], max_iter=1000).fit(X, Y)
-    coef = clf.coef_
     Y_pred = cross_val_predict(clf, X, Y, cv=40, n_jobs=-1)
-    return Y_pred, accuracy_score(Y, Y_pred), coef
+    return Y_pred, accuracy_score(Y, Y_pred)
