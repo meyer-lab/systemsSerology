@@ -21,18 +21,18 @@ def calcR2X(tensorIn, matrixIn, tensorFac, matrixFac):
     return 1.0 - (tErr + mErr) / (np.nanvar(tensorIn) + np.nanvar(matrixIn))
 
 
-def reorient_factors(tensorFac, matrixFac):
+def reorient_factors(tFac, mFac):
     """ This function ensures that factors are negative on at most one direction. """
-    for jj in range(1, len(tensorFac)):
+    for jj in range(1, len(tFac)):
         # Calculate the sign of the current factor in each component
-        means = np.sign(np.mean(tensorFac[jj], axis=0))
+        means = np.sign(np.mean(tFac[jj], axis=0))
 
         # Update both the current and last factor
-        tensorFac[0] *= means[np.newaxis, :]
-        matrixFac[0] *= means[np.newaxis, :]
-        matrixFac[1] *= means[np.newaxis, :]
-        tensorFac[jj] *= means[np.newaxis, :]
-    return tensorFac, matrixFac
+        tFac[0] *= means[np.newaxis, :]
+        mFac[0] *= means[np.newaxis, :]
+        mFac[1] *= means[np.newaxis, :]
+        tFac[jj] *= means[np.newaxis, :]
+    return tFac, mFac
 
 
 def buildTensors(pIn, tensor, matrix, tmask, r):
@@ -81,11 +81,11 @@ def perform_CMTF(tensorOrig=None, matrixOrig=None, r=6):
     def gradd(*args):
         return np.array(cost_grad(*args))
 
-    CPinit = parafac(tensorIn.copy(), r, mask=tmask, n_iter_max=50, orthogonalise=10)
+    CPinit = parafac(tensorIn.copy(), r, mask=tmask, n_iter_max=20, orthogonalise=10)
     x0 = np.concatenate((np.ravel(CPinit.factors[0]), np.ravel(CPinit.factors[1]), np.ravel(CPinit.factors[2])))
 
     rgs = (tensorIn, matrixIn, tmask, r)
-    res = minimize(costt, x0, method='L-BFGS-B', jac=gradd, args=rgs, options={"maxiter": 50000})
+    res = minimize(costt, x0, method='L-BFGS-B', jac=gradd, args=rgs, options={"maxiter": 100000})
     tensorFac, matrixFac = buildTensors(res.x, tensorIn, matrixIn, tmask, r)
     tensorFac = kruskal_normalise(tensorFac)
     matrixFac = kruskal_normalise(matrixFac)
