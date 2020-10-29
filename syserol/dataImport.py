@@ -137,15 +137,17 @@ def createCube():
 
         for i, curSubj in enumerate(subjects):
             subjLumx = lumx[lumx["subject"] == curSubj]
-            subjGly = dfGlycan[dfGlycan["subject"] == curSubj]
-
-            for _, row in subjGly.iterrows():
-                j = glycan.index(row["variable"])
-                glyCube[i, j] = row["value"]
 
             for _, row in subjLumx.iterrows():
                 j = detections.index(row["variable"])
                 cube[i, j, k] = row["value"]
+
+    for i, curSubj in enumerate(subjects):
+        subjGly = dfGlycan[dfGlycan["subject"] == curSubj]
+
+        for _, row in subjGly.iterrows():
+            j = glycan.index(row["variable"])
+            glyCube[i, j] = row["value"]
 
     # Add IgG data on the end as another detection
     for i, curSubj in enumerate(subjects):
