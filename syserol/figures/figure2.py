@@ -36,7 +36,7 @@ def makeFigure():
     # Gather Class Prediction Accuracies
     accuracyCvP, accuracyVvN = two_way_classifications()  # Alter accuracies
     # Run our model
-    cp_accuracy, nv_accuracy, _, _ = class_predictions(tFac[1][0])  # Our accuracies
+    cp_accuracy, nv_accuracy = class_predictions(tFac[1][0])  # Our accuracies
 
     # Create DataFrame
     baselineNV = 0.5083  # datasetEV3/Fc.array/class.nv/lambda.min/score_details.txt "No information rate"
