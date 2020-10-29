@@ -24,18 +24,14 @@ def makeFigure():
     accuracies = [function_elastic_net(f)[2] for f in functions]
     accuracies = accuracies + [function_prediction(tFac, function=f, evaluation="Alter")[2] for f in functions]
 
+    # Subjects left out of Alter
+    accuracies = accuracies + [function_prediction(tFac, function=f, evaluation="notAlter")[2] for f in functions]
+
     # Create DataFrame
-    model = ["Alter Model"] * 6 + ["Our Model"] * 6
-    function = functions + functions
+    model = ["Alter Model"] * 6 + ["Our Model"] * 6 + ["Excluded Cases"] * 6
+    function = functions + functions + functions
     data = {"Accuracy": accuracies, "Model": model, "Function": function}
     functions_df = pd.DataFrame(data)  # Function Prediction DataFrame, Figure 2B
-
-    # Subjects left out of Alter
-    accuracies = [function_prediction(tFac, function=f, evaluation="notAlter")[2] for f in functions]
-
-    # Create DataFrame
-    data = {"Accuracy": accuracies, "Function": functions}
-    subjects_out = pd.DataFrame(data) # DataFrame for Figure 2D
 
     # Gather Class Prediction Accuracies
     accuracyCvP, accuracyVvN = two_way_classifications()  # Alter accuracies
@@ -78,7 +74,7 @@ def makeFigure():
         y="Accuracy",
         x="Function",
         hue="Model",
-        markers=["o", "x"],
+        markers=["o", "x", "d"],
         join=False,
         data=functions_df,
         ax=ax[0],
