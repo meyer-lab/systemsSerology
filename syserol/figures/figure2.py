@@ -67,7 +67,7 @@ def makeFigure():
     class_df = pd.DataFrame(data)
 
     # PLOT DataFrames
-    ax, f = getSetup((9, 6), (2, 3))
+    ax, f = getSetup((8, 8), (2, 2))
     sns.set()
     # Function Plot
     a = sns.pointplot(
@@ -110,8 +110,8 @@ def makeFigure():
 
     #Component Weights
     sns.set()
-    a = sns.barplot(data=function_df, x="Component", y="Weights", hue="Function", ax=ax[3])
-    b = sns.barplot(data=class_df, x="Component", y="Weights", hue="Class", ax=ax[4])
+    a = sns.barplot(data=function_df, x="Component", y="Weights", hue="Function", ax=ax[2])
+    b = sns.barplot(data=class_df, x="Component", y="Weights", hue="Class", ax=ax[3])
 
     subplotLabel(ax)
 
