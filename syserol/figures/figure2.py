@@ -56,13 +56,13 @@ def makeFigure():
     function_coefs = [function_prediction(tFac, function=f, evaluation="all")[3] for f in functions]
     flat_func_coefs = [func_coef for func in function_coefs for func_coef in func]
     function = [fun for fun in functions for i in range(6)]
-    components = [1, 2, 3, 4, 5, 6] * 6
+    components = [1, 2, 3, 4] * 6
     data = {"Weights": flat_func_coefs, "Function": function, "Component": components}
     function_df = pd.DataFrame(data)
 
     #Collect classification component weights
-    components = [1, 2, 3, 4, 5, 6] * 2
-    category = ["Progression"] * 6 + ["Viremia"] * 6
+    components = [1, 2, 3, 4] * 2
+    category = ["Progression"] * 4 + ["Viremia"] * 4
     data = {"Weights": [ele for arr in np.hstack([cp_coef, nv_coef]) for ele in arr], "Class": category, "Component": components}
     class_df = pd.DataFrame(data)
 
