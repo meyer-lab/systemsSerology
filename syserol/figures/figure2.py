@@ -54,16 +54,14 @@ def makeFigure():
     #Factor data
     #Collect function component weights from elastic net prediction
     function_coefs = [function_prediction(tFac, function=f, evaluation="all")[3] for f in functions]
-    flat_func_coefs = [func_coef for func in function_coefs for func_coef in func]
-    function = [fun for fun in functions for i in range(tFac.rank)]
     components = np.tile(np.arange(1, tFac.rank+1), 6)
-    data = {"Weights": flat_func_coefs, "Function": function, "Component": components}
+    data = {"Weights": np.concatenate(function_coefs), "Function": functions * tFac.rank, "Component": components}
     function_df = pd.DataFrame(data)
 
     #Collect classification component weights
     components = np.tile(np.arange(1, tFac.rank+1), 2)
     category = ["Progression"] * tFac.rank + ["Viremia"] * tFac.rank
-    data = {"Weights": [ele for arr in np.hstack([cp_coef, nv_coef]) for ele in arr], "Class": category, "Component": components}
+    data = {"Weights": np.concatenate((cp_coef, nv_coef)), "Class": category, "Component": components}
     class_df = pd.DataFrame(data)
 
     # PLOT DataFrames
