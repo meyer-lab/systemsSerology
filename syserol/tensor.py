@@ -44,7 +44,6 @@ def cost(pIn, tensor, matrix, tmask, r):
     matrix[mmask] = 0.0
     cost = jnp.linalg.norm(tl.cp_to_tensor(tensF, mask=1 - tmask) - tensor) # Tensor cost
     cost += jnp.linalg.norm(tl.cp_to_tensor(matF, mask=1 - mmask) - matrix) # Matrix cost
-    cost += 1e-12 * jnp.linalg.norm(pIn)
     tl.set_backend('numpy')
     return cost
 
@@ -72,7 +71,7 @@ def perform_CMTF(tensorOrig=None, matrixOrig=None, r=6):
 
     rgs = (tensorIn, matrixIn, tmask, r)
     bnds = [(0.0, None)] * x0.size
-    res = minimize(costt, x0, method='L-BFGS-B', jac=gradd, args=rgs, bounds=bnds, options={"maxiter": 100000})
+    res = minimize(costt, x0, method='L-BFGS-B', jac=gradd, args=rgs, bounds=bnds, options={"maxcor": 20, "maxiter": 100000})
     tensorFac, matrixFac = buildTensors(res.x, tensorIn, matrixIn, tmask, r)
     tensorFac = cp_normalize(tensorFac)
     matrixFac = cp_normalize(matrixFac)
