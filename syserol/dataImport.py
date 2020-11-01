@@ -168,4 +168,4 @@ def createCube():
     assert ~np.any(np.all(np.isnan(cube), axis=(0, 2)))
     assert ~np.any(np.all(np.isnan(cube), axis=(1, 2)))
 
-    return cube, glyCube
+    return cube, glyCube / 10.0
