@@ -2,12 +2,10 @@
 Tensor decomposition methods
 """
 import numpy as np
-import jax.numpy as jnp
-from jax import jit, grad, jvp
-from jax.config import config
 from scipy.optimize import minimize
 import tensorly as tl
-from tensorly.cp_tensor import CPTensor, cp_normalize
+from tensorly.decomposition import parafac
+from tensorly.cp_tensor import CPTensor, cp_normalize, unfolding_dot_khatri_rao
 from .dataImport import createCube
 
 tl.set_backend('numpy')
@@ -20,58 +18,42 @@ def calcR2X(tensorIn, matrixIn, tensorFac, matrixFac):
     return 1.0 - (tErr + mErr) / (np.nanvar(tensorIn) + np.nanvar(matrixIn))
 
 
-def buildTensors(pIn, tensor, matrix, tmask, r):
-    """ Use parameter vector to build cp tensors. """
-    assert tensor.shape[0] == matrix.shape[0]
-    nn = np.cumsum(tensor.shape) * r
-    A = jnp.reshape(pIn[:nn[0]], (tensor.shape[0], r))
-    B = jnp.reshape(pIn[nn[0]:nn[1]], (tensor.shape[1], r))
-    C = jnp.reshape(pIn[nn[1]:], (tensor.shape[2], r))
-
-    # Solve for the glycan matrix fit
-    selPat = np.all(np.isfinite(matrix), axis=1)
-    G = jnp.linalg.lstsq(A[selPat, :], matrix[selPat, :])[0]
-    return CPTensor((None, [A, B, C])), CPTensor((None, [A, G.T]))
-
-
-def cost(pIn, tensor, matrix, tmask, r):
-    tl.set_backend('jax')
-    tensF, matF = buildTensors(pIn, tensor, matrix, tmask, r)
-    matrix = matrix.copy()
-    mmask = np.isnan(matrix)
-    matrix[mmask] = 0.0
-    cost = jnp.linalg.norm(tl.cp_to_tensor(tensF, mask=1 - tmask) - tensor) # Tensor cost
-    cost += jnp.linalg.norm(tl.cp_to_tensor(matF, mask=1 - mmask) - matrix) # Matrix cost
-    cost += 1e-6 * jnp.linalg.norm(pIn)
-    tl.set_backend('numpy')
-    return cost
-
-
 def perform_CMTF(tensorOrig=None, matrixOrig=None, r=10):
     """ Perform CMTF decomposition. """
     if tensorOrig is None:
-        tensorOrig, matrixIn = createCube()
+        tensorOrig, matrixOrig = createCube()
 
     tensorIn = tensorOrig.copy()
     tmask = np.isnan(tensorIn)
     tensorIn[tmask] = 0.0
+    matrixIn = matrixOrig.copy()
+    mmask = np.isnan(matrixIn)
+    matrixIn[mmask] = 0.0
 
-    cost_jax = jit(cost, static_argnums=(1, 2, 3, 4))
-    cost_grad = jit(grad(cost, 0), static_argnums=(1, 2, 3, 4))
+    tensorFac = parafac(tensorIn, r, mask=tmask, n_iter_max=100, orthogonalise=10)
+    matrixFac = parafac(matrixIn, r, mask=mmask, n_iter_max=10, orthogonalise=5)
 
-    def costt(*args):
-        return np.array(cost_jax(*args))
+    # Pre-unfold
+    selPat = np.all(np.isfinite(matrixOrig), axis=1)
+    unfolded = tl.unfold(tensorOrig, 0)
+    missing = np.any(np.isnan(unfolded), axis=0)
+    unfolded = unfolded[:, ~missing]
 
-    def gradd(*args):
-        return np.array(cost_grad(*args))
+    for ii in range(10):
+        pinv = np.ones((r, r)) * np.dot(np.conj(tensorFac.factors[1].T), tensorFac.factors[1])
+        pinv *= np.dot(np.conj(tensorFac.factors[2].T), tensorFac.factors[2])
+        pinv = np.conj(pinv.T)
 
-    x0 = np.absolute(np.random.rand(np.sum(tensorIn.shape) * r))
-    rgs = (tensorIn, matrixIn, tmask, r)
-    bnds = [(0.0, None)] * x0.size
-    res = minimize(costt, x0, method='L-BFGS-B', jac=gradd, args=rgs, bounds=bnds)
-    res = minimize(costt, res.x, method='L-BFGS-B', jac=gradd, args=rgs)
-    res = minimize(costt, res.x, method='CG', jac=gradd, args=rgs, options={"maxiter": 100})
-    tensorFac, matrixFac = buildTensors(res.x, tensorIn, matrixIn, tmask, r)
+        kr_factors = tl.kr((tensorFac.factors[1], tensorFac.factors[2]))[~missing, :]
+        mttkrp = tl.dot(unfolded, kr_factors)
+        tensorFac.factors[0] = tl.solve(pinv, mttkrp.T).T
+        matrixFac.factors[0] = tensorFac.factors[0]
+
+        tensorFac = parafac(tensorIn, r, init=tensorFac, mask=tmask, fixed_modes=[0], n_iter_max=10)
+
+        # Solve for the glycan matrix fit
+        matrixFac.factors[1] = np.linalg.lstsq(matrixFac.factors[0][selPat, :], matrixOrig[selPat, :])[0].T
+
     tensorFac = cp_normalize(tensorFac)
     matrixFac = cp_normalize(matrixFac)
 
