@@ -55,7 +55,7 @@ def makeFigure():
     #Collect function component weights from elastic net prediction
     function_coefs = [function_prediction(tFac, function=f, evaluation="all")[3] for f in functions]
     flat_func_coefs = [func_coef for func in function_coefs for func_coef in func]
-    function = [fun for fun in functions for i in range(6)]
+    function = [fun for fun in functions for i in range(4)]
     components = [1, 2, 3, 4] * 6
     data = {"Weights": flat_func_coefs, "Function": function, "Component": components}
     function_df = pd.DataFrame(data)
