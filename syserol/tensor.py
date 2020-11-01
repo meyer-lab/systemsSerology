@@ -69,6 +69,7 @@ def perform_CMTF(tensorOrig=None, matrixOrig=None, r=6):
     rgs = (tensorIn, matrixIn, tmask, r)
     bnds = [(0.0, None)] * x0.size
     res = minimize(costt, x0, method='L-BFGS-B', jac=gradd, args=rgs, bounds=bnds, options={"maxcor": 50})
+    res = minimize(costt, res.x, method='L-BFGS-B', jac=gradd, args=rgs, options={"maxcor": 50})
     tensorFac, matrixFac = buildTensors(res.x, tensorIn, matrixIn, tmask, r)
     tensorFac = cp_normalize(tensorFac)
     matrixFac = cp_normalize(matrixFac)
