@@ -59,5 +59,5 @@ def RegressionHelper(X, Y):
     """ Function with common Logistic regression methods. """
     regr = ElasticNetCV(normalize=True, max_iter=10000, cv=20, n_jobs=-1, l1_ratio=0.8).fit(X, Y)
     enet = ElasticNet(alpha=regr.alpha_, l1_ratio=regr.l1_ratio_, normalize=True, max_iter=10000)
-    Y_pred = cross_val_predict(enet, X, Y, cv=len(Y), n_jobs=-1)
+    Y_pred = cross_val_predict(enet, X, Y, cv=40, n_jobs=-1)
     return Y_pred, enet.fit(X, Y).coef_
