@@ -31,7 +31,6 @@ def buildTensors(pIn, tensor, matrix, tmask, r):
     # Solve for the glycan matrix fit
     selPat = np.all(np.isfinite(matrix), axis=1)
     G = jnp.linalg.lstsq(A[selPat, :], matrix[selPat, :])[0]
-
     return CPTensor((None, [A, B, C])), CPTensor((None, [A, G.T]))
 
 
@@ -65,11 +64,10 @@ def perform_CMTF(tensorOrig=None, matrixOrig=None, r=6):
     def gradd(*args):
         return np.array(cost_grad(*args))
 
-    x0 = np.random.rand(np.sum(tensorIn.shape) * r)
-    x0[0:tensorIn.shape[0]*r] = np.absolute(x0[0:tensorIn.shape[0]*r])
+    x0 = np.absolute(np.random.rand(np.sum(tensorIn.shape) * r))
     rgs = (tensorIn, matrixIn, tmask, r)
-    bnds = [(0.0, None) if ii < tensorIn.shape[0]*r else (None, None) for ii in range(x0.size)]
-    res = minimize(costt, x0, method='L-BFGS-B', jac=gradd, args=rgs, bounds=bnds, options={"maxcor": 20})
+    bnds = [(0.0, None)] * x0.size
+    res = minimize(costt, x0, method='L-BFGS-B', jac=gradd, args=rgs, bounds=bnds, options={"maxcor": 50})
     tensorFac, matrixFac = buildTensors(res.x, tensorIn, matrixIn, tmask, r)
     tensorFac = cp_normalize(tensorFac)
     matrixFac = cp_normalize(matrixFac)
