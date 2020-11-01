@@ -65,9 +65,10 @@ def perform_CMTF(tensorOrig=None, matrixOrig=None, r=9):
     def gradd(*args):
         return np.array(cost_grad(*args))
 
-    x0 = np.absolute(np.random.rand(np.sum(tensorIn.shape) * r))
+    x0 = np.random.rand(np.sum(tensorIn.shape) * r)
+    x0[0:tensorIn.shape[0]*r] = np.absolute(x0[0:tensorIn.shape[0]*r])
     rgs = (tensorIn, matrixIn, tmask, r)
-    bnds = [(0.0, None)] * x0.size
+    bnds = [(0.0, None) if ii < tensorIn.shape[0]*r else (None, None) for ii in range(x0.size)]
     res = minimize(costt, x0, method='L-BFGS-B', jac=gradd, args=rgs, bounds=bnds, options={"maxcor": 20})
     tensorFac, matrixFac = buildTensors(res.x, tensorIn, matrixIn, tmask, r)
     tensorFac = cp_normalize(tensorFac)
