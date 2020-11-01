@@ -7,7 +7,6 @@ from jax import jit, grad, jvp
 from jax.config import config
 from scipy.optimize import minimize
 import tensorly as tl
-from tensorly.decomposition import non_negative_parafac
 from tensorly.cp_tensor import CPTensor, cp_normalize
 from .dataImport import createCube
 
@@ -48,7 +47,7 @@ def cost(pIn, tensor, matrix, tmask, r):
     return cost
 
 
-def perform_CMTF(tensorOrig=None, matrixOrig=None, r=6):
+def perform_CMTF(tensorOrig=None, matrixOrig=None, r=9):
     """ Perform CMTF decomposition. """
     if tensorOrig is None:
         tensorOrig, matrixIn = createCube()
@@ -66,12 +65,10 @@ def perform_CMTF(tensorOrig=None, matrixOrig=None, r=6):
     def gradd(*args):
         return np.array(cost_grad(*args))
 
-    CPinit = non_negative_parafac(tensorIn.copy(), r, mask=tmask, n_iter_max=50, orthogonalise=10)
-    x0 = np.concatenate((np.ravel(CPinit.factors[0]), np.ravel(CPinit.factors[1]), np.ravel(CPinit.factors[2])))
-
+    x0 = np.absolute(np.random.rand(np.sum(tensorIn.shape) * r))
     rgs = (tensorIn, matrixIn, tmask, r)
     bnds = [(0.0, None)] * x0.size
-    res = minimize(costt, x0, method='L-BFGS-B', jac=gradd, args=rgs, bounds=bnds, options={"maxcor": 20, "maxiter": 100000})
+    res = minimize(costt, x0, method='L-BFGS-B', jac=gradd, args=rgs, bounds=bnds, options={"maxcor": 20})
     tensorFac, matrixFac = buildTensors(res.x, tensorIn, matrixIn, tmask, r)
     tensorFac = cp_normalize(tensorFac)
     matrixFac = cp_normalize(matrixFac)
