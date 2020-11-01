@@ -47,7 +47,7 @@ def cost(pIn, tensor, matrix, tmask, r):
     return cost
 
 
-def perform_CMTF(tensorOrig=None, matrixOrig=None, r=6):
+def perform_CMTF(tensorOrig=None, matrixOrig=None, r=10):
     """ Perform CMTF decomposition. """
     if tensorOrig is None:
         tensorOrig, matrixIn = createCube()
@@ -68,8 +68,9 @@ def perform_CMTF(tensorOrig=None, matrixOrig=None, r=6):
     x0 = np.absolute(np.random.rand(np.sum(tensorIn.shape) * r))
     rgs = (tensorIn, matrixIn, tmask, r)
     bnds = [(0.0, None)] * x0.size
-    res = minimize(costt, x0, method='L-BFGS-B', jac=gradd, args=rgs, bounds=bnds, options={"maxcor": 50})
-    res = minimize(costt, res.x, method='L-BFGS-B', jac=gradd, args=rgs, options={"maxcor": 50})
+    res = minimize(costt, x0, method='L-BFGS-B', jac=gradd, args=rgs, bounds=bnds)
+    res = minimize(costt, res.x, method='L-BFGS-B', jac=gradd, args=rgs)
+    res = minimize(costt, res.x, method='CG', jac=gradd, args=rgs, options={"maxiter": 100})
     tensorFac, matrixFac = buildTensors(res.x, tensorIn, matrixIn, tmask, r)
     tensorFac = cp_normalize(tensorFac)
     matrixFac = cp_normalize(matrixFac)
