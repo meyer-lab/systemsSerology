@@ -7,7 +7,7 @@ from jax import jit, grad, jvp
 from jax.config import config
 from scipy.optimize import minimize
 import tensorly as tl
-from tensorly.decomposition import parafac
+from tensorly.decomposition import non_negative_parafac
 from tensorly.cp_tensor import CPTensor, cp_normalize
 from .dataImport import createCube
 
@@ -19,20 +19,6 @@ def calcR2X(tensorIn, matrixIn, tensorFac, matrixFac):
     tErr = np.nanvar(tl.cp_to_tensor(tensorFac) - tensorIn)
     mErr = np.nanvar(tl.cp_to_tensor(matrixFac) - matrixIn)
     return 1.0 - (tErr + mErr) / (np.nanvar(tensorIn) + np.nanvar(matrixIn))
-
-
-def reorient_factors(tFac, mFac):
-    """ This function ensures that factors are negative on at most one direction. """
-    for jj in range(1, len(tFac)):
-        # Calculate the sign of the current factor in each component
-        means = np.sign(np.mean(tFac[jj], axis=0))
-
-        # Update both the current and last factor
-        tFac[0] *= means[np.newaxis, :]
-        mFac[0] *= means[np.newaxis, :]
-        mFac[1] *= means[np.newaxis, :]
-        tFac[jj] *= means[np.newaxis, :]
-    return tFac, mFac
 
 
 def buildTensors(pIn, tensor, matrix, tmask, r):
@@ -81,17 +67,15 @@ def perform_CMTF(tensorOrig=None, matrixOrig=None, r=6):
     def gradd(*args):
         return np.array(cost_grad(*args))
 
-    CPinit = parafac(tensorIn.copy(), r, mask=tmask, n_iter_max=20, orthogonalise=10)
+    CPinit = non_negative_parafac(tensorIn.copy(), r, mask=tmask, n_iter_max=50, orthogonalise=10)
     x0 = np.concatenate((np.ravel(CPinit.factors[0]), np.ravel(CPinit.factors[1]), np.ravel(CPinit.factors[2])))
 
     rgs = (tensorIn, matrixIn, tmask, r)
-    res = minimize(costt, x0, method='L-BFGS-B', jac=gradd, args=rgs, options={"maxiter": 100000})
+    bnds = [(0.0, None)] * x0.size
+    res = minimize(costt, x0, method='L-BFGS-B', jac=gradd, args=rgs, bounds=bnds, options={"maxiter": 100000})
     tensorFac, matrixFac = buildTensors(res.x, tensorIn, matrixIn, tmask, r)
     tensorFac = cp_normalize(tensorFac)
     matrixFac = cp_normalize(matrixFac)
-
-    # Reorient the later tensor factors
-    tensorFac.factors, matrixFac.factors = reorient_factors(tensorFac.factors, matrixFac.factors)
 
     R2X = calcR2X(tensorOrig, matrixIn, tensorFac, matrixFac)
 
