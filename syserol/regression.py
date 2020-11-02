@@ -42,7 +42,7 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all"):
     # Perform Regression
     lr = LinearRegression(normalize=True).fit(X, Y)
     coef = lr.coef_
-    Y_pred = cross_val_predict(lr, X, Y, cv=40, n_jobs=-1)
+    Y_pred = cross_val_predict(lr, X, Y, cv=len(Y), n_jobs=-1)
 
     if evaluation == "all":
         Y, Y_pred = Y, Y_pred
