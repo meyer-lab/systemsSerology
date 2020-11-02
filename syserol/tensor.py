@@ -2,17 +2,13 @@
 Tensor decomposition methods
 """
 import numpy as np
-import jax.numpy as jnp
-from jax import jit, grad, jvp
-from jax.config import config
-from scipy.optimize import minimize
+from scipy.linalg import khatri_rao
 import tensorly as tl
-from tensorly.decomposition import parafac
-from tensorly.cp_tensor import CPTensor, cp_normalize
+from tensorly.decomposition import parafac, non_negative_parafac
+from tensorly.cp_tensor import cp_normalize
 from .dataImport import createCube
 
 tl.set_backend('numpy')
-config.update("jax_enable_x64", True)
 
 def calcR2X(tensorIn, matrixIn, tensorFac, matrixFac):
     """ Calculate R2X. """
@@ -21,83 +17,47 @@ def calcR2X(tensorIn, matrixIn, tensorFac, matrixFac):
     return 1.0 - (tErr + mErr) / (np.nanvar(tensorIn) + np.nanvar(matrixIn))
 
 
-def reorient_factors(tFac, mFac):
-    """ This function ensures that factors are negative on at most one direction. """
-    for jj in range(1, len(tFac)):
-        # Calculate the sign of the current factor in each component
-        means = np.sign(np.mean(tFac[jj], axis=0))
-
-        # Update both the current and last factor
-        tFac[0] *= means[np.newaxis, :]
-        mFac[0] *= means[np.newaxis, :]
-        mFac[1] *= means[np.newaxis, :]
-        tFac[jj] *= means[np.newaxis, :]
-    return tFac, mFac
-
-
-def buildTensors(pIn, tensor, matrix, tmask, r):
-    """ Use parameter vector to build cp tensors. """
-    assert tensor.shape[0] == matrix.shape[0]
-    nn = np.cumsum(tensor.shape) * r
-    A = jnp.reshape(pIn[:nn[0]], (tensor.shape[0], r))
-    B = jnp.reshape(pIn[nn[0]:nn[1]], (tensor.shape[1], r))
-    C = jnp.reshape(pIn[nn[1]:], (tensor.shape[2], r))
-
-    # Solve for the glycan matrix fit
-    selPat = np.all(np.isfinite(matrix), axis=1)
-    G = jnp.linalg.lstsq(A[selPat, :], matrix[selPat, :])[0]
-
-    return CPTensor((None, [A, B, C])), CPTensor((None, [A, G.T]))
-
-
-def cost(pIn, tensor, matrix, tmask, r):
-    tl.set_backend('jax')
-    tensF, matF = buildTensors(pIn, tensor, matrix, tmask, r)
-    matrix = matrix.copy()
-    mmask = np.isnan(matrix)
-    matrix[mmask] = 0.0
-    cost = jnp.linalg.norm(tl.cp_to_tensor(tensF, mask=1 - tmask) - tensor) # Tensor cost
-    cost += jnp.linalg.norm(tl.cp_to_tensor(matF, mask=1 - mmask) - matrix) # Matrix cost
-    cost += 1e-12 * jnp.linalg.norm(pIn)
-    tl.set_backend('numpy')
-    return cost
-
-
-def perform_CMTF(tensorOrig=None, matrixOrig=None, r=6):
+def perform_CMTF(tensorOrig=None, matrixOrig=None, r=10):
     """ Perform CMTF decomposition. """
     if tensorOrig is None:
-        tensorOrig, matrixIn = createCube()
+        tensorOrig, matrixOrig = createCube()
 
     tensorIn = tensorOrig.copy()
     tmask = np.isnan(tensorIn)
     tensorIn[tmask] = 0.0
+    matrixIn = matrixOrig.copy()
+    mmask = np.isnan(matrixIn)
+    matrixIn[mmask] = 0.0
 
-    cost_jax = jit(cost, static_argnums=(1, 2, 3, 4))
-    cost_grad = jit(grad(cost, 0), static_argnums=(1, 2, 3, 4))
+    tFac = non_negative_parafac(tensorIn, r, mask=1-tmask, n_iter_max=100)
+    mFac = non_negative_parafac(matrixIn, r, mask=1-mmask, n_iter_max=1)
 
-    def costt(*args):
-        return np.array(cost_jax(*args))
+    # Pre-unfold
+    selPat = np.all(np.isfinite(matrixOrig), axis=1)
+    unfolded = tl.unfold(tensorOrig, 0)
+    missing = np.any(np.isnan(unfolded), axis=0)
+    unfolded = unfolded[:, ~missing]
 
-    def gradd(*args):
-        return np.array(cost_grad(*args))
+    for _ in range(200):
+        kr = khatri_rao(tFac.factors[1], tFac.factors[2])[~missing, :]
+        kr2 = np.vstack((kr, mFac.factors[1]))
+        unfolded2 = np.hstack((unfolded, matrixIn))
 
-    CPinit = parafac(tensorIn.copy(), r, mask=tmask, n_iter_max=20, orthogonalise=10)
-    x0 = np.concatenate((np.ravel(CPinit.factors[0]), np.ravel(CPinit.factors[1]), np.ravel(CPinit.factors[2])))
+        tFac.factors[0] = np.linalg.lstsq(kr2, unfolded2.T, rcond=None)[0].T
+        mFac.factors[0] = tFac.factors[0]
 
-    rgs = (tensorIn, matrixIn, tmask, r)
-    res = minimize(costt, x0, method='L-BFGS-B', jac=gradd, args=rgs, options={"maxiter": 100000})
-    tensorFac, matrixFac = buildTensors(res.x, tensorIn, matrixIn, tmask, r)
-    tensorFac = cp_normalize(tensorFac)
-    matrixFac = cp_normalize(matrixFac)
+        tFac = parafac(tensorIn, r, init=tFac, mask=1-tmask, fixed_modes=[0], n_iter_max=2)
 
-    # Reorient the later tensor factors
-    tensorFac.factors, matrixFac.factors = reorient_factors(tensorFac.factors, matrixFac.factors)
+        # Solve for the glycan matrix fit
+        mFac.factors[1] = np.linalg.lstsq(mFac.factors[0][selPat, :], matrixOrig[selPat, :], rcond=None)[0].T
 
-    R2X = calcR2X(tensorOrig, matrixIn, tensorFac, matrixFac)
+        # Fill in glycan matrix
+        matrixIn[mmask] = tl.cp_to_tensor(mFac)[mmask]
+        tensorIn[tmask] = tl.cp_to_tensor(tFac)[tmask]
 
-    for ii in range(3):
-        tensorFac.factors[ii] = np.array(tensorFac.factors[ii])
-    for ii in range(2):
-        matrixFac.factors[ii] = np.array(matrixFac.factors[ii])
+    tFac = cp_normalize(tFac)
+    mFac = cp_normalize(mFac)
 
-    return tensorFac, matrixFac, R2X
+    R2X = calcR2X(tensorOrig, matrixOrig, tFac, mFac)
+
+    return tFac, mFac, R2X
