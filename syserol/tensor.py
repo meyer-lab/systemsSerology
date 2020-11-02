@@ -5,7 +5,7 @@ import numpy as np
 from scipy.optimize import minimize
 from scipy.linalg import khatri_rao
 import tensorly as tl
-from tensorly.decomposition import parafac
+from tensorly.decomposition import parafac, non_negative_parafac
 from tensorly.cp_tensor import CPTensor, cp_normalize, unfolding_dot_khatri_rao
 from .dataImport import createCube
 
@@ -30,8 +30,8 @@ def perform_CMTF(tensorOrig=None, matrixOrig=None, r=10):
     mmask = np.isnan(matrixIn)
     matrixIn[mmask] = 0.0
 
-    tensorFac = parafac(tensorIn, r, mask=tmask, n_iter_max=100, orthogonalise=10)
-    matrixFac = parafac(matrixIn, r, mask=mmask, n_iter_max=10, orthogonalise=5)
+    tFac = non_negative_parafac(tensorIn, r, mask=1-tmask, n_iter_max=100)
+    mFac = non_negative_parafac(matrixIn, r, mask=1-mmask, n_iter_max=1)
 
     # Pre-unfold
     selPat = np.all(np.isfinite(matrixOrig), axis=1)
@@ -39,31 +39,31 @@ def perform_CMTF(tensorOrig=None, matrixOrig=None, r=10):
     missing = np.any(np.isnan(unfolded), axis=0)
     unfolded = unfolded[:, ~missing]
 
-    for ii in range(10):
-        pinv = np.ones((r, r)) * np.dot(np.conj(tensorFac.factors[1].T), tensorFac.factors[1])
-        pinv *= np.dot(np.conj(tensorFac.factors[2].T), tensorFac.factors[2])
-        pinv = np.conj(pinv.T)
+    for ii in range(100):
+        kr = khatri_rao(tFac.factors[1], tFac.factors[2])[~missing, :]
+        kr2 = np.vstack((kr, mFac.factors[1]))
+        unfolded2 = np.hstack((unfolded, matrixIn))
 
-        kr = khatri_rao(tensorFac.factors[1], tensorFac.factors[2])[~missing, :]
-        mttkrp = tl.dot(unfolded, kr)
-        tensorFac.factors[0] = tl.solve(pinv, mttkrp.T).T
-        matrixFac.factors[0] = tensorFac.factors[0]
+        tFac.factors[0] = np.linalg.lstsq(kr2, unfolded2.T, rcond=None)[0].T
+        mFac.factors[0] = tFac.factors[0]
 
-        tensorFac = parafac(tensorIn, r, init=tensorFac, mask=tmask, fixed_modes=[0], n_iter_max=10)
+        tFac = parafac(tensorIn, r, init=tFac, mask=1-tmask, fixed_modes=[0], n_iter_max=3)
 
         # Solve for the glycan matrix fit
-        matrixFac.factors[1] = np.linalg.lstsq(matrixFac.factors[0][selPat, :], matrixOrig[selPat, :], rcond=None)[0].T
+        mFac.factors[1] = np.linalg.lstsq(mFac.factors[0][selPat, :], matrixOrig[selPat, :], rcond=None)[0].T
 
-        print(calcR2X(tensorOrig, matrixIn, tensorFac, matrixFac))
+        # Fill in glycan matrix
+        matrixIn[mmask] = tl.cp_to_tensor(mFac)[mmask]
+        tensorIn[tmask] = tl.cp_to_tensor(tFac)[tmask]
 
-    tensorFac = cp_normalize(tensorFac)
-    matrixFac = cp_normalize(matrixFac)
+    tFac = cp_normalize(tFac)
+    mFac = cp_normalize(mFac)
 
-    R2X = calcR2X(tensorOrig, matrixIn, tensorFac, matrixFac)
+    R2X = calcR2X(tensorOrig, matrixOrig, tFac, mFac)
 
     for ii in range(3):
-        tensorFac.factors[ii] = np.array(tensorFac.factors[ii])
+        tFac.factors[ii] = np.array(tFac.factors[ii])
     for ii in range(2):
-        matrixFac.factors[ii] = np.array(matrixFac.factors[ii])
+        mFac.factors[ii] = np.array(mFac.factors[ii])
 
-    return tensorFac, matrixFac, R2X
+    return tFac, mFac, R2X
