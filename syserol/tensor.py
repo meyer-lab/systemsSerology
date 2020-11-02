@@ -2,7 +2,6 @@
 Tensor decomposition methods
 """
 import numpy as np
-from scipy.optimize import minimize
 from scipy.linalg import khatri_rao
 import tensorly as tl
 from tensorly.decomposition import parafac, non_negative_parafac
