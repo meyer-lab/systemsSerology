@@ -39,7 +39,7 @@ def perform_CMTF(tensorOrig=None, matrixOrig=None, r=10):
     missing = np.any(np.isnan(unfolded), axis=0)
     unfolded = unfolded[:, ~missing]
 
-    for ii in range(100):
+    for ii in range(200):
         kr = khatri_rao(tFac.factors[1], tFac.factors[2])[~missing, :]
         kr2 = np.vstack((kr, mFac.factors[1]))
         unfolded2 = np.hstack((unfolded, matrixIn))
@@ -47,7 +47,7 @@ def perform_CMTF(tensorOrig=None, matrixOrig=None, r=10):
         tFac.factors[0] = np.linalg.lstsq(kr2, unfolded2.T, rcond=None)[0].T
         mFac.factors[0] = tFac.factors[0]
 
-        tFac = parafac(tensorIn, r, init=tFac, mask=1-tmask, fixed_modes=[0], n_iter_max=3)
+        tFac = parafac(tensorIn, r, init=tFac, mask=1-tmask, fixed_modes=[0], n_iter_max=2)
 
         # Solve for the glycan matrix fit
         mFac.factors[1] = np.linalg.lstsq(mFac.factors[0][selPat, :], matrixOrig[selPat, :], rcond=None)[0].T
