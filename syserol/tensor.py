@@ -6,7 +6,7 @@ from scipy.optimize import minimize
 from scipy.linalg import khatri_rao
 import tensorly as tl
 from tensorly.decomposition import parafac, non_negative_parafac
-from tensorly.cp_tensor import CPTensor, cp_normalize, unfolding_dot_khatri_rao
+from tensorly.cp_tensor import cp_normalize
 from .dataImport import createCube
 
 tl.set_backend('numpy')
@@ -39,7 +39,7 @@ def perform_CMTF(tensorOrig=None, matrixOrig=None, r=10):
     missing = np.any(np.isnan(unfolded), axis=0)
     unfolded = unfolded[:, ~missing]
 
-    for ii in range(200):
+    for _ in range(200):
         kr = khatri_rao(tFac.factors[1], tFac.factors[2])[~missing, :]
         kr2 = np.vstack((kr, mFac.factors[1]))
         unfolded2 = np.hstack((unfolded, matrixIn))
@@ -60,10 +60,5 @@ def perform_CMTF(tensorOrig=None, matrixOrig=None, r=10):
     mFac = cp_normalize(mFac)
 
     R2X = calcR2X(tensorOrig, matrixOrig, tFac, mFac)
-
-    for ii in range(3):
-        tFac.factors[ii] = np.array(tFac.factors[ii])
-    for ii in range(2):
-        mFac.factors[ii] = np.array(mFac.factors[ii])
 
     return tFac, mFac, R2X
