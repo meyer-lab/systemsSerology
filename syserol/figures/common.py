@@ -269,22 +269,51 @@ def buildFigure3(legends=True, heatmap=False):
         for aa in ax:
             aa.axis('equal')
     else:
-        ax, f = getSetup((8, 8), (1, 4))
-        
-        cbar_kws = {"orientation":"horizontal"}
+        f = plt.figure(figsize=(10, 15))
+        gs = gridspec.GridSpec(2, 4,
+                            width_ratios=[1, 25, 12, 25],
+                            height_ratios=[1, 1],
+                            wspace=0, hspace=.3
+                            )
+        ax1 = plt.subplot(gs[0])
+        ax2 = plt.subplot(gs[1])
+        ax4 = plt.subplot(gs[3])
+        ax6 = plt.subplot(gs[5])
+        ax8 = plt.subplot(gs[7])
+
+
+        colors = ["blue", "orange", "green", "red"]
+        cmap = sns.color_palette(colors)
+        #cbar_kws = {"location":"top"}
         subs = pd.DataFrame(subjects, columns = [f"Component {i}" for i in np.arange(1, subjects.shape[1] + 1)], index=subjinfo["class.etuv"])
-        plt = sns.heatmap(subs, cmap="PRGn", center=0, xticklabels=True, yticklabels=50, cbar_kws=cbar_kws, ax=ax[0])
-        plt.set_ylabel("")
+        sns.heatmap(subs, cmap="PRGn", center=0, xticklabels=True, yticklabels=False, cbar_kws=dict(fraction=.05, pad=.03), ax=ax2)
 
         rec = pd.DataFrame(receptors, columns = [f"Component {i}" for i in np.arange(1, subjects.shape[1] + 1)], index=detections)
-        sns.heatmap(rec, cmap="PRGn", center=0, yticklabels=True, cbar_kws=cbar_kws, ax=ax[1])
+        sns.heatmap(rec, cmap="PRGn", center=0, yticklabels=True, cbar_kws=dict(fraction=.05, pad=.03), ax=ax4)
 
         ant = pd.DataFrame(antigens, columns=[f"Component {i}" for i in np.arange(1, subjects.shape[1] + 1)], index=antigen)
-        sns.heatmap(ant, cmap="PRGn", center=0, yticklabels=True, cbar_kws=cbar_kws, ax=ax[2])
+        sns.heatmap(ant, cmap="PRGn", center=0, yticklabels=True, cbar_kws=dict(fraction=.05, pad=.03), ax=ax6)
 
         glycans = pd.DataFrame(glyc, columns=[f"Component {i}" for i in np.arange(1, subjects.shape[1] + 1)], index=glycaninf["glycan"])
-        a = sns.heatmap(glycans, cmap="PRGn", center=0, yticklabels=True, cbar_kws=cbar_kws, ax=ax[3])
-        a.set_ylabel("")
+        sns.heatmap(glycans, cmap="PRGn", center=0, yticklabels=True, cbar_kws=dict(fraction=.05, pad=.03), ax=ax8)
+
+        test = pd.DataFrame(subs.index)
+        test = test.set_index(["class.etuv"])
+        test["Class"] = 0
+        test[test.index == "EC"] = 0
+        test[test.index == "TP"] = 1
+        test[test.index == "UP"] = 2
+        test[test.index == "VC"] = 3
+
+        sns.heatmap(test, ax=ax1, cbar_kws=dict(use_gridspec=False, location="left", fraction=.5, pad=.3), yticklabels=False, xticklabels=True, cmap=cmap)
+        colorbar = ax1.collections[0].colorbar
+        colorbar.set_ticks([0.4, 1.2, 1.9, 2.6])
+        colorbar.set_ticklabels(['EC', 'UP', 'TP', "VC"])
+        ax1.set_ylabel("")
+        ax2.set_ylabel("")
+        ax8.set_ylabel("")
+        ax1.set_xticklabels(test.columns, rotation=90)
+        ax = [ax2, ax4, ax6, ax8]
 
     ax[0].set_title("Subjects", fontsize=15)
     ax[1].set_title("Receptors", fontsize=15)
