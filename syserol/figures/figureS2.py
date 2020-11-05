@@ -17,7 +17,7 @@ def makeFigure():
     df_3b = fcg_df("FcgRIIIb", "NA1", "SH")
 
 
-    ax, f = getSetup((15, 15), (3, 3))
+    ax, fig = getSetup((15, 15), (3, 3))
     a = sns.scatterplot(data=df_2a, x=df_2a.columns[0], y=df_2a.columns[1], s=20, ax=ax[0])
     b = sns.scatterplot(data=df_2a, x=df_2a.columns[0], y=df_2a.columns[2], s=20, ax=ax[1])
     c = sns.scatterplot(data=df_2a, x=df_2a.columns[1], y=df_2a.columns[2], s=20, ax=ax[2])
@@ -43,5 +43,5 @@ def makeFigure():
 
     subplotLabel(ax)
 
-    return f
+    return fig
 
