@@ -271,7 +271,7 @@ def buildFigure3(legends=True, heatmap=False):
     else:
         f = plt.figure(figsize=(10, 15))
         gs = gridspec.GridSpec(2, 4,
-                            width_ratios=[1, 25, 12, 25],
+                            width_ratios=[2, 25, 12, 25],
                             height_ratios=[1, 1],
                             wspace=0, hspace=.3
                             )
