@@ -116,6 +116,7 @@ def importAlterDF(function=True, subjects=False):
 
 def AlterIndices():
     df = importAlterDF()
+    df = df.dropna()
     subjects, _, _ = getAxes()
 
     return np.array([subjects.index(subject) for i, subject in enumerate(df["subject"])])

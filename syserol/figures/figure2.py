@@ -31,12 +31,12 @@ def makeFigure():
     model = ["Alter Model"] * 6 + ["Our Model"] * 6 + ["Excluded Cases"] * 6
     function = functions + functions + functions
     data = {"Accuracy": accuracies, "Model": model, "Function": function}
-    functions_df = pd.DataFrame(data)  # Function Prediction DataFrame, Figure 2B
+    functions_df = pd.DataFrame(data)  # Function Prediction DataFrame, Figure 2A
 
     # Gather Class Prediction Accuracies
     accuracyCvP, accuracyVvN = two_way_classifications()  # Alter accuracies
     # Run our model
-    cp_accuracy, nv_accuracy = class_predictions(tFac[1][0])  # Our accuracies
+    cp_accuracy, nv_accuracy, cp_coef, nv_coef = class_predictions(tFac[1][0])  # Our accuracies
 
     # Create DataFrame
     baselineNV = 0.5083  # datasetEV3/Fc.array/class.nv/lambda.min/score_details.txt "No information rate"
@@ -48,10 +48,26 @@ def makeFigure():
     category = ["Progression"] * 3 + ["Viremia"] * 3
     model = ["Alter Model", "Our Model", "Baseline"] * 2
     data = {"Accuracies": accuracies, "Class": category, "Model": model}
-    classes = pd.DataFrame(data)  # Class Predictions DataFrame, Figure 2C
+    classes = pd.DataFrame(data)  # Class Predictions DataFrame, Figure 2B
+
+    """Provide details about our model"""
+    #Factor data
+    #Collect function component weights from elastic net prediction
+    function_coefs = [function_prediction(tFac, function=f, evaluation="all")[3] for f in functions]
+    flat_func_coefs = [func_coef for func in function_coefs for func_coef in func]
+    function = [fun for fun in functions for i in range(tFac.rank)]
+    components = [i for i in range(tFac.rank)] * 6
+    data = {"Weights": flat_func_coefs, "Function": function, "Component": components}
+    function_df = pd.DataFrame(data)
+
+    #Collect classification component weights
+    components = [i for i in range(tFac.rank)] * 2
+    category = ["Progression"] * tFac.rank + ["Viremia"] * tFac.rank
+    data = {"Weights": [ele for arr in np.hstack([cp_coef, nv_coef]) for ele in arr], "Class": category, "Component": components}
+    class_df = pd.DataFrame(data)
 
     # PLOT DataFrames
-    ax, f = getSetup((6, 5), (2, 2))
+    ax, f = getSetup((8, 8), (2, 2))
     sns.set()
     # Function Plot
     a = sns.pointplot(
@@ -91,6 +107,11 @@ def makeFigure():
     b.set_ylabel("Accuracy")
     b.set_xlabel("Class Prediction")
     b.tick_params(axis="x")
+
+    #Component Weights
+    sns.set()
+    a = sns.barplot(data=function_df, x="Component", y="Weights", hue="Function", ax=ax[2])
+    b = sns.barplot(data=class_df, x="Component", y="Weights", hue="Class", ax=ax[3])
 
     subplotLabel(ax)
 

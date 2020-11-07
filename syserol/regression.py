@@ -40,7 +40,9 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all"):
     Y = Y[np.isfinite(Y)]
 
     # Perform Regression
-    Y_pred, coef = RegressionHelper(X, Y)
+    lr = LinearRegression(normalize=True).fit(X, Y)
+    coef = lr.coef_
+    Y_pred = cross_val_predict(lr, X, Y, cv=len(Y), n_jobs=-1)
 
     if evaluation == "all":
         Y, Y_pred = Y, Y_pred
@@ -52,12 +54,12 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all"):
         raise ValueError("Bad evaluation selection.")
 
     assert Y.shape == Y_pred.shape
-    return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))
+    return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred)), coef
 
 
 def RegressionHelper(X, Y):
     """ Function with common Logistic regression methods. """
     regr = ElasticNetCV(normalize=True, max_iter=10000, cv=20, n_jobs=-1, l1_ratio=0.8).fit(X, Y)
     enet = ElasticNet(alpha=regr.alpha_, l1_ratio=regr.l1_ratio_, normalize=True, max_iter=10000)
-    Y_pred = cross_val_predict(enet, X, Y, cv=len(Y), n_jobs=-1)
+    Y_pred = cross_val_predict(enet, X, Y, cv=40, n_jobs=-1)
     return Y_pred, enet.fit(X, Y).coef_

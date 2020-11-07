@@ -15,7 +15,7 @@ def makeFigure():
     # Get list of axis objects
     ax, f = getSetup((7, 4), (1, 2))
 
-    comps = np.arange(1, 11)
+    comps = np.arange(1, 13)
     tensorArr = np.zeros(comps.shape)
     pred_acc = np.zeros(comps.shape)
 
@@ -23,7 +23,7 @@ def makeFigure():
         tFac, _, R2X = perform_CMTF(r=i)
         tensorArr[i - 1] = R2X
         accur = [function_prediction(tFac, function=f, evaluation="all")[2] for f in functions]
-        cp, nv = class_predictions(tFac[1][0])  # Our accuracies
+        cp, nv, _, _ = class_predictions(tFac[1][0])  # Our accuracies
         accur.append(cp)
         accur.append(nv)
         pred_acc[i - 1] = np.mean(accur)
