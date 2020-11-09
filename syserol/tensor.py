@@ -54,10 +54,10 @@ def perform_CMTF(tensorOrig=None, matrixOrig=None, r=10):
             pinv = np.ones((r, r))
             for i, factor in enumerate(tFac.factors):
                 if i != mode:
-                    pinv *= np.dot(np.conj(factor.T), factor)
+                    pinv *= np.dot(factor.T, factor)
 
             mttkrp = tl.unfolding_dot_khatri_rao(tensorIn, (None, tFac.factors), mode)
-            tFac.factors[mode] = tl.solve(np.conj(pinv.T), mttkrp.T).T
+            tFac.factors[mode] = np.linalg.solve(pinv.T, mttkrp.T).T
 
         # Solve for the glycan matrix fit
         mFac.factors[1] = np.linalg.lstsq(mFac.factors[0][selPat, :], matrixOrig[selPat, :], rcond=None)[0].T
