@@ -4,8 +4,8 @@ Tensor decomposition methods
 import numpy as np
 from scipy.linalg import khatri_rao
 import tensorly as tl
-from tensorly.decomposition import parafac, non_negative_parafac
-from tensorly.cp_tensor import cp_normalize
+from tensorly.decomposition._cp import initialize_cp
+from tensorly.cp_tensor import CPTensor
 from .dataImport import createCube
 
 tl.set_backend('numpy')
@@ -29,8 +29,8 @@ def perform_CMTF(tensorOrig=None, matrixOrig=None, r=10):
     mmask = np.isnan(matrixIn)
     matrixIn[mmask] = np.nanmean(matrixOrig)
 
-    tFac = non_negative_parafac(tensorIn, r, mask=1-tmask, n_iter_max=2)
-    mFac = non_negative_parafac(matrixIn, r, mask=1-mmask, n_iter_max=1)
+    tFac = CPTensor(initialize_cp(tensorIn, r, non_negative=True))
+    mFac = CPTensor(initialize_cp(matrixIn, r, non_negative=True))
 
     # Pre-unfold
     selPat = np.all(np.isfinite(matrixOrig), axis=1)
@@ -49,7 +49,15 @@ def perform_CMTF(tensorOrig=None, matrixOrig=None, r=10):
         tFac.factors[0] = np.linalg.lstsq(kr2, unfolded2.T, rcond=None)[0].T
         mFac.factors[0] = tFac.factors[0]
 
-        tFac = parafac(tensorIn, r, init=tFac, fixed_modes=[0], n_iter_max=1)
+        # PARAFAC on other antigen modes
+        for mode in [1, 2]:
+            pinv = np.ones((r, r))
+            for i, factor in enumerate(tFac.factors):
+                if i != mode:
+                    pinv *= np.dot(factor.T, factor)
+
+            mttkrp = tl.unfolding_dot_khatri_rao(tensorIn, (None, tFac.factors), mode)
+            tFac.factors[mode] = np.linalg.solve(pinv.T, mttkrp.T).T
 
         # Solve for the glycan matrix fit
         mFac.factors[1] = np.linalg.lstsq(mFac.factors[0][selPat, :], matrixOrig[selPat, :], rcond=None)[0].T
@@ -65,7 +73,7 @@ def perform_CMTF(tensorOrig=None, matrixOrig=None, r=10):
         if R2X - R2X_last < 1e-6:
             break
 
-    tFac = cp_normalize(tFac)
-    mFac = cp_normalize(mFac)
+    tFac.normalize()
+    mFac.normalize()
 
     return tFac, mFac, R2X
