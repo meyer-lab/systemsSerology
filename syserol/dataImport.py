@@ -135,27 +135,21 @@ def createCube():
     for k, curAnti in enumerate(antigen):
         lumx = importLuminex(curAnti)
 
-        for i, curSubj in enumerate(subjects):
-            subjLumx = lumx[lumx["subject"] == curSubj]
+        for _, row in lumx.iterrows():
+            i = subjects.index(row["subject"])
+            j = detections.index(row["variable"])
+            cube[i, j, k] = row["value"]
 
-            for _, row in subjLumx.iterrows():
-                j = detections.index(row["variable"])
-                cube[i, j, k] = row["value"]
-
-    for i, curSubj in enumerate(subjects):
-        subjGly = dfGlycan[dfGlycan["subject"] == curSubj]
-
-        for _, row in subjGly.iterrows():
-            j = glycan.index(row["variable"])
-            glyCube[i, j] = row["value"]
+    for _, row in dfGlycan.iterrows():
+        i = subjects.index(row["subject"])
+        j = glycan.index(row["variable"])
+        glyCube[i, j] = row["value"]
 
     # Add IgG data on the end as another detection
-    for i, curSubj in enumerate(subjects):
-        subjLumx = IGG[IGG["subject"] == curSubj]
-
-        for _, row in subjLumx.iterrows():
-            k = antigen.index(row["variable"])
-            cube[i, -1, k] = row["value"]
+    for _, row in IGG.iterrows():
+        i = subjects.index(row["subject"])
+        k = antigen.index(row["variable"])
+        cube[i, -1, k] = row["value"]
 
     # TODO: We probably want to do some sort of normalization, but I'm not sure what yet
     # cube = cube / np.nanstd(cube, axis=(0, 2))[np.newaxis, :, np.newaxis]
