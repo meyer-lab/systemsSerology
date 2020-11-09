@@ -52,7 +52,7 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all"):
         raise ValueError("Bad evaluation selection.")
 
     assert Y.shape == Y_pred.shape
-    return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))
+    return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred)), coef
 
 
 def RegressionHelper(X, Y):
