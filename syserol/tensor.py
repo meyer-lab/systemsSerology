@@ -17,24 +17,24 @@ def calcR2X(tensorIn, matrixIn, tensorFac, matrixFac):
     return 1.0 - (tErr + mErr) / (np.nanvar(tensorIn) + np.nanvar(matrixIn))
 
 
-def perform_CMTF(tensorOrig=None, matrixOrig=None, r=10):
+def perform_CMTF(tOrig=None, mOrig=None, r=10):
     """ Perform CMTF decomposition. """
-    if tensorOrig is None:
-        tensorOrig, matrixOrig = createCube()
+    if tOrig is None:
+        tOrig, mOrig = createCube()
 
-    tensorIn = tensorOrig.copy()
+    tensorIn = tOrig.copy()
     tmask = np.isnan(tensorIn)
-    tensorIn[tmask] = np.nanmean(tensorOrig)
-    matrixIn = matrixOrig.copy()
+    tensorIn[tmask] = np.nanmean(tOrig)
+    matrixIn = mOrig.copy()
     mmask = np.isnan(matrixIn)
-    matrixIn[mmask] = np.nanmean(matrixOrig)
+    matrixIn[mmask] = np.nanmean(mOrig)
 
     tFac = CPTensor(initialize_cp(tensorIn, r, non_negative=True))
     mFac = CPTensor(initialize_cp(matrixIn, r, non_negative=True))
 
     # Pre-unfold
-    selPat = np.all(np.isfinite(matrixOrig), axis=1)
-    unfolded = tl.unfold(tensorOrig, 0)
+    selPat = np.all(np.isfinite(mOrig), axis=1)
+    unfolded = tl.unfold(tOrig, 0)
     missing = np.any(np.isnan(unfolded), axis=0)
     unfolded = unfolded[:, ~missing]
 
@@ -56,11 +56,11 @@ def perform_CMTF(tensorOrig=None, matrixOrig=None, r=10):
                 if i != mode:
                     pinv *= np.dot(factor.T, factor)
 
-            mttkrp = tl.unfolding_dot_khatri_rao(tensorIn, (None, tFac.factors), mode)
+            mttkrp = tl.unfolding_dot_khatri_rao(tensorIn, tFac, mode)
             tFac.factors[mode] = np.linalg.solve(pinv.T, mttkrp.T).T
 
         # Solve for the glycan matrix fit
-        mFac.factors[1] = np.linalg.lstsq(mFac.factors[0][selPat, :], matrixOrig[selPat, :], rcond=None)[0].T
+        mFac.factors[1] = np.linalg.lstsq(mFac.factors[0][selPat, :], mOrig[selPat, :], rcond=None)[0].T
 
         # Fill in glycan matrix
         matrixIn[mmask] = tl.cp_to_tensor(mFac)[mmask]
@@ -68,9 +68,9 @@ def perform_CMTF(tensorOrig=None, matrixOrig=None, r=10):
 
         if ii % 10 == 0:
             R2X_last = R2X
-            R2X = calcR2X(tensorOrig, matrixOrig, tFac, mFac)
+            R2X = calcR2X(tOrig, mOrig, tFac, mFac)
 
-        if R2X - R2X_last < 1e-6:
+        if R2X - R2X_last < 1e-7:
             break
 
     tFac.normalize()
