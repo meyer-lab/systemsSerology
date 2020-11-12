@@ -4,8 +4,8 @@ Tensor decomposition methods
 import numpy as np
 from scipy.linalg import khatri_rao
 import tensorly as tl
-from tensorly.decomposition import parafac, non_negative_parafac
-from tensorly.cp_tensor import cp_normalize
+from tensorly.decomposition._cp import initialize_cp
+from tensorly.cp_tensor import CPTensor
 from .dataImport import createCube
 
 tl.set_backend('numpy')
@@ -17,30 +17,30 @@ def calcR2X(tensorIn, matrixIn, tensorFac, matrixFac):
     return 1.0 - (tErr + mErr) / (np.nanvar(tensorIn) + np.nanvar(matrixIn))
 
 
-def perform_CMTF(tensorOrig=None, matrixOrig=None, r=6):
+def perform_CMTF(tOrig=None, mOrig=None, r=10):
     """ Perform CMTF decomposition. """
-    if tensorOrig is None:
-        tensorOrig, matrixOrig = createCube()
+    if tOrig is None:
+        tOrig, mOrig = createCube()
 
-    tensorIn = tensorOrig.copy()
+    tensorIn = tOrig.copy()
     tmask = np.isnan(tensorIn)
-    tensorIn[tmask] = np.nanmean(tensorOrig)
-    matrixIn = matrixOrig.copy()
+    tensorIn[tmask] = np.nanmean(tOrig)
+    matrixIn = mOrig.copy()
     mmask = np.isnan(matrixIn)
-    matrixIn[mmask] = np.nanmean(matrixOrig)
+    matrixIn[mmask] = np.nanmean(mOrig)
 
-    tFac = non_negative_parafac(tensorIn, r, mask=1-tmask, n_iter_max=2)
-    mFac = non_negative_parafac(matrixIn, r, mask=1-mmask, n_iter_max=1)
+    tFac = CPTensor(initialize_cp(tensorIn, r, non_negative=True))
+    mFac = CPTensor(initialize_cp(matrixIn, r, non_negative=True))
 
     # Pre-unfold
-    selPat = np.all(np.isfinite(matrixOrig), axis=1)
-    unfolded = tl.unfold(tensorOrig, 0)
+    selPat = np.all(np.isfinite(mOrig), axis=1)
+    unfolded = tl.unfold(tOrig, 0)
     missing = np.any(np.isnan(unfolded), axis=0)
     unfolded = unfolded[:, ~missing]
 
-    R2X_last = 0.0
+    R2X_last = R2X = 0.0
 
-    for _ in range(2000):
+    for ii in range(20000):
         # Solve for the patient matrix
         kr = khatri_rao(tFac.factors[1], tFac.factors[2])[~missing, :]
         kr2 = np.vstack((kr, mFac.factors[1]))
@@ -49,23 +49,31 @@ def perform_CMTF(tensorOrig=None, matrixOrig=None, r=6):
         tFac.factors[0] = np.linalg.lstsq(kr2, unfolded2.T, rcond=None)[0].T
         mFac.factors[0] = tFac.factors[0]
 
-        tFac = parafac(tensorIn, r, init=tFac, mask=1-tmask, fixed_modes=[0], n_iter_max=1)
+        # PARAFAC on other antigen modes
+        for mode in [1, 2]:
+            pinv = np.ones((r, r))
+            for i, factor in enumerate(tFac.factors):
+                if i != mode:
+                    pinv *= np.dot(factor.T, factor)
+
+            mttkrp = tl.unfolding_dot_khatri_rao(tensorIn, tFac, mode)
+            tFac.factors[mode] = np.linalg.solve(pinv.T, mttkrp.T).T
 
         # Solve for the glycan matrix fit
-        mFac.factors[1] = np.linalg.lstsq(mFac.factors[0][selPat, :], matrixOrig[selPat, :], rcond=None)[0].T
+        mFac.factors[1] = np.linalg.lstsq(mFac.factors[0][selPat, :], mOrig[selPat, :], rcond=None)[0].T
 
         # Fill in glycan matrix
         matrixIn[mmask] = tl.cp_to_tensor(mFac)[mmask]
         tensorIn[tmask] = tl.cp_to_tensor(tFac)[tmask]
 
-        R2X = calcR2X(tensorOrig, matrixOrig, tFac, mFac)
+        if ii % 10 == 0:
+            R2X_last = R2X
+            R2X = calcR2X(tOrig, mOrig, tFac, mFac)
 
-        if R2X - R2X_last < 1e-6:
+        if R2X - R2X_last < 1e-7:
             break
 
-        R2X_last = R2X
-
-    tFac = cp_normalize(tFac)
-    mFac = cp_normalize(mFac)
+    tFac.normalize()
+    mFac.normalize()
 
     return tFac, mFac, R2X
