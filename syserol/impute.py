@@ -17,9 +17,9 @@ def evalMissing(cube, glyCube, nComp, numSample=100):
     for _ in range(numSample):
         idxs = np.argwhere(np.isfinite(cube))
         i, j, k = idxs[np.random.choice(idxs.shape[0], 1)][0]
-        indices.append((i, j, k))
-        orig.append(cube[i, j, k])
-        cube[i, j, k] = np.nan
+        indices.append((np.arange(0, 181),j,k))
+        orig.append(cube[:, j, k])
+        cube[:, j, k] = np.nan
 
     factors, _, _ = perform_CMTF(cube, glyCube, nComp)
     tensorR = tl.cp_to_tensor(factors)
@@ -34,7 +34,7 @@ def evaluate_missing():
     Cube, glyCube = createCube()
 
     Sumsqs = list()
-    for comp in np.arange(1, 8):
+    for comp in np.arange(1, 17):
         orig, recon = evalMissing(Cube, glyCube, nComp=comp, numSample=100)
 
         Sumsqs.append(np.linalg.norm(orig - recon) / np.linalg.norm(orig))
