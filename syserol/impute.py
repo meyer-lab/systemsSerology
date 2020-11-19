@@ -6,8 +6,8 @@ from .dataImport import createCube
 from .tensor import perform_CMTF
 
 
-def evalMissing(cube, glyCube, numSample=100):
-    """ Evaluate how well factorization imputes missing values. """
+def getMissing(cube, glyCube, numSample=100):
+    """ Impute missing values. """
     cube = np.copy(cube)
     glyCube = np.copy(glyCube)
     orig = []
@@ -28,9 +28,9 @@ def evaluate_missing():
     Cube, glyCube = createCube()
 
     Sumsqs = list()
+    orig, cube, indices = getMissing(Cube, glyCube, numSample=100)
+    
     for nComp in np.arange(1, 17):
-        orig, cube, indices = evalMissing(Cube, glyCube, numSample=100)
-
         factors, _, _ = perform_CMTF(cube, glyCube, nComp)
         tensorR = tl.cp_to_tensor(factors)
         recon = [tensorR[indx[0], indx[1], indx[2]] for indx in indices]
