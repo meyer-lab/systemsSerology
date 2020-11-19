@@ -17,10 +17,9 @@ def getMissing(cube, glyCube, numSample=100):
         idxs = np.argwhere(np.isfinite(cube))
         i, j, k = idxs[np.random.choice(idxs.shape[0], 1)][0]
         indices.append((np.arange(0, 181),j,k))
-        orig.append(cube[:, j, k])
         cube[:, j, k] = np.nan
 
-    return np.array(orig), cube, indices
+    return cube, indices
 
 
 def evaluate_missing():
@@ -28,14 +27,16 @@ def evaluate_missing():
     Cube, glyCube = createCube()
 
     Sumsqs = list()
-    orig, cube, indices = getMissing(Cube, glyCube, numSample=100)
-    
+    missingCube, indices = getMissing(Cube, glyCube, numSample=100)
+
     for nComp in np.arange(1, 17):
-        factors, _, _ = perform_CMTF(cube, glyCube, nComp)
+        # reconstruct with some values missing
+        factors, _, _ = perform_CMTF(missingCube, glyCube, nComp)
         tensorR = tl.cp_to_tensor(factors)
         recon = [tensorR[indx[0], indx[1], indx[2]] for indx in indices]
         recon = np.array(recon)
 
-        Sumsqs.append(np.linalg.norm(orig - recon) / np.linalg.norm(orig))
+        #Compare original Cube with reconstructed cube, which was created from the cube with imputed missing values
+        Sumsqs.append(np.linalg.norm(Cube - recon) / np.linalg.norm(Cube))
 
     return Sumsqs
