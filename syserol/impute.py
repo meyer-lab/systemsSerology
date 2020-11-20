@@ -6,37 +6,26 @@ from .dataImport import createCube
 from .tensor import perform_CMTF
 
 
-def getMissing(cube, glyCube, numSample=100):
-    """ Impute missing values. """
-    cube = np.copy(cube)
-    glyCube = np.copy(glyCube)
-    orig = []
-
-    indices = list()
-    for _ in range(numSample):
-        idxs = np.argwhere(np.isfinite(cube))
-        i, j, k = idxs[np.random.choice(idxs.shape[0], 1)][0]
-        indices.append((np.arange(0, 181),j,k))
-        cube[:, j, k] = np.nan
-
-    return cube, indices
-
-
-def evaluate_missing():
+def evaluate_missing(numSample=10, maxComp=8):
     """ check differences between original and recon values for different number of components. """
-    Cube, glyCube = createCube()
+    cube, glyCube = createCube()
 
-    Sumsqs = list()
-    missingCube, indices = getMissing(Cube, glyCube, numSample=100)
+    R2X = np.zeros(maxComp)
+    missingCube = np.copy(cube)
+    for _ in range(numSample):
+        idxs = np.argwhere(np.isfinite(missingCube))
+        _, j, k = idxs[np.random.choice(idxs.shape[0], 1)][0]
+        missingCube[:, j, k] = np.nan
 
-    for nComp in np.arange(1, 17):
+    imputeVals = np.copy(cube)
+    imputeVals[np.isfinite(missingCube)] = np.nan
+
+    for nComp in np.arange(1, R2X.size + 1):
         # reconstruct with some values missing
-        factors, _, _ = perform_CMTF(missingCube, glyCube, nComp)
-        tensorR = tl.cp_to_tensor(factors)
-        recon = [tensorR[indx[0], indx[1], indx[2]] for indx in indices]
-        recon = np.array(recon)
+        tensorR = tl.cp_to_tensor(perform_CMTF(missingCube, glyCube, nComp)[0])
+        tensorR[np.isfinite(missingCube)] = np.nan
 
         #Compare original Cube with reconstructed cube, which was created from the cube with imputed missing values
-        Sumsqs.append(np.linalg.norm(Cube - recon) / np.linalg.norm(Cube))
+        R2X[nComp - 1] = 1.0 - np.nanvar(tensorR - imputeVals) / np.nanvar(imputeVals)
 
-    return Sumsqs
+    return R2X

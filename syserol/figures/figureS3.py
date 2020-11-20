@@ -9,14 +9,11 @@ def makeFigure():
     """ Plot Reconstruction Error for Varying Components"""
     ax, f = getSetup((7, 4), (1, 1))
 
-    Sumsqs = evaluate_missing()
-    comps = np.arange(1,17)
-    
-    ax[0].scatter(comps, Sumsqs)
-    ax[0].set_ylabel("Sum Squared Error")
+    R2X = evaluate_missing()
+    ax[0].scatter(np.arange(1, R2X.size + 1), R2X)
+    ax[0].set_ylabel("Q2X of Imputation")
     ax[0].set_xlabel("Number of Components")
     ax[0].set_ylim(0, 1)
-    ax[0].set_xlim(0.5, np.amax() + 0.5)
 
     subplotLabel(ax)
 
