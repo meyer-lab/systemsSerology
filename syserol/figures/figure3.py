@@ -9,11 +9,12 @@ from ..tensor import perform_CMTF
 from ..dataImport import getAxes, load_file
 from matplotlib import gridspec, pyplot as plt
 
+
 def makeFigure():
     """ Generate Figure 3 for Paper, Showing Interpretation of All Data from Decomposed Tensor"""
     tensorFac, matrixFac, _ = perform_CMTF()
     heatmap = True
-    legends=False
+    legends = False
     # Gather tensor data matrices
     subjects = np.squeeze(tensorFac.factors[0])
     receptors = np.squeeze(tensorFac.factors[1])
@@ -38,9 +39,9 @@ def makeFigure():
     _, detections, antigen = getAxes()
     subjinfo = load_file("meta-subjects")
 
-    if (heatmap==False):
+    if (heatmap == False):
         ax, f = getSetup((8, 8), (3, 4))
-        #Build Figure
+        # Build Figure
         index = [0, 2, 4]
         place = [0, 4, 8]
         for i, j in zip(index, place):
@@ -59,11 +60,11 @@ def makeFigure():
                 hue="Groups",
                 data=df,
                 palette="Set1",
-                legend="brief" if j == 4 and legends==True else False,
+                legend="brief" if j == 4 and legends else False,
                 ax=ax[j],
             )
 
-            if j == 4 and legends==True:
+            if j == 4 and legends:
                 a.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
 
             # Detections
@@ -107,10 +108,10 @@ def makeFigure():
                 markers=markers,
                 data=df,
                 palette="Set2",
-                legend="brief" if j == 4 and legends==True else False,
+                legend="brief" if j == 4 and legends else False,
                 ax=ax[j + 1],
             )
-            if j == 4 and legends==True:
+            if j == 4 and legends:
                 b.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
 
             # Antigens
@@ -173,11 +174,11 @@ def makeFigure():
                 markers=markers,
                 data=df,
                 palette="Set3",
-                legend="brief" if j == 4 and legends==True else False,
+                legend="brief" if j == 4 and legends else False,
                 ax=ax[j + 2],
             )
 
-            if j == 4 and legends==True:
+            if j == 4 and legends:
                 c.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
 
             # Glycans
@@ -197,21 +198,21 @@ def makeFigure():
                 style="FB",
                 data=df,
                 palette="Paired",
-                legend="brief" if j == 4 and legends==True else False,
+                legend="brief" if j == 4 and legends else False,
                 ax=ax[j + 3],
             )
 
-            if j == 4 and legends==True:
+            if j == 4 and legends:
                 d.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
-        
+
         for aa in ax:
             aa.axis('equal')
     else:
         f = plt.figure(figsize=(21, 7))
         gs = gridspec.GridSpec(1, 10,
-                            width_ratios=[3, 25, 3, 2, 16, 25, 18, 25, 10, 25],
-                            wspace=0
-                            )
+                               width_ratios=[3, 25, 3, 2, 16, 25, 18, 25, 10, 25],
+                               wspace=0
+                               )
         ax1 = plt.subplot(gs[0])
         ax2 = plt.subplot(gs[1])
         ax4 = plt.subplot(gs[3])
@@ -219,12 +220,11 @@ def makeFigure():
         ax8 = plt.subplot(gs[7])
         ax10 = plt.subplot(gs[9])
 
-    
         colors = ["blue", "orange", "green", "red"]
         cmap = sns.color_palette(colors)
 
-        subs = pd.DataFrame(subjects, columns = [f"Component {i}" for i in np.arange(1, subjects.shape[1] + 1)], index=subjinfo["class.etuv"])
-        rec = pd.DataFrame(receptors, columns = [f"Component {i}" for i in np.arange(1, subjects.shape[1] + 1)], index=detections)
+        subs = pd.DataFrame(subjects, columns=[f"Component {i}" for i in np.arange(1, subjects.shape[1] + 1)], index=subjinfo["class.etuv"])
+        rec = pd.DataFrame(receptors, columns=[f"Component {i}" for i in np.arange(1, subjects.shape[1] + 1)], index=detections)
         ant = pd.DataFrame(antigens, columns=[f"Component {i}" for i in np.arange(1, subjects.shape[1] + 1)], index=antigen)
         glycans = pd.DataFrame(glyc, columns=[f"Component {i}" for i in np.arange(1, subjects.shape[1] + 1)], index=glycaninf["glycan"])
 

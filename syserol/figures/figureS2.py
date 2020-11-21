@@ -11,13 +11,13 @@ from ..tensor import perform_CMTF
 
 
 def fcg_df(receptor, geno1, geno2):
-    #Import luminex readings
+    # Import luminex readings
     test = pd.read_csv("syserol/data/data-luminex.csv")
     geno1 = receptor + "." + geno1
     geno2 = receptor + "." + geno2
     cols = [col for col in test.columns if receptor in col]
-    #Set up dictionary for antigens
-    dict_receptor = {geno1 : [],geno2 : [], receptor: []}
+    # Set up dictionary for antigens
+    dict_receptor = {geno1: [], geno2: [], receptor: []}
     for col in cols:
         if col[:len(geno1)] == geno1:
             dict_receptor[geno1].append(col[len(geno1) + 1:])
@@ -25,7 +25,7 @@ def fcg_df(receptor, geno1, geno2):
             dict_receptor[geno2].append(col[len(geno2) + 1:])
         elif col[:len(receptor)] == receptor:
             dict_receptor[receptor].append(col[len(receptor) + 1:])
-    #Pull values from data and concatenate
+    # Pull values from data and concatenate
     all_antis = []
     for i in range(len(dict_receptor[receptor])):
         test_col = [val for val in cols if val[-len(dict_receptor[receptor][i]):] == dict_receptor[receptor][i]]
@@ -39,36 +39,22 @@ def fcg_df(receptor, geno1, geno2):
 
 def makeFigure():
     """ Compare genotype vs non-genotype specific readings. """
-    #Acquire dataframe of antigens
+    # Acquire dataframe of antigens
     df_2a = fcg_df("FcgRIIa", "H131", "R131")
     df_3a = fcg_df("FcgRIIIa", "F158", "V158")
     df_3b = fcg_df("FcgRIIIb", "NA1", "SH")
 
-
     ax, fig = getSetup((15, 15), (3, 3))
-    sns.scatterplot(data=df_2a, x=df_2a.columns[0], y=df_2a.columns[1], s=20, ax=ax[0])
-    sns.scatterplot(data=df_2a, x=df_2a.columns[0], y=df_2a.columns[2], s=20, ax=ax[1])
-    sns.scatterplot(data=df_2a, x=df_2a.columns[1], y=df_2a.columns[2], s=20, ax=ax[2])
-    sns.scatterplot(data=df_3a, x=df_3a.columns[0], y=df_3a.columns[1], s=20, ax=ax[3])
-    sns.scatterplot(data=df_3a, x=df_3a.columns[0], y=df_3a.columns[2], s=20, ax=ax[4])
-    sns.scatterplot(data=df_3a, x=df_3a.columns[1], y=df_3a.columns[2], s=20, ax=ax[5])
-    sns.scatterplot(data=df_3b, x=df_3b.columns[0], y=df_3b.columns[1], s=20, ax=ax[6])
-    sns.scatterplot(data=df_3b, x=df_3b.columns[0], y=df_3b.columns[2], s=20, ax=ax[7])
-    sns.scatterplot(data=df_3b, x=df_3b.columns[1], y=df_3b.columns[2], s=20, ax=ax[8])
-    for axis in ax:
-        xlab = axis.get_xlabel()
-        ylab = axis.get_ylabel()
-        axis.set_xlabel(xlab, fontsize=15)
-        axis.set_ylabel(ylab, fontsize=15)
-        axis.tick_params(labelsize=10)
-    ax[0].set_xlim(-20000)
-    ax[0].set_ylim(-20000)
-    ax[1].set_xlim(-25000)
-    ax[1].set_ylim(-4000)
-    ax[2].set_xlim(-25000)
-    ax[2].set_ylim(-4000)
+    sns.kdeplot(data=df_2a, x=df_2a.columns[0], y=df_2a.columns[1], ax=ax[0])
+    sns.kdeplot(data=df_2a, x=df_2a.columns[0], y=df_2a.columns[2], ax=ax[1])
+    sns.kdeplot(data=df_2a, x=df_2a.columns[1], y=df_2a.columns[2], ax=ax[2])
+    sns.kdeplot(data=df_3a, x=df_3a.columns[0], y=df_3a.columns[1], ax=ax[3])
+    sns.kdeplot(data=df_3a, x=df_3a.columns[0], y=df_3a.columns[2], ax=ax[4])
+    sns.kdeplot(data=df_3a, x=df_3a.columns[1], y=df_3a.columns[2], ax=ax[5])
+    sns.kdeplot(data=df_3b, x=df_3b.columns[0], y=df_3b.columns[1], ax=ax[6])
+    sns.kdeplot(data=df_3b, x=df_3b.columns[0], y=df_3b.columns[2], ax=ax[7])
+    sns.kdeplot(data=df_3b, x=df_3b.columns[1], y=df_3b.columns[2], ax=ax[8])
 
     subplotLabel(ax)
 
     return fig
-
