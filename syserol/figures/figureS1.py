@@ -7,6 +7,7 @@ from ..regression import function_prediction
 from ..dataImport import functions
 from ..tensor import perform_CMTF
 
+
 def makeFigure():
     """ Show predicted vs. actual of decomposition prediction. """
     ax, f = getSetup((7, 5), (2, 3))
