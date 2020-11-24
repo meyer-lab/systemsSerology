@@ -1,13 +1,11 @@
 """ Regression methods using Factorized Data. """
-from sklearn.model_selection import cross_val_predict
-from sklearn.linear_model import LogisticRegressionCV, LogisticRegression
 from sklearn.metrics import accuracy_score
 from scipy.stats import zscore
 from syserol.dataImport import (
     load_file,
     importAlterDF,
 )
-
+from glmnet import LogitNet
 
 def getClassY(df):
     """ Extract Ys for classification. """
@@ -52,8 +50,10 @@ def two_way_classifications():
 
 def ClassifyHelper(X, Y):
     """ Function with common Logistic regression methods. """
-    regr = LogisticRegressionCV(n_jobs=-1, cv=40, max_iter=1000).fit(X, Y)
-    clf = LogisticRegression(C=regr.C_[0], max_iter=1000).fit(X, Y)
-    coef = clf.coef_
-    Y_pred = cross_val_predict(clf, X, Y, cv=40, n_jobs=-1)
-    return Y_pred, accuracy_score(Y, Y_pred), coef
+    scores = []
+    for _ in range(100):
+        clf = LogitNet(alpha=.8, n_splits=10, n_jobs=25, scoring="mean_squared_error").fit(X, Y)
+        Y_pred = enet.predict(X)
+        scores.append([accuracy_score(Y, Y_pred), enet.coef_])
+    scores.sort(key=lambda x: x[0])
+    return scores[49][0], scores[49][1]

@@ -1,8 +1,6 @@
 """ Regression methods. """
 import numpy as np
 import pandas as pd
-from sklearn.linear_model import ElasticNetCV, ElasticNet
-from sklearn.model_selection import cross_val_predict
 from sklearn.metrics import r2_score
 from .dataImport import (
     importFunction,
@@ -10,6 +8,7 @@ from .dataImport import (
     importAlterDF,
     AlterIndices,
 )
+from glmnet import ElasticNet
 
 
 def function_elastic_net(function="ADCC"):
@@ -22,8 +21,12 @@ def function_elastic_net(function="ADCC"):
     X = df.drop(["subject"] + functions, axis=1)
 
     # perform regression
-    Y_pred, coef = RegressionHelper(X, Y)
-    return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred)), coef
+    scores = []
+    for _ in range(100):
+        Y_pred, coef = RegressionHelper(X, Y)
+        scores.append([np.sqrt(r2_score(Y, Y_pred)), coef])
+    scores.sort(key=lambda x: x[0])
+    return Y, Y_pred, scores[49][0], scores[49][1]
 
 
 def function_prediction(tensorFac, function="ADCC", evaluation="all"):
@@ -39,22 +42,24 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all"):
     Y = Y[np.isfinite(Y)]
 
     # Perform Regression
-    Y_pred, coef = RegressionHelper(X, Y)
+    scores = []
+    for _ in range(100):
+        Y_pred, coef = RegressionHelper(X, Y)
 
-    if evaluation == "Alter":
-        Y, Y_pred = Y[idx], Y_pred[idx]
-    elif evaluation == "notAlter":
-        Y, Y_pred = Y[~idx], Y_pred[~idx]
-    elif evaluation != "all":
-        raise ValueError("Bad evaluation selection.")
-
-    assert Y.shape == Y_pred.shape
-    return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred)), coef
+        if evaluation == "Alter":
+            Y, Y_pred = Y[idx], Y_pred[idx]
+        elif evaluation == "notAlter":
+            Y, Y_pred = Y[~idx], Y_pred[~idx]
+        elif evaluation != "all":
+            raise ValueError("Bad evaluation selection.")
+        assert Y.shape == Y_pred.shape
+        scores.append([np.sqrt(r2_score(Y, Y_pred)), coef])
+    scores.sort(key=lambda x: x[0])
+    return Y, Y_pred, scores[49][0], scores[49][1]
 
 
 def RegressionHelper(X, Y):
     """ Function with common Logistic regression methods. """
-    regr = ElasticNetCV(normalize=True, max_iter=10000, cv=20, n_jobs=-1, l1_ratio=0.8).fit(X, Y)
-    enet = ElasticNet(alpha=regr.alpha_, l1_ratio=regr.l1_ratio_, normalize=True, max_iter=10000)
-    Y_pred = cross_val_predict(enet, X, Y, cv=Y.size, n_jobs=-1)
-    return Y_pred, enet.fit(X, Y).coef_
+    enet = ENet(alpha=.8, n_splits=10, n_jobs=25, scoring="mean_squared_error").fit(X, Y)
+    Y_pred = enet.predict(X)
+    return Y_pred, enet.coef_
