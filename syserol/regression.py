@@ -60,6 +60,6 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all"):
 
 def RegressionHelper(X, Y):
     """ Function with common Logistic regression methods. """
-    enet = ENet(alpha=.8, n_splits=10, n_jobs=25, scoring="mean_squared_error").fit(X, Y)
+    enet = ElasticNet(alpha=.8, n_splits=10, n_jobs=25, scoring="mean_squared_error").fit(X, Y)
     Y_pred = enet.predict(X)
     return Y_pred, enet.coef_
