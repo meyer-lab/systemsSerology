@@ -1,7 +1,8 @@
 """ Regression methods using Factorized Data. """
-from sklearn.model_selection import cross_val_predict
+from sklearn.model_selection import cross_val_predict, StratifiedKFold
 from sklearn.linear_model import LogisticRegressionCV, LogisticRegression
 from sklearn.metrics import accuracy_score
+from sklearn.svm import SVC
 from scipy.stats import zscore
 from syserol.dataImport import (
     load_file,
@@ -22,10 +23,10 @@ def class_predictions(X):
     cp, nv = getClassY(load_file("meta-subjects"))
 
     # Controller/Progressor classification
-    _, cp_accuracy, coef_cp = ClassifyHelper(X, cp)
+    _, cp_accuracy, coef_cp = ClassifySVC(X, cp)
 
     # Viremic/Nonviremic classification
-    _, nv_accuracy, coef_nv = ClassifyHelper(X, nv)
+    _, nv_accuracy, coef_nv = ClassifySVC(X, nv)
 
     return cp_accuracy, nv_accuracy, coef_cp, coef_nv
 
@@ -57,3 +58,33 @@ def ClassifyHelper(X, Y):
     coef = clf.coef_
     Y_pred = cross_val_predict(clf, X, Y, cv=40, n_jobs=-1)
     return Y_pred, accuracy_score(Y, Y_pred), coef
+
+
+def ClassifySVC(X, Y):
+    Cs = np.logspace(-4, 4, num=50)
+    kernels = ['linear', 'rbf']
+    skf = StratifiedKFold(n_splits=10)
+    comp = 6
+    values_all = []
+    for C in Cs:
+        for kernel in kernels:
+            for i in range(0, comp - 1):
+                for j in range(i + 1, comp):
+                    folds = []
+                    Y_preds = []
+                    for train, test in skf.split(X, Y):
+                        double = np.vstack((X[train, i], X[train, j])).T
+                        clf = SVC(kernel=kernel, C=C).fit(double, Y[train])
+                        test_double = np.vstack((X[test, i], X[test, j])).T
+                        Y_pred = clf.predict(test_double)
+                        Y_preds.append(Y_pred)
+                        score = accuracy_score(Y[test], Y_pred)
+                        folds.append([score])
+                    values_all.append([i, j, np.mean(folds), folds, Y_preds, kernel, C])
+    df_comp = pd.DataFrame(values_all)
+    df_comp.columns = ["First", "Second", "Score", "All_scores", "Y_pred", "kernel", "C"]
+    df_comp = df_comp.sort_values(by="Score", ascending=False)
+    components = np.zeros(comp)
+    components[df_comp.iloc[0, 0]] = 1
+    components[df_comp.iloc[0, 1]] = 1
+    return df_comp.iloc[0, 4], df_comp.iloc[0, 2], components
