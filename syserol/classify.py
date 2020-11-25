@@ -64,7 +64,7 @@ def ClassifyHelper(X, Y):
 
 def ClassifySVC(X, Y):
     if X.shape[1] < 2:
-        return np.zeros(Y.shape[0]), 0, np.zeros[X.shape[1]]
+        return np.zeros(Y.shape[0]), 0, np.zeros(X.shape[1])
     Cs = np.logspace(-4, 4, num=50)
     kernels = ['linear', 'rbf']
     skf = StratifiedKFold(n_splits=10)
