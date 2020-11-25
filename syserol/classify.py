@@ -54,6 +54,6 @@ def ClassifyHelper(X, Y):
     for _ in range(100):
         clf = LogitNet(alpha=.8, n_splits=10, n_jobs=25, scoring="mean_squared_error").fit(X, Y)
         Y_pred = clf.predict(X)
-        scores.append([accuracy_score(Y, Y_pred), clf.coef_])
-    scores.sort(key=lambda x: x[0])
-    return scores[49][0], scores[49][1]
+        scores.append([Y_pred, accuracy_score(Y, Y_pred), clf.coef_])
+    scores.sort(key=lambda x: x[1])
+    return scores[49][0], scores[49][1], scores[49][2]
