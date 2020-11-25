@@ -63,7 +63,7 @@ def makeFigure():
     #Collect classification component weights
     components = [i for i in range(tFac.rank)] * 2
     category = ["Progression"] * tFac.rank + ["Viremia"] * tFac.rank
-    data = {"Weights": [ele for arr in np.hstack([cp_coef, nv_coef]) for ele in arr], "Class": category, "Component": components}
+    data = {"Weights": [ele for ele in np.hstack([cp_coef, nv_coef])], "Class": category, "Component": components}
     class_df = pd.DataFrame(data)
 
     # PLOT DataFrames
