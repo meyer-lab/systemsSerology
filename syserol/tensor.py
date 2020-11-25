@@ -10,6 +10,7 @@ from .dataImport import createCube
 
 tl.set_backend('numpy')
 
+
 def calcR2X(tensorIn, matrixIn, tensorFac, matrixFac):
     """ Calculate R2X. """
     tErr = np.nanvar(tl.cp_to_tensor(tensorFac) - tensorIn)

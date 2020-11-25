@@ -51,8 +51,8 @@ def makeFigure():
     classes = pd.DataFrame(data)  # Class Predictions DataFrame, Figure 2B
 
     """Provide details about our model"""
-    #Factor data
-    #Collect function component weights from elastic net prediction
+    # Factor data
+    # Collect function component weights from elastic net prediction
     function_coefs = [function_prediction(tFac, function=f, evaluation="all")[3] for f in functions]
     flat_func_coefs = [func_coef for func in function_coefs for func_coef in func]
     function = [fun for fun in functions for i in range(tFac.rank)]
@@ -60,7 +60,7 @@ def makeFigure():
     data = {"Weights": flat_func_coefs, "Function": function, "Component": components}
     function_df = pd.DataFrame(data)
 
-    #Collect classification component weights
+    # Collect classification component weights
     components = [i for i in range(tFac.rank)] * 2
     category = ["Progression"] * tFac.rank + ["Viremia"] * tFac.rank
     data = {"Weights": [ele for ele in np.hstack([cp_coef, nv_coef])], "Class": category, "Component": components}
@@ -108,7 +108,7 @@ def makeFigure():
     b.set_xlabel("Class Prediction")
     b.tick_params(axis="x")
 
-    #Component Weights
+    # Component Weights
     sns.set()
     a = sns.barplot(data=function_df, x="Component", y="Weights", hue="Function", ax=ax[2])
     b = sns.barplot(data=class_df, x="Component", y="Weights", hue="Class", ax=ax[3])
