@@ -32,7 +32,6 @@ def function_elastic_net(function="ADCC"):
 def function_prediction(tensorFac, function="ADCC", evaluation="all"):
     """ Predict functions using our decomposition and regression methods"""
     func, _ = importFunction()
-
     Y = func[function]
     X = tensorFac[1][0][np.isfinite(Y), :]  # subjects x components matrix
     idx = np.zeros(Y.shape, dtype=np.bool)
@@ -40,10 +39,12 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all"):
 
     idx = idx[np.isfinite(Y)]
     Y = Y[np.isfinite(Y)]
-
-    # Perform Regression
     scores = []
     for _ in range(100):
+        Y = func[function]
+        Y = Y[np.isfinite(Y)]
+
+        # Perform Regression
         Y_pred, coef = RegressionHelper(X, Y)
 
         if evaluation == "Alter":
