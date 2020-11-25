@@ -64,7 +64,7 @@ def ClassifySVC(X, Y):
     Cs = np.logspace(-4, 4, num=50)
     kernels = ['linear', 'rbf']
     skf = StratifiedKFold(n_splits=10)
-    comp = 6
+    comp = X.shape[1]
     values_all = []
     for C in Cs:
         for kernel in kernels:
