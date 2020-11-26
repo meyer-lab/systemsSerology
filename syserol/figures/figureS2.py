@@ -5,9 +5,6 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from .common import subplotLabel, getSetup
-from ..regression import function_prediction
-from ..dataImport import functions
-from ..tensor import perform_CMTF
 
 
 def fcg_df(receptor, geno1, geno2):
