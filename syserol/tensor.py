@@ -51,14 +51,10 @@ def perform_CMTF(tOrig=None, mOrig=None, r=6):
         mFac.factors[0] = tFac.factors[0]
 
         # PARAFAC on other antigen modes
-        for mode in [1, 2]:
-            pinv = np.ones((r, r))
-            for i, factor in enumerate(tFac.factors):
-                if i != mode:
-                    pinv *= np.dot(factor.T, factor)
-
-            mttkrp = tl.unfolding_dot_khatri_rao(tensorIn, tFac, mode)
-            tFac.factors[mode] = np.linalg.solve(pinv.T, mttkrp.T).T
+        for m in [1, 2]:
+            pinv = np.dot(tFac.factors[0].T, tFac.factors[0]) * np.dot(tFac.factors[3 - m].T, tFac.factors[3 - m])
+            mttkrp = tl.unfolding_dot_khatri_rao(tensorIn, tFac, m)
+            tFac.factors[m] = np.linalg.solve(pinv.T, mttkrp.T).T
 
         # Solve for the glycan matrix fit
         mFac.factors[1] = np.linalg.lstsq(mFac.factors[0][selPat, :], mOrig[selPat, :], rcond=None)[0].T
