@@ -114,18 +114,17 @@ def importAlterDF(function=True, subjects=False):
     return df_merged
 
 
-def AlterIndices():
-    df = importAlterDF()
-    df = df.dropna()
-    subjects, _, _ = getAxes()
-
-    return np.array([subjects.index(subject) for i, subject in enumerate(df["subject"])])
-
-
-def selectAlter(Y, Y_pred, evaluation):
+def selectAlter(Y, Y_pred, evaluation, subset=None):
     """ Subset Y for sets of patients. """
-    idx = np.zeros(Y.shape, dtype=np.bool)
-    idx[AlterIndices()] = 1
+    df = importAlterDF().dropna()
+    subjects = getAxes()[0]
+
+    idx = np.zeros(181, dtype=np.bool)
+    for subject in df["subject"]:
+        idx[subjects.index(subject)] = 1
+
+    if subset is not None:
+        idx = idx[subset]
 
     if evaluation == "Alter":
         Y, Y_pred = Y[idx], Y_pred[idx]
