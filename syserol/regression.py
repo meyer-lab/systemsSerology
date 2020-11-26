@@ -1,9 +1,9 @@
 """ Regression methods. """
 import numpy as np
 import pandas as pd
+from sklearn.linear_model import ElasticNetCV, ElasticNet
+from sklearn.model_selection import cross_val_predict
 from sklearn.metrics import r2_score
-from sklearn.model_selection import cross_val_predict, StratifiedKFold
-from glmnet import ElasticNet
 from .dataImport import (
     importFunction,
     functions,
@@ -22,14 +22,14 @@ def function_elastic_net(function="ADCC"):
     X = df.drop(["subject"] + functions, axis=1)
 
     # perform regression
-    Y_pred, _, _ = RegressionHelper(X, Y)
-
-    return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))
+    Y_pred, coef = RegressionHelper(X, Y)
+    return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred)), coef
 
 
 def function_prediction(tensorFac, function="ADCC", evaluation="all"):
     """ Predict functions using our decomposition and regression methods"""
     func, _ = importFunction()
+
     Y = func[function]
     X = tensorFac[1][0][np.isfinite(Y), :]  # subjects x components matrix
     idx = np.zeros(Y.shape, dtype=np.bool)
@@ -39,7 +39,7 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all"):
     Y = Y[np.isfinite(Y)]
 
     # Perform Regression
-    Y_pred, _, coef = RegressionHelper(X, Y)
+    Y_pred, coef = RegressionHelper(X, Y)
 
     if evaluation == "Alter":
         Y, Y_pred = Y[idx], Y_pred[idx]
@@ -47,17 +47,14 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all"):
         Y, Y_pred = Y[~idx], Y_pred[~idx]
     elif evaluation != "all":
         raise ValueError("Bad evaluation selection.")
+
     assert Y.shape == Y_pred.shape
     return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred)), coef
 
 
 def RegressionHelper(X, Y):
     """ Function with common Logistic regression methods. """
-    glmnet = ElasticNet(alpha = .8, n_jobs=10, n_splits=10, scoring="mean_squared_error").fit(X, Y)
-    score = glmnet.cv_mean_score_[glmnet.lambda_best_ == glmnet.lambda_path_][0]
-
-    Y_pred = cross_val_predict(glmnet, X, Y, cv=10, n_jobs=-1)
-
-    # TODO: Note that the accuracy on cross-validation is slightly lower than what glmnet returns.
-    # score vs. accuracy_score(Y, Y_pred)
-    return Y_pred, score, glmnet.coef_
+    regr = ElasticNetCV(normalize=True, max_iter=10000, cv=20, n_jobs=-1, l1_ratio=0.8).fit(X, Y)
+    enet = ElasticNet(alpha=regr.alpha_, l1_ratio=regr.l1_ratio_, normalize=True, max_iter=10000)
+    Y_pred = cross_val_predict(enet, X, Y, cv=Y.size, n_jobs=-1)
+    return Y_pred, enet.fit(X, Y).coef_
