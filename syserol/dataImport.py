@@ -122,6 +122,22 @@ def AlterIndices():
     return np.array([subjects.index(subject) for i, subject in enumerate(df["subject"])])
 
 
+def selectAlter(Y, Y_pred, evaluation):
+    """ Subset Y for sets of patients. """
+    idx = np.zeros(Y.shape, dtype=np.bool)
+    idx[AlterIndices()] = 1
+
+    if evaluation == "Alter":
+        Y, Y_pred = Y[idx], Y_pred[idx]
+    elif evaluation == "notAlter":
+        Y, Y_pred = Y[~idx], Y_pred[~idx]
+    elif evaluation != "all":
+        raise ValueError("Bad evaluation selection.")
+
+    assert Y.shape == Y_pred.shape
+    return Y, Y_pred
+
+
 @lru_cache()
 def createCube():
     """ Import the data and assemble the antigen cube. """

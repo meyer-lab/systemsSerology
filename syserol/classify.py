@@ -3,7 +3,7 @@ import numpy as np
 from sklearn.model_selection import cross_val_predict, StratifiedKFold
 from sklearn.metrics import accuracy_score
 from glmnet import LogitNet
-from .dataImport import load_file, importAlterDF, AlterIndices
+from .dataImport import load_file, importAlterDF, selectAlter
 
 
 def getClassPred(X, df):
@@ -20,18 +20,9 @@ def class_predictions(X, evaluation="all"):
     cp, nv, Y_cp, Y_nv = getClassPred(X, load_file("meta-subjects"))
     accuracies = []
     for classpred in [[cp, Y_cp], [nv, Y_nv]]:
-        Y = classpred[1]
-        Y_pred = classpred[0][0]
-        idx = np.zeros(Y.shape, dtype=np.bool)
-        idx[AlterIndices()] = 1
-        if evaluation == "Alter":
-            Y, Y_pred = Y[idx], Y_pred[idx]
-        elif evaluation == "notAlter":
-            Y, Y_pred = Y[~idx], Y_pred[~idx]
-        elif evaluation != "all":
-            raise ValueError("Bad evaluation selection.")
-        assert Y.shape == Y_pred.shape
+        Y, Y_pred = selectAlter(classpred[1], classpred[0][0], evaluation)
         accuracies.append(accuracy_score(Y, Y_pred))
+
     return accuracies[0], accuracies[1], cp[2], nv[2]
 
 

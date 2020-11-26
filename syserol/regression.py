@@ -8,7 +8,7 @@ from .dataImport import (
     importFunction,
     functions,
     importAlterDF,
-    AlterIndices,
+    selectAlter,
 )
 
 
@@ -32,8 +32,6 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all"):
 
     Y = func[function]
     X = tensorFac[1][0][np.isfinite(Y), :]  # subjects x components matrix
-    idx = np.zeros(Y.shape, dtype=np.bool)
-    idx[AlterIndices()] = 1
 
     idx = idx[np.isfinite(Y)]
     Y = Y[np.isfinite(Y)]
@@ -41,14 +39,8 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all"):
     # Perform Regression
     Y_pred, coef = RegressionHelper(X, Y)
 
-    if evaluation == "Alter":
-        Y, Y_pred = Y[idx], Y_pred[idx]
-    elif evaluation == "notAlter":
-        Y, Y_pred = Y[~idx], Y_pred[~idx]
-    elif evaluation != "all":
-        raise ValueError("Bad evaluation selection.")
+    Y, Y_pred = selectAlter(Y, Y_pred, evaluation)
 
-    assert Y.shape == Y_pred.shape
     return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred)), coef
 
 
