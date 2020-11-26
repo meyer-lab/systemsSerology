@@ -1,9 +1,9 @@
 """ Regression methods. """
 import numpy as np
 import pandas as pd
-from sklearn.linear_model import ElasticNetCV, ElasticNet
-from sklearn.model_selection import cross_val_predict
 from sklearn.metrics import r2_score
+from sklearn.model_selection import cross_val_predict
+from glmnet import ElasticNet
 from .dataImport import (
     importFunction,
     functions,
@@ -54,7 +54,11 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all"):
 
 def RegressionHelper(X, Y):
     """ Function with common Logistic regression methods. """
-    regr = ElasticNetCV(normalize=True, max_iter=10000, cv=20, n_jobs=-1, l1_ratio=0.8).fit(X, Y)
-    enet = ElasticNet(alpha=regr.alpha_, l1_ratio=regr.l1_ratio_, normalize=True, max_iter=10000)
-    Y_pred = cross_val_predict(enet, X, Y, cv=Y.size, n_jobs=-1)
-    return Y_pred, enet.fit(X, Y).coef_
+    glmnet = ElasticNet(alpha = .8, n_jobs=10, n_splits=10).fit(X, Y)
+    coef = glmnet.coef_
+
+    Y_pred = cross_val_predict(glmnet, X, Y, cv=10, n_jobs=-1)
+
+    # TODO: Note that the accuracy on cross-validation is slightly lower than what glmnet returns.
+    # score vs. accuracy_score(Y, Y_pred)
+    return Y_pred, coef
