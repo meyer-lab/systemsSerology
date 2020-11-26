@@ -17,12 +17,10 @@ def class_predictions(X, evaluation="all"):
     """ Predict Subject Class with Decomposed Tensor Data """
     # Load Data
     cp, nv, Y_cp, Y_nv = getClassPred(X, load_file("meta-subjects"))
-    accuracies = []
-    for classpred in [[cp, Y_cp], [nv, Y_nv]]:
-        Y, Y_pred = selectAlter(classpred[1], classpred[0][0], evaluation)
-        accuracies.append(accuracy_score(Y, Y_pred))
 
-    return accuracies[0], accuracies[1], cp[2], nv[2]
+    cp_acc = accuracy_score(*selectAlter(Y_cp, cp[0], evaluation))
+    nv_acc = accuracy_score(*selectAlter(Y_nv, nv[0], evaluation))
+    return cp_acc, nv_acc, cp[2], nv[2]
 
 
 def two_way_classifications():
