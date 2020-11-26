@@ -2,13 +2,14 @@
 import numpy as np
 import pandas as pd
 from sklearn.metrics import r2_score
+from sklearn.model_selection import cross_val_predict, StratifiedKFold
+from glmnet import ElasticNet
 from .dataImport import (
     importFunction,
     functions,
     importAlterDF,
     AlterIndices,
 )
-from glmnet import ElasticNet
 
 
 def function_elastic_net(function="ADCC"):
@@ -21,12 +22,9 @@ def function_elastic_net(function="ADCC"):
     X = df.drop(["subject"] + functions, axis=1)
 
     # perform regression
-    scores = []
-    for _ in range(100):
-        Y_pred, coef = RegressionHelper(X, Y)
-        scores.append([np.sqrt(r2_score(Y, Y_pred)), coef])
-    scores.sort(key=lambda x: x[0])
-    return Y, Y_pred, scores[49][0], scores[49][1]
+    Y_pred, _, _ = RegressionHelper(X, Y)
+
+    return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred))
 
 
 def function_prediction(tensorFac, function="ADCC", evaluation="all"):
@@ -39,28 +37,27 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all"):
 
     idx = idx[np.isfinite(Y)]
     Y = Y[np.isfinite(Y)]
-    scores = []
-    for _ in range(100):
-        Y = func[function]
-        Y = Y[np.isfinite(Y)]
 
-        # Perform Regression
-        Y_pred, coef = RegressionHelper(X, Y)
+    # Perform Regression
+    Y_pred, _, coef = RegressionHelper(X, Y)
 
-        if evaluation == "Alter":
-            Y, Y_pred = Y[idx], Y_pred[idx]
-        elif evaluation == "notAlter":
-            Y, Y_pred = Y[~idx], Y_pred[~idx]
-        elif evaluation != "all":
-            raise ValueError("Bad evaluation selection.")
-        assert Y.shape == Y_pred.shape
-        scores.append([np.sqrt(r2_score(Y, Y_pred)), coef])
-    scores.sort(key=lambda x: x[0])
-    return Y, Y_pred, scores[49][0], scores[49][1]
+    if evaluation == "Alter":
+        Y, Y_pred = Y[idx], Y_pred[idx]
+    elif evaluation == "notAlter":
+        Y, Y_pred = Y[~idx], Y_pred[~idx]
+    elif evaluation != "all":
+        raise ValueError("Bad evaluation selection.")
+    assert Y.shape == Y_pred.shape
+    return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred)), coef
 
 
 def RegressionHelper(X, Y):
     """ Function with common Logistic regression methods. """
-    enet = ElasticNet(alpha=.8, n_splits=10, n_jobs=25, scoring="mean_squared_error").fit(X, Y)
-    Y_pred = enet.predict(X)
-    return Y_pred, enet.coef_
+    glmnet = ElasticNet(alpha = .8, n_jobs=10, n_splits=10, scoring="mean_squared_error").fit(X, Y)
+    score = glmnet.cv_mean_score_[glmnet.lambda_best_ == glmnet.lambda_path_][0]
+
+    Y_pred = cross_val_predict(glmnet, X, Y, cv=10, n_jobs=-1)
+
+    # TODO: Note that the accuracy on cross-validation is slightly lower than what glmnet returns.
+    # score vs. accuracy_score(Y, Y_pred)
+    return Y_pred, score, glmnet.coef_
