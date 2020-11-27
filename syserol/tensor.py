@@ -54,7 +54,10 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
         for m in [1, 2]:
             pinv = np.dot(tFac.factors[0].T, tFac.factors[0]) * np.dot(tFac.factors[3 - m].T, tFac.factors[3 - m])
             mttkrp = tl.unfolding_dot_khatri_rao(tensorIn, tFac, m)
-            tFac.factors[m] = np.linalg.solve(pinv.T, mttkrp.T).T
+
+            denom = np.dot(tFac.factors[m], pinv)
+            denom = np.clip(denom, a_min=10e-12, a_max=None)
+            tFac.factors[m] *= np.clip(mttkrp, a_min=10e-12, a_max=None) / denom
 
         # Solve for the glycan matrix fit
         mFac.factors[1] = np.linalg.lstsq(mFac.factors[0][selPat, :], mOrig[selPat, :], rcond=None)[0].T
