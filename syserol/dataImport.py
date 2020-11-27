@@ -174,7 +174,7 @@ def createCube():
     # IIa.H/R were offset to negative, so correct that
     cube[:, 2:4, :] += 17500
     cube[:, 1:4, :] = np.clip(cube[:, 1:4, :], 0, None)
-    cube[:, 5:11, :] = np.clip(cube[:, 5:11, :], 0, None)
+    cube[:, 4:11, :] = np.clip(cube[:, 4:11, :], 0, None)
 
     print("Missingness fraction: " + str(np.mean(np.isnan(cube))))
 
