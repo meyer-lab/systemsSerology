@@ -39,9 +39,9 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
     missing = np.any(np.isnan(unfolded), axis=0)
     unfolded = unfolded[:, ~missing]
 
-    R2X_last = R2X = 0.0
+    R2X_last = R2X = -1000.0
 
-    for ii in range(20000):
+    for ii in range(40000):
         # Solve for the patient matrix
         kr = khatri_rao(tFac.factors[1], tFac.factors[2])[~missing, :]
         kr2 = np.vstack((kr, mFac.factors[1]))
@@ -54,10 +54,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
         for m in [1, 2]:
             pinv = np.dot(tFac.factors[0].T, tFac.factors[0]) * np.dot(tFac.factors[3 - m].T, tFac.factors[3 - m])
             mttkrp = tl.unfolding_dot_khatri_rao(tensorIn, tFac, m)
-
-            denom = np.dot(tFac.factors[m], pinv)
-            denom = np.clip(denom, a_min=10e-12, a_max=None)
-            tFac.factors[m] *= np.clip(mttkrp, a_min=10e-12, a_max=None) / denom
+            tFac.factors[m] = np.linalg.solve(pinv.T, mttkrp.T).T
 
         # Solve for the glycan matrix fit
         mFac.factors[1] = np.linalg.lstsq(mFac.factors[0][selPat, :], mOrig[selPat, :], rcond=None)[0].T
@@ -66,11 +63,11 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
         matrixIn[mmask] = tl.cp_to_tensor(mFac)[mmask]
         tensorIn[tmask] = tl.cp_to_tensor(tFac)[tmask]
 
-        if ii % 10 == 0:
+        if ii % 100 == 0:
             R2X_last = R2X
             R2X = calcR2X(tOrig, mOrig, tFac, mFac)
 
-        if R2X - R2X_last < 1e-9:
+        if R2X - R2X_last < 1e-6:
             break
 
     tFac.normalize()
