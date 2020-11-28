@@ -138,7 +138,7 @@ def selectAlter(Y, Y_pred, evaluation, subset=None):
 
 
 @lru_cache()
-def createCube():
+def createCube(powert = True):
     """ Import the data and assemble the antigen cube. """
     subjects, detections, antigen = getAxes()
     cube = np.full([len(subjects), len(detections), len(antigen)], np.nan)
@@ -173,6 +173,10 @@ def createCube():
     # Clip to 0 as there are a few strongly negative outliers
     # IIa.H/R were offset to negative, so correct that
     cube[:, 1:11, :] = np.clip(cube[:, 1:11, :], 0, None)
+
+    # Power normalization
+    if powert:
+        cube[:, 5, :] = np.power(cube[:, 5, :], 2.58) * 4.28e-9
 
     # Check that there are no slices with completely missing data
     assert ~np.any(np.all(np.isnan(cube), axis=(0, 1)))

@@ -11,7 +11,7 @@ from ..dataImport import createCube, getAxes
 
 def makeFigure():
     """ Compare genotype vs non-genotype specific readings. """
-    cube, _ = createCube()
+    cube, _ = createCube(powert = False)
     _, detections, _ = getAxes()
 
     cube = tl.unfold(cube[:, 1:11, :], 1)
@@ -36,12 +36,10 @@ def makeFigure():
 
         ax.scatter(data[0, :], data[1, :], s=0.3)
 
-        func = lambda x: data[0, :] * x[0] / (data[0, :] * (1 - x[1]) + x[2]) - data[1, :]
-        diffscale = np.mean(data[1, :]) / np.mean(data[0, :])
-        popt = least_squares(func, x0 = [diffscale, 1.0, 1.0], jac="3-point")
-        xout = popt.x
+        pfunc = lambda x, p: np.power(x, p[0]) * p[1]
+        popt = least_squares(lambda x: pfunc(data[0, :], x) - data[1, :], x0 = [1.0, 1.0], jac="3-point")
         linx = np.linspace(0.0, np.amax(data[0, :]), num=100)
-        liny = linx * xout[0] / (linx * (1 - xout[1]) + xout[2])
+        liny = pfunc(linx, popt.x)
         ax.plot(linx, liny, 'r-')
 
         ax.set_xlabel(detections[xi])
