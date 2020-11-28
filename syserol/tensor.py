@@ -39,9 +39,9 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
     missing = np.any(np.isnan(unfolded), axis=0)
     unfolded = unfolded[:, ~missing]
 
-    R2X_last = R2X = 0.0
+    R2X_last = R2X = -1000.0
 
-    for ii in range(20000):
+    for ii in range(40000):
         # Solve for the patient matrix
         kr = khatri_rao(tFac.factors[1], tFac.factors[2])[~missing, :]
         kr2 = np.vstack((kr, mFac.factors[1]))
@@ -63,11 +63,11 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
         matrixIn[mmask] = tl.cp_to_tensor(mFac)[mmask]
         tensorIn[tmask] = tl.cp_to_tensor(tFac)[tmask]
 
-        if ii % 10 == 0:
+        if ii % 100 == 0:
             R2X_last = R2X
             R2X = calcR2X(tOrig, mOrig, tFac, mFac)
 
-        if R2X - R2X_last < 1e-9:
+        if R2X - R2X_last < 1e-6:
             break
 
     tFac.normalize()
