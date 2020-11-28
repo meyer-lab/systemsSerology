@@ -18,7 +18,7 @@ def calcR2X(tensorIn, matrixIn, tensorFac, matrixFac):
     return 1.0 - (tErr + mErr) / (np.nanvar(tensorIn) + np.nanvar(matrixIn))
 
 
-def perform_CMTF(tOrig=None, mOrig=None, r=6):
+def perform_CMTF(tOrig=None, mOrig=None, r=10):
     """ Perform CMTF decomposition. """
     if tOrig is None:
         tOrig, mOrig = createCube()
@@ -67,7 +67,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=6):
             R2X_last = R2X
             R2X = calcR2X(tOrig, mOrig, tFac, mFac)
 
-        if R2X - R2X_last < 1e-7:
+        if R2X - R2X_last < 1e-9:
             break
 
     tFac.normalize()
