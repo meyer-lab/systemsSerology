@@ -170,6 +170,12 @@ def createCube():
     # cube = cube / np.nanstd(cube, axis=(0, 2))[np.newaxis, :, np.newaxis]
     # glyCube = glyCube / np.nanstd(glyCube, axis=0)[np.newaxis, :]
 
+    # Clip to 0 as there are a few strongly negative outliers
+    # IIa.H/R were offset to negative, so correct that
+    # cube[:, 2:4, :] += 17500
+    # cube[:, 1:4, :] = np.clip(cube[:, 1:4, :], 0, None)
+    # cube[:, 4:11, :] = np.clip(cube[:, 4:11, :], 0, None)
+
     print("Missingness fraction: " + str(np.mean(np.isnan(cube))))
 
     # Check that there are no slices with completely missing data
