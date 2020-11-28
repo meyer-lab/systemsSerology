@@ -4,6 +4,7 @@ This creates Figure 1.
 
 import numpy as np
 from .common import subplotLabel, getSetup
+from ..impute import evaluate_missing
 from ..regression import function_prediction
 from ..classify import class_predictions
 from ..tensor import perform_CMTF
@@ -13,7 +14,7 @@ from ..dataImport import functions
 def makeFigure():
     """Get a list of the axis objects and create a figure"""
     # Get list of axis objects
-    ax, f = getSetup((7, 4), (1, 2))
+    ax, f = getSetup((7, 4), (1, 3))
 
     comps = np.arange(1, 11)
     tensorArr = np.zeros(comps.shape)
@@ -38,6 +39,12 @@ def makeFigure():
     ax[1].set_ylabel("Average prediction performance")
     ax[1].set_xlabel("Number of Components")
     ax[1].set_ylim(0, 1)
+
+    R2X = evaluate_missing()
+    ax[2].scatter(np.arange(1, R2X.size + 1), R2X)
+    ax[2].set_ylabel("Q2X of Imputation")
+    ax[2].set_xlabel("Number of Components")
+    ax[2].set_ylim(0, 1)
 
     # Add subplot labels
     subplotLabel(ax)
