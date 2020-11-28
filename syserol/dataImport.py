@@ -174,8 +174,6 @@ def createCube():
     # IIa.H/R were offset to negative, so correct that
     cube[:, 1:11, :] = np.clip(cube[:, 1:11, :], 0, None)
 
-    print("Missingness fraction: " + str(np.mean(np.isnan(cube))))
-
     # Check that there are no slices with completely missing data
     assert ~np.any(np.all(np.isnan(cube), axis=(0, 1)))
     assert ~np.any(np.all(np.isnan(cube), axis=(0, 2)))
