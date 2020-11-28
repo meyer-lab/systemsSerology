@@ -56,6 +56,11 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
             mttkrp = tl.unfolding_dot_khatri_rao(tensorIn, tFac, m)
             tFac.factors[m] = np.linalg.solve(pinv.T, mttkrp.T).T
 
+        if ii < 100:
+            tFac.factors[1][1:4, :] = np.mean(tFac.factors[1][1:4, :], axis=0)[np.newaxis, :]
+            tFac.factors[1][5:8, :] = np.mean(tFac.factors[1][5:8, :], axis=0)[np.newaxis, :]
+            tFac.factors[1][8:11, :] = np.mean(tFac.factors[1][8:11, :], axis=0)[np.newaxis, :]
+
         # Solve for the glycan matrix fit
         mFac.factors[1] = np.linalg.lstsq(mFac.factors[0][selPat, :], mOrig[selPat, :], rcond=None)[0].T
 
@@ -63,11 +68,11 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
         matrixIn[mmask] = tl.cp_to_tensor(mFac)[mmask]
         tensorIn[tmask] = tl.cp_to_tensor(tFac)[tmask]
 
-        if ii % 100 == 0:
+        if ii % 200 == 0:
             R2X_last = R2X
             R2X = calcR2X(tOrig, mOrig, tFac, mFac)
 
-        if R2X - R2X_last < 1e-6:
+        if R2X - R2X_last < 1e-9:
             break
 
     tFac.normalize()
