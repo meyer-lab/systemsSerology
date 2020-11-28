@@ -172,10 +172,7 @@ def createCube():
 
     # Clip to 0 as there are a few strongly negative outliers
     # IIa.H/R were offset to negative, so correct that
-    # cube[:, 2:4, :] += 10000
     cube[:, 1:11, :] = np.clip(cube[:, 1:11, :], 0, None)
-
-    print("Missingness fraction: " + str(np.mean(np.isnan(cube))))
 
     # Check that there are no slices with completely missing data
     assert ~np.any(np.all(np.isnan(cube), axis=(0, 1)))

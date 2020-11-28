@@ -9,9 +9,6 @@ from .common import subplotLabel, getSetup
 from ..dataImport import createCube, getAxes
 
 
-
-
-
 def makeFigure():
     """ Compare genotype vs non-genotype specific readings. """
     cube, _ = createCube()
