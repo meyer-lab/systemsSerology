@@ -14,7 +14,7 @@ from ..dataImport import functions
 def makeFigure():
     """Get a list of the axis objects and create a figure"""
     # Get list of axis objects
-    ax, f = getSetup((7, 4), (2, 2))
+    ax, f = getSetup((7, 4), (1, 3))
 
     comps = np.arange(1, 11)
     tensorArr = np.zeros(comps.shape)
