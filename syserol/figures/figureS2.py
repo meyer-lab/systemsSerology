@@ -2,59 +2,52 @@
 This creates Figure S2.
 """
 import numpy as np
-import pandas as pd
 import seaborn as sns
+import tensorly as tl
+from scipy.optimize import least_squares
 from .common import subplotLabel, getSetup
-from ..regression import function_prediction
-from ..dataImport import functions
-from ..tensor import perform_CMTF
-
-
-def fcg_df(receptor, geno1, geno2):
-    # Import luminex readings
-    test = pd.read_csv("syserol/data/data-luminex.csv")
-    geno1 = receptor + "." + geno1
-    geno2 = receptor + "." + geno2
-    cols = [col for col in test.columns if receptor in col]
-    # Set up dictionary for antigens
-    dict_receptor = {geno1: [], geno2: [], receptor: []}
-    for col in cols:
-        if col[:len(geno1)] == geno1:
-            dict_receptor[geno1].append(col[len(geno1) + 1:])
-        elif col[:len(geno2)] == geno2:
-            dict_receptor[geno2].append(col[len(geno2) + 1:])
-        elif col[:len(receptor)] == receptor:
-            dict_receptor[receptor].append(col[len(receptor) + 1:])
-    # Pull values from data and concatenate
-    all_antis = []
-    for i in range(len(dict_receptor[receptor])):
-        test_col = [val for val in cols if val[-len(dict_receptor[receptor][i]):] == dict_receptor[receptor][i]]
-        anti = test[test_col]
-        if test[test_col].shape[1] == 3:
-            anti.columns = [geno1, geno2, receptor]
-            all_antis.append(anti)
-    df = pd.concat(all_antis)
-    return df
+from ..dataImport import createCube, getAxes
 
 
 def makeFigure():
     """ Compare genotype vs non-genotype specific readings. """
-    # Acquire dataframe of antigens
-    df_2a = fcg_df("FcgRIIa", "H131", "R131")
-    df_3a = fcg_df("FcgRIIIa", "F158", "V158")
-    df_3b = fcg_df("FcgRIIIb", "NA1", "SH")
+    cube, _ = createCube(powert = False)
+    _, detections, _ = getAxes()
 
-    ax, fig = getSetup((15, 15), (3, 3))
-    sns.kdeplot(data=df_2a, x=df_2a.columns[0], y=df_2a.columns[1], ax=ax[0])
-    sns.kdeplot(data=df_2a, x=df_2a.columns[0], y=df_2a.columns[2], ax=ax[1])
-    sns.kdeplot(data=df_2a, x=df_2a.columns[1], y=df_2a.columns[2], ax=ax[2])
-    sns.kdeplot(data=df_3a, x=df_3a.columns[0], y=df_3a.columns[1], ax=ax[3])
-    sns.kdeplot(data=df_3a, x=df_3a.columns[0], y=df_3a.columns[2], ax=ax[4])
-    sns.kdeplot(data=df_3a, x=df_3a.columns[1], y=df_3a.columns[2], ax=ax[5])
-    sns.kdeplot(data=df_3b, x=df_3b.columns[0], y=df_3b.columns[1], ax=ax[6])
-    sns.kdeplot(data=df_3b, x=df_3b.columns[0], y=df_3b.columns[2], ax=ax[7])
-    sns.kdeplot(data=df_3b, x=df_3b.columns[1], y=df_3b.columns[2], ax=ax[8])
+    cube = tl.unfold(cube[:, 1:11, :], 1)
+    cube = np.delete(cube, 3, axis=1)
+    detections = detections[1:11]
+    del detections[3]
 
-    subplotLabel(ax)
+    # Remove fully missing patients
+    missing = np.all(np.isnan(cube), axis=0)
+    cube = cube[:, ~missing]
+
+    axs, fig = getSetup((10, 10), (3, 3))
+
+    for ii, ax in enumerate(axs):
+        groupi = ii - (ii % 3)
+        xi = groupi + [1, 1, 2][ii % 3]
+        yi = groupi + [0, 2, 0][ii % 3]
+
+        data = cube[(xi, yi), :]
+        miss = np.all(np.isfinite(data), axis=0)
+        data = data[:, miss]
+
+        ax.scatter(data[0, :], data[1, :], s=0.3)
+
+        pfunc = lambda x, p: np.power(x, p[0]) * p[1]
+        popt = least_squares(lambda x: pfunc(data[0, :], x) - data[1, :], x0 = [1.0, 1.0], jac="3-point")
+        linx = np.linspace(0.0, np.amax(data[0, :]), num=100)
+        liny = pfunc(linx, popt.x)
+        ax.plot(linx, liny, 'r-')
+
+        ax.set_xlabel(detections[xi])
+        ax.set_ylabel(detections[yi])
+
+        ax.set_ylim(bottom = -2000)
+        ax.set_xlim(left = -2000)
+
+    subplotLabel(axs)
 
     return fig
