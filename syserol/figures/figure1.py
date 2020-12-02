@@ -16,7 +16,7 @@ def makeFigure():
     # Get list of axis objects
     ax, f = getSetup((7, 4), (1, 3))
 
-    comps = np.arange(1, 11)
+    comps = np.array([1, 2, 4, 6, 8, 10, 12, 14])
     tensorArr = np.zeros(comps.shape)
     pred_acc = np.zeros(comps.shape)
 
@@ -40,8 +40,8 @@ def makeFigure():
     ax[1].set_xlabel("Number of Components")
     ax[1].set_ylim(0, 1)
 
-    R2X = evaluate_missing()
-    ax[2].scatter(np.arange(1, R2X.size + 1), R2X)
+    Q2X = evaluate_missing(comps)
+    ax[2].scatter(np.arange(1, Q2X.size + 1), Q2X)
     ax[2].set_ylabel("Q2X of Imputation")
     ax[2].set_xlabel("Number of Components")
     ax[2].set_ylim(0, 1)

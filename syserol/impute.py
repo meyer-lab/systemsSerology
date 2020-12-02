@@ -6,11 +6,11 @@ from .dataImport import createCube
 from .tensor import perform_CMTF
 
 
-def evaluate_missing(numSample=10, maxComp=8):
+def evaluate_missing(comps, numSample=20):
     """ check differences between original and recon values for different number of components. """
     cube, glyCube = createCube()
 
-    R2X = np.zeros(maxComp)
+    R2X = np.zeros_like(comps)
     missingCube = np.copy(cube)
     for _ in range(numSample):
         idxs = np.argwhere(np.isfinite(missingCube))
@@ -20,7 +20,7 @@ def evaluate_missing(numSample=10, maxComp=8):
     imputeVals = np.copy(cube)
     imputeVals[np.isfinite(missingCube)] = np.nan
 
-    for nComp in np.arange(1, R2X.size + 1):
+    for nComp in comps:
         # reconstruct with some values missing
         tensorR = tl.cp_to_tensor(perform_CMTF(missingCube, glyCube, nComp)[0])
         tensorR[np.isfinite(missingCube)] = np.nan
