@@ -20,14 +20,14 @@ def makeFigure():
     tensorArr = np.zeros(comps.shape)
     pred_acc = np.zeros(comps.shape)
 
-    for i in comps:
-        tFac, _, R2X = perform_CMTF(r=i)
-        tensorArr[i - 1] = R2X
+    for i, cc in enumerate(comps):
+        tFac, _, R2X = perform_CMTF(r=cc)
+        tensorArr[i] = R2X
         accur = [function_prediction(tFac, function=f, evaluation="all")[2] for f in functions]
         cp, nv, _, _ = class_predictions(tFac[1][0])  # Our accuracies
         accur.append(cp)
         accur.append(nv)
-        pred_acc[i - 1] = np.mean(accur)
+        pred_acc[i] = np.mean(accur)
 
     ax[0].scatter(comps, tensorArr)
     ax[0].set_ylabel("R2X")
