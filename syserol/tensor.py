@@ -20,7 +20,6 @@ def calcR2X(tensorIn, matrixIn, tensorFac, matrixFac):
 
 def censored_lstsq(A, B):
     """Solves least squares problem subject to missing data.
-
     Note: uses a broadcasted solve for speed.
 
     Args
@@ -46,7 +45,7 @@ def censored_lstsq(A, B):
     # else solve via tensor representation
     rhs = np.dot(A.T, M * B).T[:,:,None] # n x r x 1 tensor
     T = np.matmul(A.T[None,:,:], M.T[:,:,None] * A[None,:,:]) # n x r x r tensor
-    return np.linalg.solve(T, rhs) # transpose to get r x n
+    return np.linalg.solve(T, rhs)[:, :, 0] # transpose to get r x n
 
 
 def perform_CMTF(tOrig=None, mOrig=None, r=6):
@@ -54,15 +53,8 @@ def perform_CMTF(tOrig=None, mOrig=None, r=6):
     if tOrig is None:
         tOrig, mOrig = createCube()
 
-    tensorIn = tOrig.copy()
-    tmask = np.isnan(tensorIn)
-    tensorIn[tmask] = np.nanmean(tOrig)
-    matrixIn = mOrig.copy()
-    mmask = np.isnan(matrixIn)
-    matrixIn[mmask] = np.nanmean(mOrig)
-
-    tFac = CPTensor(initialize_cp(tensorIn, r, non_negative=True))
-    mFac = CPTensor(initialize_cp(matrixIn, r, non_negative=True))
+    tFac = CPTensor(initialize_cp(np.nan_to_num(tOrig, nan=np.nanmean(tOrig)), r, non_negative=True))
+    mFac = CPTensor(initialize_cp(np.nan_to_num(mOrig, nan=np.nanmean(mOrig)), r, non_negative=True))
 
     # Pre-unfold
     selPat = np.all(np.isfinite(mOrig), axis=1)
@@ -76,22 +68,19 @@ def perform_CMTF(tOrig=None, mOrig=None, r=6):
         # Solve for the patient matrix
         kr = khatri_rao(tFac.factors[1], tFac.factors[2])[~missing, :]
         kr2 = np.vstack((kr, mFac.factors[1]))
-        unfolded2 = np.hstack((unfolded, matrixIn))
+        unfolded2 = np.hstack((unfolded, mOrig))
 
-        tFac.factors[0] = np.linalg.lstsq(kr2, unfolded2.T, rcond=None)[0].T
+        tFac.factors[0] = censored_lstsq(kr2, unfolded2.T)
         mFac.factors[0] = tFac.factors[0]
 
         # PARAFAC on other antigen modes
         for m in [1, 2]:
             kr = khatri_rao(tFac.factors[0], tFac.factors[3 - m])
             unfold = tl.unfold(tOrig, m)
-            tFac.factors[m] = censored_lstsq(kr, unfold.T)[:, :, 0]
+            tFac.factors[m] = censored_lstsq(kr, unfold.T)
 
         # Solve for the glycan matrix fit
         mFac.factors[1] = np.linalg.lstsq(mFac.factors[0][selPat, :], mOrig[selPat, :], rcond=None)[0].T
-
-        # Fill in glycan matrix
-        matrixIn[mmask] = tl.cp_to_tensor(mFac)[mmask]
 
         if ii % 50 == 0:
             R2X_last = R2X
