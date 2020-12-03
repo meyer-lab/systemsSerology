@@ -2,7 +2,7 @@
 Tensor decomposition methods
 """
 import numpy as np
-from scipy.linalg import khatri_rao
+from scipy.linalg import khatri_rao, solve
 import tensorly as tl
 from tensorly.decomposition._cp import initialize_cp
 from tensorly.cp_tensor import CPTensor
@@ -45,7 +45,7 @@ def censored_lstsq(A, B):
     # else solve via tensor representation
     rhs = np.dot(A.T, M * B).T[:,:,None] # n x r x 1 tensor
     T = np.matmul(A.T[None,:,:], M.T[:,:,None] * A[None,:,:]) # n x r x r tensor
-    return np.linalg.solve(T, rhs)[:, :, 0] # transpose to get r x n
+    return solve(T, rhs, assume_a="pos")[:, :, 0] # transpose to get r x n
 
 
 def perform_CMTF(tOrig=None, mOrig=None, r=6):
