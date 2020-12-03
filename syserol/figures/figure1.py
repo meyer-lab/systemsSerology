@@ -41,7 +41,7 @@ def makeFigure():
     ax[1].set_ylim(0, 1)
 
     Q2X = evaluate_missing(comps)
-    ax[2].scatter(np.arange(1, Q2X.size + 1), Q2X)
+    ax[2].scatter(comps, Q2X)
     ax[2].set_ylabel("Q2X of Imputation")
     ax[2].set_xlabel("Number of Components")
     ax[2].set_ylim(0, 1)
