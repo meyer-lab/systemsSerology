@@ -63,11 +63,11 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
         matrixIn[mmask] = tl.cp_to_tensor(mFac)[mmask]
         tensorIn[tmask] = tl.cp_to_tensor(tFac)[tmask]
 
-        if ii % 200 == 0:
+        if ii % 500 == 0:
             R2X_last = R2X
             R2X = calcR2X(tOrig, mOrig, tFac, mFac)
 
-        if R2X - R2X_last < 1e-9:
+        if R2X - R2X_last < 1e-6:
             break
 
     tFac.normalize()
