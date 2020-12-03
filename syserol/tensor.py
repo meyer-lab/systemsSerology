@@ -1,12 +1,14 @@
 """
 Tensor decomposition methods
 """
+import pickle
+from os.path import join
 import numpy as np
 from scipy.linalg import khatri_rao
 import tensorly as tl
 from tensorly.decomposition._cp import initialize_cp
 from tensorly.cp_tensor import CPTensor
-from .dataImport import createCube
+from .dataImport import createCube, path_here
 
 tl.set_backend('numpy')
 
@@ -18,20 +20,27 @@ def calcR2X(tensorIn, matrixIn, tensorFac, matrixFac):
     return 1.0 - (tErr + mErr) / (np.nanvar(tensorIn) + np.nanvar(matrixIn))
 
 
-def perform_CMTF(tOrig=None, mOrig=None, r=10):
+def perform_CMTF(tOrig=None, mOrig=None, r=14, cache=True):
     """ Perform CMTF decomposition. """
     if tOrig is None:
         tOrig, mOrig = createCube()
 
     tensorIn = tOrig.copy()
     tmask = np.isnan(tensorIn)
-    tensorIn[tmask] = np.nanmean(tOrig)
     matrixIn = mOrig.copy()
     mmask = np.isnan(matrixIn)
-    matrixIn[mmask] = np.nanmean(mOrig)
 
-    tFac = CPTensor(initialize_cp(tensorIn, r, non_negative=True))
-    mFac = CPTensor(initialize_cp(matrixIn, r, non_negative=True))
+    if cache:
+        path = join(path_here, "syserol/data/cache.p")
+        tFill, mFill = pickle.load(open(path, "rb" ))
+        matrixIn[mmask] = tl.cp_to_tensor(mFill)[mmask]
+        tensorIn[tmask] = tl.cp_to_tensor(tFill)[tmask]
+    else:
+        tensorIn[tmask] = np.nanmean(tOrig)
+        matrixIn[mmask] = np.nanmean(mOrig)
+
+    tFac = CPTensor(initialize_cp(tensorIn, r, non_negative=False))
+    mFac = CPTensor(initialize_cp(matrixIn, r, non_negative=False))
 
     # Pre-unfold
     selPat = np.all(np.isfinite(mOrig), axis=1)
@@ -41,7 +50,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
 
     R2X_last = R2X = -1000.0
 
-    for ii in range(40000):
+    for ii in range(90000):
         # Solve for the patient matrix
         kr = khatri_rao(tFac.factors[1], tFac.factors[2])[~missing, :]
         kr2 = np.vstack((kr, mFac.factors[1]))
