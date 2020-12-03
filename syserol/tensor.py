@@ -48,7 +48,7 @@ def censored_lstsq(A, B):
     return np.linalg.solve(T, rhs)[:, :, 0] # transpose to get r x n
 
 
-def perform_CMTF(tOrig=None, mOrig=None, r=10):
+def perform_CMTF(tOrig=None, mOrig=None, r=13):
     """ Perform CMTF decomposition. """
     if tOrig is None:
         tOrig, mOrig = createCube()
@@ -64,7 +64,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
 
     R2X = -1.0
 
-    for ii in range(4000):
+    for ii in range(8000):
         # Solve for the patient matrix
         kr = khatri_rao(tFac.factors[1], tFac.factors[2])[~missing, :]
         kr2 = np.vstack((kr, mFac.factors[1]))
