@@ -48,7 +48,7 @@ def censored_lstsq(A, B):
     return np.linalg.solve(T, rhs)[:, :, 0] # transpose to get r x n
 
 
-def perform_CMTF(tOrig=None, mOrig=None, r=6):
+def perform_CMTF(tOrig=None, mOrig=None, r=10):
     """ Perform CMTF decomposition. """
     if tOrig is None:
         tOrig, mOrig = createCube()
