@@ -1,265 +1,120 @@
 """
-This creates Figure 3 for the Paper.
+This creates Paper Figure 2.
 """
-import numpy as np
+
 import pandas as pd
+import numpy as np
 import seaborn as sns
+from ..regression import (
+    function_elastic_net,
+    function_prediction
+)
+from ..dataImport import functions
+from ..classify import class_predictions, two_way_classifications
 from .common import subplotLabel, getSetup
 from ..tensor import perform_CMTF
-from ..dataImport import getAxes, load_file
-from matplotlib import gridspec, pyplot as plt
 
 
 def makeFigure():
-    """ Generate Figure 3 for Paper, Showing Interpretation of All Data from Decomposed Tensor"""
-    tensorFac, matrixFac, _ = perform_CMTF()
-    heatmap = True
-    legends = False
-    # Gather tensor data matrices
-    subjects = np.squeeze(tensorFac.factors[0])
-    receptors = np.squeeze(tensorFac.factors[1])
-    antigens = np.squeeze(tensorFac.factors[2])
-    glyc = np.squeeze(matrixFac.factors[1])
+    """ Show Similarity in Prediction of Alter Model and Our Model"""
+    # Decompose Cube
+    tFac, _, _ = perform_CMTF()
 
-    # Gather grouping info
-    glycaninf = load_file("meta-glycans")
-    glycaninf = glycaninf.replace(
-        to_replace=["false", "b", "f", "g1", "g2", "g0", "s"],
-        value=["", "B", "F", "G1", "G2", "G0", "S"],
+    # Gather Function Prediction Accuracies
+    accuracies = [function_elastic_net(f)[2] for f in functions]
+    accuracies = accuracies + [function_prediction(tFac, function=f, evaluation="Alter")[2] for f in functions]
+
+    # Subjects left out of Alter
+    accuracies = accuracies + [function_prediction(tFac, function=f, evaluation="notAlter")[2] for f in functions]
+
+    # Create DataFrame
+    model = ["Alter Model"] * 6 + ["Our Model"] * 6 + ["Excluded Cases"] * 6
+    function = functions + functions + functions
+    data = {"Accuracy": accuracies, "Model": model, "Function": function}
+    functions_df = pd.DataFrame(data)  # Function Prediction DataFrame, Figure 2A
+
+    # Gather Class Prediction Accuracies
+    accuracyCvP, accuracyVvN = two_way_classifications()  # Alter accuracies
+    # Run our model
+    cp_accuracy, nv_accuracy, _, _ = class_predictions(tFac[1][0], "Alter")  # Our accuracies
+    cp_notAlter, nv_notAlter, _, _ = class_predictions(tFac[1][0], "notAlter")
+
+    # Create DataFrame
+    baselineNV = 0.5083  # datasetEV3/Fc.array/class.nv/lambda.min/score_details.txt "No information rate"
+    baselineCP = 0.5304  # datasetEV3/Fc.array/class.cp/lambda.min/score_details.txt "No information rate"
+    avg = np.mean([baselineNV, baselineCP])
+    accuracies = np.array(
+        [accuracyCvP, cp_accuracy, cp_notAlter, baselineCP, accuracyVvN, nv_accuracy, nv_notAlter, baselineNV]
     )
-    for i in np.arange(0, len(glycaninf)):
-        if "S1" in glycaninf.iloc[i, 0]:
-            glycaninf.iloc[i, 2] = "S1"
-        if "S2" in glycaninf.iloc[i, 0]:
-            glycaninf.iloc[i, 2] = "S2"
-    glycaninf["FB"] = glycaninf["f"] + glycaninf["b"]
-    glycaninf["GS"] = glycaninf["g"] + glycaninf["s"]
-    glycaninf["FB"] = glycaninf["FB"].replace(to_replace=[np.nan, ""], value=["Total", "No F or B"])
-    glycaninf.loc[19:24, "GS"] = glycaninf.loc[19:24, "glycan"]
-    _, detections, antigen = getAxes()
-    subjinfo = load_file("meta-subjects")
+    category = ["Progression"] * 4 + ["Viremia"] * 4
+    model = ["Alter Model", "Our Model", "Excluded Cases", "Baseline"] * 2
+    data = {"Accuracies": accuracies, "Class": category, "Model": model}
+    classes = pd.DataFrame(data)  # Class Predictions DataFrame, Figure 2B
 
-    if (heatmap == False):
-        ax, f = getSetup((8, 8), (3, 4))
-        # Build Figure
-        index = [0, 2, 4]
-        place = [0, 4, 8]
-        for i, j in zip(index, place):
-            # Subjects
-            values1 = subjects[:, i]
-            values2 = subjects[:, i + 1]
-            data = {
-                f"Component {i+1}": values1,
-                f"Component {i+2}": values2,
-                "Groups": subjinfo["class.etuv"],
-            }
-            df = pd.DataFrame(data)
-            a = sns.scatterplot(
-                x=f"Component {i+1}",
-                y=f"Component {i+2}",
-                hue="Groups",
-                data=df,
-                palette="Set1",
-                legend="brief" if j == 4 and legends else False,
-                ax=ax[j],
-            )
+    """Provide details about our model"""
+    # Factor data
+    # Collect function component weights from elastic net prediction
+    function_coefs = [function_prediction(tFac, function=f, evaluation="all")[3] for f in functions]
+    flat_func_coefs = [func_coef for func in function_coefs for func_coef in func]
+    function = [fun for fun in functions for i in range(tFac.rank)]
+    components = [i for i in range(tFac.rank)] * 6
+    data = {"Weights": flat_func_coefs, "Function": function, "Component": components}
+    function_df = pd.DataFrame(data)
 
-            if j == 4 and legends:
-                a.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
+    # Collect classification component weights
+    _, _, cp_coef, nv_coef = class_predictions(tFac[1][0])
+    components = [i for i in range(tFac.rank)] * 2
+    category = ["Progression"] * tFac.rank + ["Viremia"] * tFac.rank
+    data = {"Weights": [ele for arr in np.hstack([cp_coef, nv_coef]) for ele in arr], "Class": category, "Component": components}
+    class_df = pd.DataFrame(data)
 
-            # Detections
-            values1 = receptors[:, i]
-            values2 = receptors[:, i + 1]
-            data = {
-                f"Component {i+1}": values1,
-                f"Component {i+2}": values2,
-                "Receptor": detections,
-            }
-            df = pd.DataFrame(data)
-            markers = (
-                "o",
-                "X",
-                "X",
-                "X",
-                "^",
-                "D",
-                "D",
-                "D",
-                "D",
-                "D",
-                "D",
-                "<",
-                ">",
-                "8",
-                "s",
-                "P",
-                "P",
-                "P",
-                "P",
-                "P",
-                "p",
-                "d",
-            )
-            b = sns.scatterplot(
-                x=f"Component {i+1}",
-                y=f"Component {i+2}",
-                hue="Receptor",
-                style="Receptor",
-                markers=markers,
-                data=df,
-                palette="Set2",
-                legend="brief" if j == 4 and legends else False,
-                ax=ax[j + 1],
-            )
-            if j == 4 and legends:
-                b.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
+    # PLOT DataFrames
+    ax, f = getSetup((8, 8), (2, 2))
+    sns.set()
+    # Function Plot
+    a = sns.pointplot(
+        y="Accuracy",
+        x="Function",
+        hue="Model",
+        markers=["o", "x", "d"],
+        join=False,
+        data=functions_df,
+        ax=ax[0],
+    )
+    # Formatting
+    shades = [-0.5, 1.5, 3.5]
+    for i in shades:
+        a.axvspan(i, i + 1, alpha=0.1, color="grey")
+    a.set_xlim(-0.5, 5.5)
+    a.set_ylim(0, 1)
+    a.grid(False)
+    a.xaxis.tick_top()
+    a.xaxis.set_label_position("top")
+    a.tick_params(axis="x")
+    a.set_ylabel("Accuracy")
+    a.set_xlabel("Function")
 
-            # Antigens
-            values1 = antigens[:, i]
-            values2 = antigens[:, i + 1]
-            data = {
-                f"Component {i+1}": values1,
-                f"Component {i+2}": values2,
-                "Antigens": antigen,
-            }
-            df = pd.DataFrame(data)
-            markers = (
-                "o",
-                "v",
-                "^",
-                "<",
-                ">",
-                "8",
-                "s",
-                "p",
-                "*",
-                "h",
-                "H",
-                "D",
-                "d",
-                "P",
-                "X",
-                "o",
-                "v",
-                "^",
-                "<",
-                ">",
-                "8",
-                "s",
-                "p",
-                "*",
-                "h",
-                "H",
-                "D",
-                "d",
-                "P",
-                "X",
-                "o",
-                "v",
-                "^",
-                "<",
-                ">",
-                "8",
-                "s",
-                "p",
-                "*",
-                "h",
-                "H",
-            )
-            c = sns.scatterplot(
-                x=f"Component {i+1}",
-                y=f"Component {i+2}",
-                hue="Antigens",
-                style="Antigens",
-                markers=markers,
-                data=df,
-                palette="Set3",
-                legend="brief" if j == 4 and legends else False,
-                ax=ax[j + 2],
-            )
+    # Class Plot
+    b = sns.scatterplot(
+        y="Accuracies", x="Class", style="Model", hue="Model", data=classes, ax=ax[1]
+    )
+    # Formatting
+    b.plot([-0.5, 5.5], [avg, avg], "--", color="green")
+    b.axvspan(-0.5, 0.5, alpha=0.1, color="grey")
+    b.set_xlim(-0.5, 1.5)
+    b.set_ylim(0.45, 1)
+    b.grid(False)
+    b.xaxis.tick_top()
+    b.xaxis.set_label_position("top")
+    b.set_ylabel("Accuracy")
+    b.set_xlabel("Class Prediction")
+    b.tick_params(axis="x")
 
-            if j == 4 and legends:
-                c.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
+    # Component Weights
+    sns.set()
+    a = sns.barplot(data=function_df, x="Component", y="Weights", hue="Function", ax=ax[2])
+    b = sns.barplot(data=class_df, x="Component", y="Weights", hue="Class", ax=ax[3])
 
-            # Glycans
-            values1 = glyc[:, i]
-            values2 = glyc[:, i + 1]
-            data = {
-                f"Component {i+1}": values1,
-                f"Component {i+2}": values2,
-                "G": glycaninf["GS"],
-                "FB": glycaninf["FB"],
-            }
-            df = pd.DataFrame(data)
-            d = sns.scatterplot(
-                x=f"Component {i+1}",
-                y=f"Component {i+2}",
-                hue="G",
-                style="FB",
-                data=df,
-                palette="Paired",
-                legend="brief" if j == 4 and legends else False,
-                ax=ax[j + 3],
-            )
-
-            if j == 4 and legends:
-                d.legend(loc="center left", bbox_to_anchor=(1, 0.5), ncol=1)
-
-        for aa in ax:
-            aa.axis('equal')
-    else:
-        f = plt.figure(figsize=(21, 7))
-        gs = gridspec.GridSpec(1, 10,
-                               width_ratios=[3, 25, 3, 2, 16, 25, 18, 25, 10, 25],
-                               wspace=0
-                               )
-        ax1 = plt.subplot(gs[0])
-        ax2 = plt.subplot(gs[1])
-        ax4 = plt.subplot(gs[3])
-        ax6 = plt.subplot(gs[5])
-        ax8 = plt.subplot(gs[7])
-        ax10 = plt.subplot(gs[9])
-
-        colors = ["blue", "orange", "green", "red"]
-        cmap = sns.color_palette(colors)
-
-        subs = pd.DataFrame(subjects, columns=[f"Component {i}" for i in np.arange(1, subjects.shape[1] + 1)], index=subjinfo["class.etuv"])
-        rec = pd.DataFrame(receptors, columns=[f"Component {i}" for i in np.arange(1, subjects.shape[1] + 1)], index=detections)
-        ant = pd.DataFrame(antigens, columns=[f"Component {i}" for i in np.arange(1, subjects.shape[1] + 1)], index=antigen)
-        glycans = pd.DataFrame(glyc, columns=[f"Component {i}" for i in np.arange(1, subjects.shape[1] + 1)], index=glycaninf["glycan"])
-
-        vmin = min(subs.values.min(), rec.values.min(), ant.values.min(), glycans.values.min()) * .75
-        vmax = max(subs.values.max(), rec.values.max(), ant.values.max(), glycans.values.max()) * .75
-
-        sns.heatmap(subs, cmap="PRGn", center=0, xticklabels=True, yticklabels=False, cbar_ax=ax4, vmin=vmin, vmax=vmax, ax=ax2)
-
-        sns.heatmap(rec, cmap="PRGn", center=0, yticklabels=True, cbar=False, vmin=vmin, vmax=vmax, ax=ax6)
-
-        sns.heatmap(ant, cmap="PRGn", center=0, yticklabels=True, cbar=False, vmin=vmin, vmax=vmax, ax=ax8)
-
-        sns.heatmap(glycans, cmap="PRGn", center=0, yticklabels=True, cbar=False, vmin=vmin, vmax=vmax, ax=ax10)
-
-        test = pd.DataFrame(subs.index)
-        test = test.set_index(["class.etuv"])
-        test["Class"] = 0
-        test[test.index == "EC"] = 0
-        test[test.index == "TP"] = 1
-        test[test.index == "UP"] = 2
-        test[test.index == "VC"] = 3
-
-        sns.heatmap(test, ax=ax1, cbar_kws=dict(use_gridspec=False, location="left", fraction=.4, pad=.3), yticklabels=False, xticklabels=True, cmap=cmap)
-        colorbar = ax1.collections[0].colorbar
-        colorbar.set_ticks([0.4, 1.2, 1.9, 2.6])
-        colorbar.set_ticklabels(['EC', 'UP', 'TP', "VC"])
-        ax1.set_ylabel("")
-        ax2.set_ylabel("")
-        ax10.set_ylabel("")
-        ax1.set_xticklabels(test.columns, rotation=90)
-        ax = [ax2, ax6, ax8, ax10]
-
-    ax[0].set_title("Subjects", fontsize=15)
-    ax[1].set_title("Receptors", fontsize=15)
-    ax[2].set_title("Antigens", fontsize=15)
-    ax[3].set_title("Glycans", fontsize=15)
+    subplotLabel(ax)
 
     return f
