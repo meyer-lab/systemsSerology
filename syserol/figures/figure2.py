@@ -36,17 +36,18 @@ def makeFigure():
     # Gather Class Prediction Accuracies
     accuracyCvP, accuracyVvN = two_way_classifications()  # Alter accuracies
     # Run our model
-    cp_accuracy, nv_accuracy, cp_coef, nv_coef = class_predictions(tFac[1][0])  # Our accuracies
+    cp_accuracy, nv_accuracy, _, _ = class_predictions(tFac[1][0], "Alter")  # Our accuracies
+    cp_notAlter, nv_notAlter, _, _ = class_predictions(tFac[1][0], "notAlter")
 
     # Create DataFrame
     baselineNV = 0.5083  # datasetEV3/Fc.array/class.nv/lambda.min/score_details.txt "No information rate"
     baselineCP = 0.5304  # datasetEV3/Fc.array/class.cp/lambda.min/score_details.txt "No information rate"
     avg = np.mean([baselineNV, baselineCP])
     accuracies = np.array(
-        [accuracyCvP, cp_accuracy, baselineCP, accuracyVvN, nv_accuracy, baselineNV]
+        [accuracyCvP, cp_accuracy, cp_notAlter, baselineCP, accuracyVvN, nv_accuracy, nv_notAlter, baselineNV]
     )
-    category = ["Progression"] * 3 + ["Viremia"] * 3
-    model = ["Alter Model", "Our Model", "Baseline"] * 2
+    category = ["Progression"] * 4 + ["Viremia"] * 4
+    model = ["Alter Model", "Our Model", "Excluded Cases", "Baseline"] * 2
     data = {"Accuracies": accuracies, "Class": category, "Model": model}
     classes = pd.DataFrame(data)  # Class Predictions DataFrame, Figure 2B
 
@@ -61,6 +62,7 @@ def makeFigure():
     function_df = pd.DataFrame(data)
 
     # Collect classification component weights
+    _, _, cp_coef, nv_coef = class_predictions(tFac[1][0])
     components = [i for i in range(tFac.rank)] * 2
     category = ["Progression"] * tFac.rank + ["Viremia"] * tFac.rank
     data = {"Weights": [ele for arr in np.hstack([cp_coef, nv_coef]) for ele in arr], "Class": category, "Component": components}
