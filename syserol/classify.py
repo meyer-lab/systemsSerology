@@ -35,11 +35,7 @@ def two_way_classifications():
 
 def ClassifyHelper(X, Y):
     """ Function with common Logistic regression methods. """
-    glmnet = LogitNet(alpha=.8, n_jobs=10, n_splits=10).fit(X, Y)
-    score = glmnet.cv_mean_score_[glmnet.lambda_best_ == glmnet.lambda_path_][0]
+    glmnet = LogitNet(alpha=.8, n_splits=10).fit(X, Y)
+    Y_pred = cross_val_predict(glmnet, X, Y, cv=StratifiedKFold(n_splits=20), n_jobs=-1)
 
-    Y_pred = cross_val_predict(glmnet, X, Y, cv=StratifiedKFold(n_splits=10), n_jobs=-1)
-
-    # TODO: Note that the accuracy on cross-validation is slightly lower than what glmnet returns.
-    # score vs. accuracy_score(Y, Y_pred)
-    return Y_pred, score, glmnet.coef_
+    return Y_pred, accuracy_score(Y, Y_pred), glmnet.coef_
