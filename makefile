@@ -27,5 +27,11 @@ output/manuscript.html: venv output/manuscript.md $(patsubst %, output/figure%.s
 		--defaults=./common/templates/manubot/pandoc/html.yaml \
 		output/manuscript.md
 
+output/manuscript.docx: venv output/manuscript.md $(patsubst %, output/figure%.svg, $(flist))
+	. venv/bin/activate && pandoc --verbose \
+		--defaults=./common/templates/manubot/pandoc/common.yaml \
+		--defaults=./common/templates/manubot/pandoc/docx.yaml \
+		output/manuscript.md
+
 clean:
 	rm -rf output venv pylint.log
