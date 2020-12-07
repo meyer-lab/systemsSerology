@@ -20,32 +20,24 @@ def calcR2X(tensorIn, matrixIn, tensorFac, matrixFac):
 
 def censored_lstsq(A, B):
     """Solves least squares problem subject to missing data.
-    Note: uses a broadcasted solve for speed.
+
+    Note: uses a for loop over the columns of B, leading to a
+    slower but more numerically stable algorithm
 
     Args
     ----
     A (ndarray) : m x r matrix
     B (ndarray) : m x n matrix
-    M (ndarray) : m x n binary matrix (zeros indicate missing values)
 
     Returns
     -------
     X (ndarray) : r x n matrix that minimizes norm(M*(AX - B))
     """
-    B = B.copy()
-    M = np.isfinite(B)
-    B[~M] = 0.0
-    assert np.all(np.isfinite(B))
-    # Note: we should check A is full rank but we won't bother...
-
-    # if B is a vector, simply drop out corresponding rows in A
-    if B.ndim == 1 or B.shape[1] == 1:
-        return np.linalg.leastsq(A[M], B[M])[0]
-
-    # else solve via tensor representation
-    rhs = np.dot(A.T, M * B).T[:,:,None] # n x r x 1 tensor
-    T = np.matmul(A.T[None,:,:], M.T[:,:,None] * A[None,:,:]) # n x r x r tensor
-    return np.linalg.solve(T, rhs)[:, :, 0] # transpose to get r x n
+    X = np.empty((A.shape[1], B.shape[1]))
+    for i in range(B.shape[1]):
+        m = np.isfinite(B[:, i]) # drop rows where mask is zero
+        X[:, i] = np.linalg.lstsq(A[m], B[m, i], rcond=None)[0]
+    return X.T
 
 
 def perform_CMTF(tOrig=None, mOrig=None, r=13):
