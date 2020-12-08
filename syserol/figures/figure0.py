@@ -15,7 +15,7 @@ from ..dataImport import functions, createCube
 def makeFigure():
     """Get a list of the axis objects and create a figure"""
     # Get list of axis objects
-    ax, f = getSetup((6, 4), (1, 2))
+    ax, f = getSetup((6, 3), (1, 2))
 
     comps = np.arange(1, 20)
     TMTFR2X = np.zeros(comps.shape)
@@ -48,7 +48,8 @@ def makeFigure():
     ax[1].plot(sizeTfac, 1.0 - TMTFR2X, 'k.', label="TMTF")
     ax[1].set_ylabel("Normalized Unexplained Variance")
     ax[1].set_xlabel("Size of Factorization")
-    ax[1].set_ylim(bottom=-0.01)
+    ax[1].set_ylim(bottom=0.0)
+    ax[1].set_xlim(2**8, 2**13)
 
     # Add subplot labels
     subplotLabel(ax)
