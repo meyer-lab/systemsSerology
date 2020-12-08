@@ -14,7 +14,7 @@ from ..dataImport import functions
 def makeFigure():
     """Get a list of the axis objects and create a figure"""
     # Get list of axis objects
-    ax, f = getSetup((6, 4), (1, 2))
+    ax, f = getSetup((6, 3), (1, 2))
 
     comps = np.arange(1, 20)
     tensorArr = np.zeros(comps.shape)
@@ -32,7 +32,7 @@ def makeFigure():
     ax[0].scatter(comps, pred_acc)
     ax[0].set_ylabel("Average prediction performance")
     ax[0].set_xlabel("Number of Components")
-    ax[0].set_ylim(0, 1)
+    ax[0].set_ylim(0.4, 1)
 
     Q2X = evaluate_missing(comps)
     ax[1].scatter(comps, Q2X)
