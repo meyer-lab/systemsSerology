@@ -13,4 +13,4 @@ svgutils==0.3.1
 tensorly==0.5.0
 scikit-learn==0.23.2
 statsmodels==0.12.1
-git+git://github.com/bbalasub1/glmnet_python.git
+git+git://github.com/bbalasub1/glmnet_python.git@c76c87791ba4b5f6edfdf35b0f71bcb8d77ea1c6

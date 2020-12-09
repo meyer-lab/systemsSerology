@@ -1,6 +1,7 @@
 """ Regression methods using Factorized Data. """
 from sklearn.model_selection import cross_val_predict, StratifiedKFold
 from sklearn.metrics import accuracy_score
+from sklearn.preprocessing import scale
 from glmnet_python import cvglmnet, cvglmnetCoef
 from .dataImport import load_file, importAlterDF, selectAlter
 
