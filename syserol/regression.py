@@ -61,4 +61,4 @@ def RegressionHelper(X, Y):
 
     # TODO: Note that the accuracy on cross-validation is slightly lower than what glmnet returns.
     # score vs. accuracy_score(Y, Y_pred)
-    return sorted(scores)[reps//2][1], cvglmnetCoef(sorted(scores)[reps//2][2])
+    return sorted(scores)[reps//2][1], cvglmnetCoef(sorted(scores)[reps//2][2])[1:]

@@ -53,4 +53,4 @@ def ClassifyHelper(X, Y):
 
     # TODO: Note that the accuracy on cross-validation is slightly lower than what glmnet returns.
     # score vs. accuracy_score(Y, Y_pred)
-    return np.array(sorted(scores)[reps//2][1]), cvglmnetCoef(sorted(scores)[reps//2][2])[1:]
+    return np.array(sorted(scores, key=lambda x: x[0])[reps//2][1]), cvglmnetCoef(sorted(scores, key=lambda x: x[0])[reps//2][2])[1:]
