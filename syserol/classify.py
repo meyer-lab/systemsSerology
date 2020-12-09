@@ -1,5 +1,5 @@
 """ Regression methods using Factorized Data. """
-import numpy
+import numpy as np
 import random
 from sklearn.model_selection import cross_val_predict, StratifiedKFold
 from sklearn.metrics import accuracy_score
