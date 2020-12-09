@@ -2,9 +2,9 @@
 import numpy as np
 import random
 import pandas as pd
-from sklearn.preprocessing import scale
+from sklearn.model_selection import KFold
 from scipy.stats import pearsonr
-from glmnet_python import cvglmnet, cvglmnetCoef
+from glmnet_python import cvglmnet, cvglmnetCoef, cvglmnetPredict
 from .dataImport import (
     importFunction,
     functions,
@@ -45,20 +45,30 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all"):
     return Y, Y_pred, pearsonr(Y, Y_pred)[0], coef
 
 
-def RegressionHelper(X, Y):
-    """ Function with common Logistic regression methods. """
-    scores = []
-    # separate dataframes
-    X = scale(X)
-    cvfit = cvglmnet(x=X.copy(), y=Y.copy(), nfolds=10, alpha=.8, keep=True, ptype='mse', standardize=False)
-    foldid = cvfit["foldid"]
-    reps = 100
-    for _ in range(reps):
-        random.shuffle(foldid)
-        cvfit = cvglmnet(x=X.copy(), y=Y.copy(), nfolds=10, alpha=.8, keep=True, foldid=foldid, ptype='mse', standardize=False)
-        Y_pred = cvfit['fit_preval'][:, np.where(cvfit["lambdau"] == cvfit['lambda_1se'])[0][0]]
-        scores.append([pearsonr(Y, Y_pred)[0], Y_pred, cvfit])
+def RegressionHelper(X, Y, classify=False):
+    """ Function with the regression cross-validation strategy. """
+    assert Y.ndim == 1
+    assert X.shape[0] == Y.size
+    assert X.ndim == 2
 
-    # TODO: Note that the accuracy on cross-validation is slightly lower than what glmnet returns.
-    # score vs. accuracy_score(Y, Y_pred)
-    return sorted(scores)[reps//2][1], cvglmnetCoef(sorted(scores)[reps//2][2])[1:]
+    if classify:
+        kwargs = {"family": "binomial", "ptype": "class"}
+    else:
+        kwargs = {"ptype": "mse"}
+
+    cvfit = cvglmnet(x=X.copy(), y=Y.copy(), nfolds=10, alpha=.8, standardize=True, **kwargs)
+    coef = np.squeeze(cvglmnetCoef(cvfit))[:-1] # remove the intercept
+    assert coef.ndim == 1
+    assert coef.size == X.shape[1]
+
+    Y_pred = np.empty_like(Y)
+    kf = KFold(n_splits=10, shuffle=True)
+
+    for train_i, test_i in kf.split(X):
+        cvfit = cvglmnet(x=X[train_i, :].copy(), y=Y[train_i].copy(), nfolds=10, alpha=.8, standardize=True, **kwargs)
+        Y_pred[test_i] = np.squeeze(cvglmnetPredict(cvfit, newx = X[test_i, :].copy()))
+
+    if classify:
+        Y_pred = Y_pred > 0.5
+
+    return Y_pred, coef
