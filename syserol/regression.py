@@ -20,10 +20,9 @@ def function_elastic_net(function="ADCC"):
     df = importAlterDF(function=True, subjects=False).dropna()
 
     # separate dataframes
-    Y = df[function]
-    X = df.drop(["subject"] + functions, axis=1)
-    Y = Y.to_numpy()
-    X = X.to_numpy()
+    Y = df[function].to_numpy()
+    X = df.drop(["subject"] + functions, axis=1).to_numpy()
+
     # perform regression
     Y_pred, coef = RegressionHelper(X, Y)
     return Y, Y_pred, pearsonr(Y, Y_pred)[0], coef
@@ -56,16 +55,16 @@ def RegressionHelper(X, Y, classify=False):
     else:
         kwargs = {"ptype": "mse"}
 
-    cvfit = cvglmnet(x=X.copy(), y=Y.copy(), nfolds=10, alpha=.8, standardize=True, **kwargs)
+    cvfit = cvglmnet(x=X.copy(), y=Y.copy(), nfolds=20, alpha=.8, standardize=True, **kwargs)
     coef = np.squeeze(cvglmnetCoef(cvfit))[:-1] # remove the intercept
     assert coef.ndim == 1
     assert coef.size == X.shape[1]
 
     Y_pred = np.empty_like(Y)
-    kf = KFold(n_splits=10, shuffle=True)
+    kf = KFold(n_splits=20, shuffle=True)
 
     for train_i, test_i in kf.split(X):
-        cvfit = cvglmnet(x=X[train_i, :].copy(), y=Y[train_i].copy(), nfolds=10, alpha=.8, standardize=True, **kwargs)
+        cvfit = cvglmnet(x=X[train_i, :].copy(), y=Y[train_i].copy(), nfolds=20, alpha=.8, standardize=True, **kwargs)
         Y_pred[test_i] = np.squeeze(cvglmnetPredict(cvfit, newx = X[test_i, :].copy()))
 
     if classify:
