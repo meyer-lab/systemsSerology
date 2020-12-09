@@ -12,5 +12,5 @@ seaborn==0.11.0
 svgutils==0.3.1
 tensorly==0.5.0
 scikit-learn==0.23.2
-glmnet==2.2.1
 statsmodels==0.12.1
+git+git://github.com/bbalasub1/glmnet_python.git
