@@ -9,7 +9,14 @@ lang: en-US
 authors:
   -
     name: Madeleine Murphy
+    github: murphymadeleine21
     initials: MM
+    affiliations:
+      - Department of Bioengineering, University of California, Los Angeles
+  -
+    name: Scott D. Taylor
+    github: scottdtaylor95
+    initials: SDT
     affiliations:
       - Department of Bioengineering, University of California, Los Angeles
   -

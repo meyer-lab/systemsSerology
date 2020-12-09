@@ -1,5 +1,5 @@
 
-flist = 1 2 3 S1 S2
+flist = 0 1 2 3 S1 S2
 
 all: $(patsubst %, output/figure%.svg, $(flist))
 
@@ -25,6 +25,12 @@ output/manuscript.html: venv output/manuscript.md $(patsubst %, output/figure%.s
 	. venv/bin/activate && pandoc --verbose \
 		--defaults=./common/templates/manubot/pandoc/common.yaml \
 		--defaults=./common/templates/manubot/pandoc/html.yaml \
+		output/manuscript.md
+
+output/manuscript.docx: venv output/manuscript.md $(patsubst %, output/figure%.svg, $(flist))
+	. venv/bin/activate && pandoc --verbose \
+		--defaults=./common/templates/manubot/pandoc/common.yaml \
+		--defaults=./common/templates/manubot/pandoc/docx.yaml \
 		output/manuscript.md
 
 clean:
