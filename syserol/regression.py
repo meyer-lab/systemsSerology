@@ -47,7 +47,7 @@ def RegressionHelper(X, Y, classify=False):
     """ Function with the regression cross-validation strategy. """
     if classify:
         X = scale(X)
-        est = LogisticRegressionCV()
+        est = LogisticRegressionCV(penalty="elasticnet", solver="saga")
     else:
         est = ElasticNetCV(normalize=True)
 
