@@ -1,7 +1,7 @@
 """ Regression methods using Factorized Data. """
 from sklearn.metrics import accuracy_score
 from .dataImport import load_file, importAlterDF, selectAlter
-from .regression import RegressionHelperGP
+from .regression import RegressionHelper
 
 
 def getClassPred(X, df):
@@ -9,7 +9,7 @@ def getClassPred(X, df):
     Y1 = (df["class.cp"] == "controller").astype(int)  # controllers are 1s, progressors are 0s
     Y2 = (df["class.nv"] == "viremic").astype(int)  # viremic = 1, nonviremic = 0
 
-    return RegressionHelperGP(X, Y1, classify=True), RegressionHelperGP(X, Y2, classify=True), Y1, Y2
+    return RegressionHelper(X, Y1, classify=True), RegressionHelper(X, Y2, classify=True), Y1, Y2
 
 
 def class_predictions(X, evaluation="all"):

@@ -2,6 +2,7 @@
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import cross_val_predict
+from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import scale
 from sklearn.linear_model import ElasticNetCV, LogisticRegressionCV
 from sklearn.gaussian_process import GaussianProcessClassifier, GaussianProcessRegressor
@@ -39,7 +40,7 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all"):
     Y = Y[subset]
 
     # Perform Regression
-    Y_pred, coef = RegressionHelperGP(X, Y)
+    Y_pred, coef = RegressionHelper(X, Y)
     Y, Y_pred = selectAlter(Y, Y_pred, evaluation, subset=subset)
 
     return Y, Y_pred, pearsonr(Y, Y_pred)[0], coef
@@ -47,34 +48,35 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all"):
 
 def RegressionHelper(X, Y, classify=False):
     """ Function with the regression cross-validation strategy. """
+    kern = RBF(length_scale=np.ones(X.shape[1])) + WhiteKernel() # + DotProduct()
+
     if classify:
         X = scale(X)
         est = LogisticRegressionCV(penalty="elasticnet", solver="saga")
+        estG = GaussianProcessClassifier(kern, warm_start=True)
     else:
         est = ElasticNetCV(normalize=True)
+        estG = GaussianProcessRegressor(kern, normalize_y=True)
 
     est.l1_ratios = [0.8]
-    est.cv = 20
+    est.cv = 10
     est.max_iter = 10000
 
     est = est.fit(X, Y)
-    coef = est.coef_
+    coef = np.squeeze(est.coef_)
 
     Y_pred = cross_val_predict(est, X, Y, cv=20, n_jobs=-1)
-    return Y_pred, coef
 
+    if X.shape[1] < 20:
+        Y_pred_G = cross_val_predict(estG, X, Y, cv=20, n_jobs=-1)
 
-def RegressionHelperGP(X, Y, classify=False):
-    """ Function with the regression cross-validation strategy. """
-    kern = RBF(length_scale=np.ones(X.shape[1])) + DotProduct() + WhiteKernel()
+        if classify:
+            better = accuracy_score(Y, Y_pred_G) > accuracy_score(Y, Y_pred)
+        else:
+            better = pearsonr(Y, Y_pred_G)[0] > pearsonr(Y, Y_pred)[0]
 
-    if classify:
-        est = GaussianProcessClassifier(kern)
-    else:
-        est = GaussianProcessRegressor(kern, normalize_y=True)
+        if better:
+            coef = np.zeros(X.shape[1])
+            Y_pred = Y_pred_G
 
-    est = est.fit(X, Y)
-    coef = np.zeros(X.shape[1])
-
-    Y_pred = cross_val_predict(est, X, Y, cv=20, n_jobs=-1)
     return Y_pred, coef
