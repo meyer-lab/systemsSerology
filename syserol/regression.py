@@ -1,10 +1,9 @@
 """ Regression methods. """
 import numpy as np
-import random
 import pandas as pd
-from sklearn.model_selection import KFold
+from sklearn.model_selection import cross_val_predict
+from sklearn.linear_model import ElasticNetCV, LogisticRegressionCV
 from scipy.stats import pearsonr
-from glmnet_python import cvglmnet, cvglmnetCoef, cvglmnetPredict
 from .dataImport import (
     importFunction,
     functions,
@@ -46,28 +45,14 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all"):
 
 def RegressionHelper(X, Y, classify=False):
     """ Function with the regression cross-validation strategy. """
-    assert Y.ndim == 1
-    assert X.shape[0] == Y.size
-    assert X.ndim == 2
-
     if classify:
-        kwargs = {"family": "binomial", "ptype": "class"}
+        est = LogisticRegressionCV(normalize=True, max_iter=10000, cv=20)
     else:
-        kwargs = {"ptype": "mse"}
+        est = ElasticNetCV(normalize=True, max_iter=10000, cv=20)
 
-    cvfit = cvglmnet(x=X.copy(), y=Y.copy(), nfolds=20, alpha=.8, standardize=True, **kwargs)
-    coef = np.squeeze(cvglmnetCoef(cvfit))[:-1] # remove the intercept
-    assert coef.ndim == 1
-    assert coef.size == X.shape[1]
+    est = est.fit(X, Y)
+    coef = est.coef_
 
-    Y_pred = np.empty_like(Y)
-    kf = KFold(n_splits=20, shuffle=True)
-
-    for train_i, test_i in kf.split(X):
-        cvfit = cvglmnet(x=X[train_i, :].copy(), y=Y[train_i].copy(), nfolds=20, alpha=.8, standardize=True, **kwargs)
-        Y_pred[test_i] = np.squeeze(cvglmnetPredict(cvfit, newx = X[test_i, :].copy()))
-
-    if classify:
-        Y_pred = Y_pred > 0.5
+    Y_pred = cross_val_predict(enet, X, Y, cv=20, n_jobs=-1)
 
     return Y_pred, coef

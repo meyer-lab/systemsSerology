@@ -1,5 +1,4 @@
 """ Regression methods using Factorized Data. """
-import numpy as np
 from sklearn.metrics import accuracy_score
 from .dataImport import load_file, importAlterDF, selectAlter
 from .regression import RegressionHelper
@@ -7,9 +6,8 @@ from .regression import RegressionHelper
 
 def getClassPred(X, df):
     """ Extract Ys for classification. """
-    Y1 = (df["class.cp"] == "controller").astype(float).to_numpy()  # controllers are 1s, progressors are 0s
-    Y2 = (df["class.nv"] == "viremic").astype(float).to_numpy()  # viremic = 1, nonviremic = 0
-    X = np.array(X)
+    Y1 = (df["class.cp"] == "controller").astype(int)  # controllers are 1s, progressors are 0s
+    Y2 = (df["class.nv"] == "viremic").astype(int)  # viremic = 1, nonviremic = 0
 
     return RegressionHelper(X, Y1, classify=True), RegressionHelper(X, Y2, classify=True), Y1, Y2
 
