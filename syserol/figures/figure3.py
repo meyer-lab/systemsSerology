@@ -65,7 +65,7 @@ def makeFigure():
     _, _, cp_coef, nv_coef = class_predictions(tFac[1][0])
     components = [i + 1 for i in range(tFac.rank)] * 2
     category = ["Progression"] * tFac.rank + ["Viremia"] * tFac.rank
-    data = {"Weights": [ele for arr in np.hstack([cp_coef, nv_coef]) for ele in arr], "Class": category, "Component": components}
+    data = {"Weights": np.hstack((cp_coef, nv_coef)), "Class": category, "Component": components}
     class_df = pd.DataFrame(data)
 
     # PLOT DataFrames

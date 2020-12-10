@@ -4,6 +4,8 @@ import pandas as pd
 from sklearn.model_selection import cross_val_predict
 from sklearn.preprocessing import scale
 from sklearn.linear_model import ElasticNetCV, LogisticRegressionCV
+from sklearn.gaussian_process import GaussianProcessClassifier, GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import RBF, DotProduct, WhiteKernel
 from scipy.stats import pearsonr
 from .dataImport import (
     importFunction,
@@ -37,7 +39,7 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all"):
     Y = Y[subset]
 
     # Perform Regression
-    Y_pred, coef = RegressionHelper(X, Y)
+    Y_pred, coef = RegressionHelperGP(X, Y)
     Y, Y_pred = selectAlter(Y, Y_pred, evaluation, subset=subset)
 
     return Y, Y_pred, pearsonr(Y, Y_pred)[0], coef
@@ -57,6 +59,22 @@ def RegressionHelper(X, Y, classify=False):
 
     est = est.fit(X, Y)
     coef = est.coef_
+
+    Y_pred = cross_val_predict(est, X, Y, cv=20, n_jobs=-1)
+    return Y_pred, coef
+
+
+def RegressionHelperGP(X, Y, classify=False):
+    """ Function with the regression cross-validation strategy. """
+    kern = RBF(length_scale=np.ones(X.shape[1])) + DotProduct() + WhiteKernel()
+
+    if classify:
+        est = GaussianProcessClassifier(kern)
+    else:
+        est = GaussianProcessRegressor(kern, normalize_y=True)
+
+    est = est.fit(X, Y)
+    coef = np.zeros(X.shape[1])
 
     Y_pred = cross_val_predict(est, X, Y, cv=20, n_jobs=-1)
     return Y_pred, coef
