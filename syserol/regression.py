@@ -19,8 +19,8 @@ def function_elastic_net(function="ADCC"):
     df = importAlterDF(function=True, subjects=False).dropna()
 
     # separate dataframes
-    Y = df[function].to_numpy()
-    X = df.drop(["subject"] + functions, axis=1).to_numpy()
+    Y = df[function]
+    X = df.drop(["subject"] + functions, axis=1)
 
     # perform regression
     Y_pred, coef = RegressionHelper(X, Y)
@@ -34,7 +34,7 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all"):
     Y = func[function]
     subset = np.isfinite(Y)
     X = tensorFac[1][0][subset, :]  # subjects x components matrix
-    Y = Y[subset].to_numpy()
+    Y = Y[subset]
 
     # Perform Regression
     Y_pred, coef = RegressionHelper(X, Y)
@@ -53,6 +53,6 @@ def RegressionHelper(X, Y, classify=False):
     est = est.fit(X, Y)
     coef = est.coef_
 
-    Y_pred = cross_val_predict(enet, X, Y, cv=20, n_jobs=-1)
+    Y_pred = cross_val_predict(est, X, Y, cv=20, n_jobs=-1)
 
     return Y_pred, coef
