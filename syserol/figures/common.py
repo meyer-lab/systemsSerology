@@ -1,11 +1,8 @@
 """
 This file contains functions that are used in multiple figures.
 """
-import pandas as pd
-import numpy as np
 import seaborn as sns
 from string import ascii_lowercase
-from sklearn.preprocessing import scale
 import matplotlib
 import svgutils.transform as st
 from matplotlib import gridspec, pyplot as plt

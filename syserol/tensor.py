@@ -35,7 +35,7 @@ def censored_lstsq(A, B):
     """
     X = np.empty((A.shape[1], B.shape[1]))
     for i in range(B.shape[1]):
-        m = np.isfinite(B[:, i]) # drop rows where mask is zero
+        m = np.isfinite(B[:, i])  # drop rows where mask is zero
         X[:, i] = np.linalg.lstsq(A[m], B[m, i], rcond=None)[0]
     return X.T
 

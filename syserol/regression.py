@@ -1,9 +1,10 @@
 """ Regression methods. """
 import numpy as np
 import pandas as pd
-from sklearn.linear_model import ElasticNetCV, ElasticNet
 from sklearn.model_selection import cross_val_predict
-from sklearn.metrics import r2_score
+from sklearn.preprocessing import scale
+from sklearn.linear_model import ElasticNetCV, LogisticRegressionCV
+from scipy.stats import pearsonr
 from .dataImport import (
     importFunction,
     functions,
@@ -23,7 +24,7 @@ def function_elastic_net(function="ADCC"):
 
     # perform regression
     Y_pred, coef = RegressionHelper(X, Y)
-    return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred)), coef
+    return Y, Y_pred, pearsonr(Y, Y_pred)[0], coef
 
 
 def function_prediction(tensorFac, function="ADCC", evaluation="all"):
@@ -39,12 +40,23 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all"):
     Y_pred, coef = RegressionHelper(X, Y)
     Y, Y_pred = selectAlter(Y, Y_pred, evaluation, subset=subset)
 
-    return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred)), coef
+    return Y, Y_pred, pearsonr(Y, Y_pred)[0], coef
 
 
-def RegressionHelper(X, Y):
-    """ Function with common Logistic regression methods. """
-    regr = ElasticNetCV(normalize=True, max_iter=10000, cv=20, n_jobs=-1, l1_ratio=0.8).fit(X, Y)
-    enet = ElasticNet(alpha=regr.alpha_, l1_ratio=regr.l1_ratio_, normalize=True, max_iter=10000)
-    Y_pred = cross_val_predict(enet, X, Y, cv=Y.size, n_jobs=-1)
-    return Y_pred, enet.fit(X, Y).coef_
+def RegressionHelper(X, Y, classify=False):
+    """ Function with the regression cross-validation strategy. """
+    if classify:
+        X = scale(X)
+        est = LogisticRegressionCV(penalty="elasticnet", solver="saga")
+    else:
+        est = ElasticNetCV(normalize=True)
+
+    est.l1_ratios = [0.8]
+    est.cv = 20
+    est.max_iter = 10000
+
+    est = est.fit(X, Y)
+    coef = est.coef_
+
+    Y_pred = cross_val_predict(est, X, Y, cv=20, n_jobs=-1)
+    return Y_pred, coef
