@@ -138,7 +138,7 @@ def selectAlter(Y, Y_pred, evaluation, subset=None):
 
 
 @lru_cache()
-def createCube(powert = True):
+def createCube(powert=True):
     """ Import the data and assemble the antigen cube. """
     subjects, detections, antigen = getAxes()
     cube = np.full([len(subjects), len(detections), len(antigen)], np.nan)

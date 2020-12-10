@@ -2,6 +2,7 @@
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import cross_val_predict
+from sklearn.preprocessing import scale
 from sklearn.linear_model import ElasticNetCV, LogisticRegressionCV
 from scipy.stats import pearsonr
 from .dataImport import (
@@ -10,7 +11,6 @@ from .dataImport import (
     importAlterDF,
     selectAlter,
 )
-
 
 
 def function_elastic_net(function="ADCC"):
@@ -46,13 +46,17 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all"):
 def RegressionHelper(X, Y, classify=False):
     """ Function with the regression cross-validation strategy. """
     if classify:
-        est = LogisticRegressionCV(normalize=True, max_iter=10000, cv=20)
+        X = scale(X)
+        est = LogisticRegressionCV()
     else:
-        est = ElasticNetCV(normalize=True, max_iter=10000, cv=20)
+        est = ElasticNetCV(normalize=True)
+
+    est.l1_ratios = [0.8]
+    est.cv = 20
+    est.max_iter = 10000
 
     est = est.fit(X, Y)
     coef = est.coef_
 
     Y_pred = cross_val_predict(est, X, Y, cv=20, n_jobs=-1)
-
     return Y_pred, coef
