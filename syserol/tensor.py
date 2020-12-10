@@ -40,7 +40,7 @@ def censored_lstsq(A, B):
     return X.T
 
 
-def perform_CMTF(tOrig=None, mOrig=None, r=13):
+def perform_CMTF(tOrig=None, mOrig=None, r=11):
     """ Perform CMTF decomposition. """
     if tOrig is None:
         tOrig, mOrig = createCube()
