@@ -20,7 +20,7 @@ def makeFigure():
         ax[i].set_ylabel("Predicted Values")
         m, b = np.polyfit(x, y, 1)  # line of best fit
         ax[i].plot(x, m * x + b, 'k--', color="red")
-        ax[i].text(1, 1, f"Accuracy Score: {round(accuracy, 3)}", {"color": "red", "fontsize": 10}, horizontalalignment="right",
+        ax[i].text(.9, .9, f"Accuracy Score: {round(accuracy, 3)}", {"color": "red", "fontsize": 10}, horizontalalignment="right",
                    verticalalignment="bottom", transform=ax[i].transAxes)
         ax[i].set_title(func)
         ax[i].axis('equal')

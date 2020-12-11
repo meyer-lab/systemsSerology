@@ -23,7 +23,7 @@ def makeFigure():
     missing = np.all(np.isnan(cube), axis=0)
     cube = cube[:, ~missing]
 
-    axs, fig = getSetup((10, 10), (3, 3))
+    axs, fig = getSetup((8, 8), (3, 3))
 
     for ii, ax in enumerate(axs):
         groupi = ii - (ii % 3)
