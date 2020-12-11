@@ -48,14 +48,15 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all"):
 
 def RegressionHelper(X, Y, classify=False):
     """ Function with the regression cross-validation strategy. """
-    if X.shape[1] < 20:
-        return RegressionHelperGP(X, Y, classify=classify)
+    kern = ConstantKernel() * RBF(length_scale=np.ones(X.shape[1])) + WhiteKernel()
 
     if classify:
         X = scale(X)
         est = LogisticRegressionCV(penalty="elasticnet", solver="saga")
+        estG = GaussianProcessClassifier(kern, warm_start=True)
     else:
         est = ElasticNetCV(normalize=True)
+        estG = GaussianProcessRegressor(kern, normalize_y=True)
 
     est.l1_ratios = [0.8]
     est.cv = 10
@@ -65,21 +66,17 @@ def RegressionHelper(X, Y, classify=False):
     coef = np.squeeze(est.coef_)
 
     Y_pred = cross_val_predict(est, X, Y, cv=20, n_jobs=-1)
-    return Y_pred, coef
 
+    if X.shape[1] < 20:
+        Y_pred_G = cross_val_predict(estG, X, Y, cv=20, n_jobs=-1)
 
-def RegressionHelperGP(X, Y, classify=False):
-    """ Function with the regression cross-validation strategy. """
-    kern = ConstantKernel() * RBF(length_scale=np.ones(X.shape[1])) + WhiteKernel(noise_level_bounds=(0.1, 10))
+        if classify:
+            better = accuracy_score(Y, Y_pred_G) > accuracy_score(Y, Y_pred)
+        else:
+            better = pearsonr(Y, Y_pred_G)[0] > pearsonr(Y, Y_pred)[0]
 
-    if classify:
-        X = scale(X)
-        estG = GaussianProcessClassifier(kern, warm_start=True, n_restarts_optimizer=3)
-    else:
-        estG = GaussianProcessRegressor(kern, normalize_y=True, n_restarts_optimizer=3)
-
-    Y_pred = cross_val_predict(estG, X, Y, cv=20, n_jobs=-1)
-    estG.fit(X, Y)
-    coef = np.zeros(X.shape[1])
+        if better:
+            coef = np.zeros(X.shape[1])
+            Y_pred = Y_pred_G
 
     return Y_pred, coef
