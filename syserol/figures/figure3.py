@@ -69,7 +69,7 @@ def makeFigure():
     class_df = pd.DataFrame(data)
 
     # PLOT DataFrames
-    ax, f = getSetup((8, 8), (2, 2))
+    ax, f = getSetup((6, 6), (2, 2))
     sns.set()
     # Function Plot
     a = sns.pointplot(
