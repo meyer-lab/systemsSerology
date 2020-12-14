@@ -166,10 +166,6 @@ def createCube(powert=True):
         k = antigen.index(row["variable"])
         cube[i, -1, k] = row["value"]
 
-    # TODO: We probably want to do some sort of normalization, but I'm not sure what yet
-    # cube = cube / np.nanstd(cube, axis=(0, 2))[np.newaxis, :, np.newaxis]
-    # glyCube = glyCube / np.nanstd(glyCube, axis=0)[np.newaxis, :]
-
     # Clip to 0 as there are a few strongly negative outliers
     # IIa.H/R were offset to negative, so correct that
     cube[:, 1:11, :] = np.clip(cube[:, 1:11, :], 0, None)
