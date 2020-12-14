@@ -33,6 +33,7 @@ def makeFigure():
     ax[0].set_ylabel("Average prediction performance")
     ax[0].set_xlabel("Number of Components")
     ax[0].set_ylim(0.4, 1)
+    # TODO: Remove this eventually.
 
     Q2X = evaluate_missing(comps)
     ax[1].scatter(comps, Q2X)
