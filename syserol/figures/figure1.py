@@ -16,7 +16,7 @@ def makeFigure():
     # Get list of axis objects
     ax, f = getSetup((6, 3), (1, 2))
 
-    comps = np.arange(1, 14)
+    comps = np.arange(1, 13)
     tensorArr = np.zeros(comps.shape)
     pred_acc = np.zeros(comps.shape)
 
