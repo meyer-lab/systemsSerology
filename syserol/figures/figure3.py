@@ -14,6 +14,8 @@ from ..classify import class_predictions, two_way_classifications
 from .common import subplotLabel, getSetup
 from ..tensor import perform_CMTF
 
+# TODO: The legends in (A) and (B) should be the same.
+# TODO: Remove the baseline line in (B).
 
 def makeFigure():
     """ Show Similarity in Prediction of Alter Model and Our Model"""
