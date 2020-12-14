@@ -1,0 +1,30 @@
+[
+{
+    "id": "overfit",
+    "URL": "http://jmlr.org/papers/v11/cawley10a.html",
+    "number": "70",
+    "title": "On Over-fitting in Model Selection and Subsequent Selection Bias in Performance Evaluation",
+    "pages": "2079-2107",
+    "issued": {
+      "date-parts": [
+        [
+          2010,
+          11
+        ]
+      ]
+    },
+    "author": [
+      {
+        "given": "Gavin C.",
+        "family": "Cawley"
+      },
+      {
+        "given": "Nicola L. C.",
+        "family": "Talbot"
+      }
+    ],
+    "container-title": "Journal of Machine Learning Research",
+    "publisher": "Journal of Machine Learning Research",
+    "type": "report",
+  }
+]
