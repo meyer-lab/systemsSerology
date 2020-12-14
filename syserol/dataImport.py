@@ -114,16 +114,31 @@ def importAlterDF(function=True, subjects=False):
     return df_merged
 
 
-def AlterIndices():
-    df = importAlterDF()
-    df = df.dropna()
-    subjects, _, _ = getAxes()
+def selectAlter(Y, Y_pred, evaluation, subset=None):
+    """ Subset Y for sets of patients. """
+    df = importAlterDF().dropna()
+    subjects = getAxes()[0]
 
-    return np.array([subjects.index(subject) for i, subject in enumerate(df["subject"])])
+    idx = np.zeros(181, dtype=np.bool)
+    for subject in df["subject"]:
+        idx[subjects.index(subject)] = 1
+
+    if subset is not None:
+        idx = idx[subset]
+
+    if evaluation == "Alter":
+        Y, Y_pred = Y[idx], Y_pred[idx]
+    elif evaluation == "notAlter":
+        Y, Y_pred = Y[~idx], Y_pred[~idx]
+    elif evaluation != "all":
+        raise ValueError("Bad evaluation selection.")
+
+    assert Y.shape == Y_pred.shape
+    return Y, Y_pred
 
 
 @lru_cache()
-def createCube():
+def createCube(powert=True):
     """ Import the data and assemble the antigen cube. """
     subjects, detections, antigen = getAxes()
     cube = np.full([len(subjects), len(detections), len(antigen)], np.nan)
@@ -135,33 +150,33 @@ def createCube():
     for k, curAnti in enumerate(antigen):
         lumx = importLuminex(curAnti)
 
-        for i, curSubj in enumerate(subjects):
-            subjLumx = lumx[lumx["subject"] == curSubj]
+        for _, row in lumx.iterrows():
+            i = subjects.index(row["subject"])
+            j = detections.index(row["variable"])
+            cube[i, j, k] = row["value"]
 
-            for _, row in subjLumx.iterrows():
-                j = detections.index(row["variable"])
-                cube[i, j, k] = row["value"]
-
-    for i, curSubj in enumerate(subjects):
-        subjGly = dfGlycan[dfGlycan["subject"] == curSubj]
-
-        for _, row in subjGly.iterrows():
-            j = glycan.index(row["variable"])
-            glyCube[i, j] = row["value"]
+    for _, row in dfGlycan.iterrows():
+        i = subjects.index(row["subject"])
+        j = glycan.index(row["variable"])
+        glyCube[i, j] = row["value"]
 
     # Add IgG data on the end as another detection
-    for i, curSubj in enumerate(subjects):
-        subjLumx = IGG[IGG["subject"] == curSubj]
-
-        for _, row in subjLumx.iterrows():
-            k = antigen.index(row["variable"])
-            cube[i, -1, k] = row["value"]
+    for _, row in IGG.iterrows():
+        i = subjects.index(row["subject"])
+        k = antigen.index(row["variable"])
+        cube[i, -1, k] = row["value"]
 
     # TODO: We probably want to do some sort of normalization, but I'm not sure what yet
     # cube = cube / np.nanstd(cube, axis=(0, 2))[np.newaxis, :, np.newaxis]
     # glyCube = glyCube / np.nanstd(glyCube, axis=0)[np.newaxis, :]
 
-    print("Missingness fraction: " + str(np.mean(np.isnan(cube))))
+    # Clip to 0 as there are a few strongly negative outliers
+    # IIa.H/R were offset to negative, so correct that
+    cube[:, 1:11, :] = np.clip(cube[:, 1:11, :], 0, None)
+
+    # Power normalization
+    if powert:
+        cube[:, 5, :] = np.power(cube[:, 5, :], 2.58) * 4.28e-9
 
     # Check that there are no slices with completely missing data
     assert ~np.any(np.all(np.isnan(cube), axis=(0, 1)))

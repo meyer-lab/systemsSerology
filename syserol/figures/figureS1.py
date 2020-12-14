@@ -7,6 +7,9 @@ from ..regression import function_prediction
 from ..dataImport import functions
 from ..tensor import perform_CMTF
 
+# TODO: Fix IFNg to have γ
+# TODO: x- and y-axis should go to 0.0
+
 def makeFigure():
     """ Show predicted vs. actual of decomposition prediction. """
     ax, f = getSetup((7, 5), (2, 3))

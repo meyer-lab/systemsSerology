@@ -1,14 +1,18 @@
 """ Regression methods. """
 import numpy as np
 import pandas as pd
-from sklearn.linear_model import ElasticNetCV, ElasticNet, LinearRegression
 from sklearn.model_selection import cross_val_predict
-from sklearn.metrics import r2_score
+from sklearn.metrics import accuracy_score
+from sklearn.preprocessing import scale
+from sklearn.linear_model import ElasticNetCV, LogisticRegressionCV
+from sklearn.gaussian_process import GaussianProcessClassifier, GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import ConstantKernel, RBF, WhiteKernel
+from scipy.stats import pearsonr
 from .dataImport import (
     importFunction,
     functions,
     importAlterDF,
-    AlterIndices,
+    selectAlter,
 )
 
 
@@ -23,7 +27,7 @@ def function_elastic_net(function="ADCC"):
 
     # perform regression
     Y_pred, coef = RegressionHelper(X, Y)
-    return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred)), coef
+    return Y, Y_pred, pearsonr(Y, Y_pred)[0], coef
 
 
 def function_prediction(tensorFac, function="ADCC", evaluation="all"):
@@ -31,33 +35,48 @@ def function_prediction(tensorFac, function="ADCC", evaluation="all"):
     func, _ = importFunction()
 
     Y = func[function]
-    X = tensorFac[1][0]  # subjects x components matrix
-    idx = np.zeros(Y.shape, dtype=np.bool)
-    idx[AlterIndices()] = 1
-
-    idx = idx[np.isfinite(Y)]
-    X = X[np.isfinite(Y), :]
-    Y = Y[np.isfinite(Y)]
+    subset = np.isfinite(Y)
+    X = tensorFac[1][0][subset, :]  # subjects x components matrix
+    Y = Y[subset]
 
     # Perform Regression
     Y_pred, coef = RegressionHelper(X, Y)
+    Y, Y_pred = selectAlter(Y, Y_pred, evaluation, subset=subset)
 
-    if evaluation == "all":
-        Y, Y_pred = Y, Y_pred
-    elif evaluation == "Alter":
-        Y, Y_pred = Y[idx], Y_pred[idx]
-    elif evaluation == "notAlter":
-        Y, Y_pred = Y[~idx], Y_pred[~idx]
+    return Y, Y_pred, pearsonr(Y, Y_pred)[0], coef
+
+
+def RegressionHelper(X, Y, classify=False):
+    """ Function with the regression cross-validation strategy. """
+    kern = ConstantKernel() * RBF(length_scale=np.ones(X.shape[1])) + WhiteKernel()
+
+    if classify:
+        X = scale(X)
+        est = LogisticRegressionCV(penalty="elasticnet", solver="saga")
+        estG = GaussianProcessClassifier(kern, warm_start=True)
     else:
-        raise ValueError("Bad evaluation selection.")
+        est = ElasticNetCV(normalize=True)
+        estG = GaussianProcessRegressor(kern, normalize_y=True)
 
-    assert Y.shape == Y_pred.shape
-    return Y, Y_pred, np.sqrt(r2_score(Y, Y_pred)), coef
+    est.l1_ratios = [0.8]
+    est.cv = 10
+    est.max_iter = 10000
 
+    est = est.fit(X, Y)
+    coef = np.squeeze(est.coef_)
 
-def RegressionHelper(X, Y):
-    """ Function with common Logistic regression methods. """
-    regr = ElasticNetCV(normalize=True, max_iter=10000, cv=20, n_jobs=-1, l1_ratio=0.8).fit(X, Y)
-    enet = ElasticNet(alpha=regr.alpha_, l1_ratio=regr.l1_ratio_, normalize=True, max_iter=10000)
-    Y_pred = cross_val_predict(enet, X, Y, cv=len(Y), n_jobs=-1)
-    return Y_pred, enet.fit(X, Y).coef_
+    Y_pred = cross_val_predict(est, X, Y, cv=20, n_jobs=-1)
+
+    if X.shape[1] < 20:
+        Y_pred_G = cross_val_predict(estG, X, Y, cv=20, n_jobs=-1)
+
+        if classify:
+            better = accuracy_score(Y, Y_pred_G) > accuracy_score(Y, Y_pred)
+        else:
+            better = pearsonr(Y, Y_pred_G)[0] > pearsonr(Y, Y_pred)[0]
+
+        if better:
+            coef = np.zeros(X.shape[1])
+            Y_pred = Y_pred_G
+
+    return Y_pred, coef
