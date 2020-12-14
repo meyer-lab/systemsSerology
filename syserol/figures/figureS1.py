@@ -7,7 +7,7 @@ from ..regression import function_prediction
 from ..dataImport import functions
 from ..tensor import perform_CMTF
 
-# TODO: Fix IFNg to have γ
+# TODO: Fix IFNg to use γ
 # TODO: x- and y-axis should go to 0.0
 
 def makeFigure():

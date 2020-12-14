@@ -25,6 +25,52 @@
     ],
     "container-title": "Journal of Machine Learning Research",
     "publisher": "Journal of Machine Learning Research",
-    "type": "report",
+    "type": "report"
+  },
+  {
+    "id": "scikit",
+    "title": "Scikit-learn: Machine Learning in Python",
+    "pages": "2825–2830",
+    "issued": {
+      "date-parts": [
+        [
+          2011,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "given": "F.",
+        "family": "Pedregosa"
+      },
+      {
+        "given": "G.",
+        "family": "Varoquaux"
+      },
+      {
+        "given": "A.",
+        "family": "Gramfort"
+      },
+      {
+        "given": "V.",
+        "family": "Michel"
+      },
+      {
+        "given": "B.",
+        "family": "Thirion"
+      },
+      {
+        "given": "O.",
+        "family": "Grisel"
+      },
+      {
+        "given": "E.",
+        "family": "Duchesnay"
+      }
+    ],
+    "container-title": "Journal of Machine Learning Research",
+    "publisher": "Journal of Machine Learning Research",
+    "type": "report"
   }
 ]
