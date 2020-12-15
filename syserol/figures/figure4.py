@@ -38,7 +38,7 @@ def makeFigure():
     funcs_df = pd.DataFrame(data)
 
     a = sns.barplot(x="Component Number", y="Feature Importance", hue="Function", data=funcs_df, ax=ax[0])
-    a.set_ylim(-.01, .17)
+    a.set_ylim(0.0, .17)
     sns.barplot(x="Component Number", y="Feature Importance", data=class_df, ax=ax[1], color="b")
 
     # Add subplot labels
