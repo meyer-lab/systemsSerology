@@ -24,10 +24,10 @@ def makeFigure():
 
     # Gather Function Prediction Accuracies
     accuracies = [function_elastic_net(f)[2] for f in functions]
-    accuracies = accuracies + [function_prediction(tFac, function=f, evaluation="Alter")[2] for f in functions]
+    accuracies = accuracies + [function_prediction(tFac[1][0], function=f, evaluation="Alter")[2] for f in functions]
 
     # Subjects left out of Alter
-    accuracies = accuracies + [function_prediction(tFac, function=f, evaluation="notAlter")[2] for f in functions]
+    accuracies = accuracies + [function_prediction(tFac[1][0], function=f, evaluation="notAlter")[2] for f in functions]
 
     # Create DataFrame
     model = ["Alter Model"] * 6 + ["Our Model"] * 6 + ["Excluded Cases"] * 6
@@ -56,7 +56,7 @@ def makeFigure():
     """Provide details about our model"""
     # Factor data
     # Collect function component weights from elastic net prediction
-    function_coefs = [function_prediction(tFac, function=f, evaluation="all")[3] for f in functions]
+    function_coefs = [function_prediction(tFac[1][0], function=f, evaluation="all")[3] for f in functions]
     flat_func_coefs = [func_coef for func in function_coefs for func_coef in func]
     function = [fun for fun in functions for i in range(tFac.rank)]
     components = [i + 1 for i in range(tFac.rank)] * 6
