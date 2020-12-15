@@ -17,13 +17,14 @@ def makeFigure():
     cube = tl.unfold(cube[:, 1:11, :], 1)
     cube = np.delete(cube, 3, axis=1)
     detections = detections[1:11]
+    detections = [x[:2] + 'γ' + x[3:] if x[:2] == 'Fc' else x for x in detections]
     del detections[3]
 
     # Remove fully missing patients
     missing = np.all(np.isnan(cube), axis=0)
     cube = cube[:, ~missing]
 
-    axs, fig = getSetup((10, 10), (3, 3))
+    axs, fig = getSetup((8, 8), (3, 3))
 
     for ii, ax in enumerate(axs):
         groupi = ii - (ii % 3)
@@ -44,7 +45,8 @@ def makeFigure():
 
         ax.set_xlabel(detections[xi])
         ax.set_ylabel(detections[yi])
-
+        ax.set_xticks(ax.get_xticks().tolist())
+        ax.set_xticklabels(ax.get_xticks().tolist(), rotation=20, ha='right')
         ax.set_ylim(bottom=-2000)
         ax.set_xlim(left=-2000)
 
