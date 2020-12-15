@@ -168,7 +168,7 @@ def createCube(powert=True):
 
     # Clip to 0 as there are a few strongly negative outliers
     # IIa.H/R were offset to negative, so correct that
-    cube[:, 1:11, :] = np.clip(cube[:, 1:11, :], 0, None)
+    cube[:, 1:11, :] = np.clip(cube[:, 1:11, :], 0, 175000)
 
     # Power normalization
     if powert:
