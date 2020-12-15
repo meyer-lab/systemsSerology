@@ -34,7 +34,7 @@ def makeFigure():
     ax[0].set_xlabel("Number of Components")
     ax[0].set_xticks([x for x in comps])
     ax[0].set_xticklabels([x for x in comps])
-    ax[0].set_ylim(0.4, 1)
+    ax[0].set_ylim(0.4, 0.8)
     # TODO: Remove this eventually.
 
     Q2X = evaluate_missing(comps)

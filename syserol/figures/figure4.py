@@ -32,13 +32,13 @@ def makeFigure():
 
         for ii in range(X.shape[1]):
             XX = np.delete(X.copy(), ii, axis=1)
-            perfLO[ii] = function_prediction(XX, function="MIP1b")[2]
+            perfLO[ii] = function_prediction(XX, function=function)[2]
         funcs.extend(perf - perfLO)
     data = {"Feature Importance": funcs, "Component Number": [str(x) for x in np.arange(1, X.shape[1]+1).tolist()] * 6, "Function": [x for i in [[j] * 10 for j in functions] for x in i]}
     funcs_df = pd.DataFrame(data)
 
     a = sns.barplot(x="Component Number", y="Feature Importance", hue="Function", data=funcs_df, ax=ax[0])
-    a.set_ylim(-.015, .17)
+    a.set_ylim(-.01, .17)
     sns.barplot(x="Component Number", y="Feature Importance", data=class_df, ax=ax[1], color="b")
 
     # Add subplot labels
