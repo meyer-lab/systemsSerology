@@ -1,0 +1,76 @@
+[
+{
+    "id": "overfit",
+    "URL": "http://jmlr.org/papers/v11/cawley10a.html",
+    "number": "70",
+    "title": "On Over-fitting in Model Selection and Subsequent Selection Bias in Performance Evaluation",
+    "pages": "2079-2107",
+    "issued": {
+      "date-parts": [
+        [
+          2010,
+          11
+        ]
+      ]
+    },
+    "author": [
+      {
+        "given": "Gavin C.",
+        "family": "Cawley"
+      },
+      {
+        "given": "Nicola L. C.",
+        "family": "Talbot"
+      }
+    ],
+    "container-title": "Journal of Machine Learning Research",
+    "publisher": "Journal of Machine Learning Research",
+    "type": "report"
+  },
+  {
+    "id": "scikit",
+    "title": "Scikit-learn: Machine Learning in Python",
+    "pages": "2825–2830",
+    "issued": {
+      "date-parts": [
+        [
+          2011,
+          12
+        ]
+      ]
+    },
+    "author": [
+      {
+        "given": "F.",
+        "family": "Pedregosa"
+      },
+      {
+        "given": "G.",
+        "family": "Varoquaux"
+      },
+      {
+        "given": "A.",
+        "family": "Gramfort"
+      },
+      {
+        "given": "V.",
+        "family": "Michel"
+      },
+      {
+        "given": "B.",
+        "family": "Thirion"
+      },
+      {
+        "given": "O.",
+        "family": "Grisel"
+      },
+      {
+        "given": "E.",
+        "family": "Duchesnay"
+      }
+    ],
+    "container-title": "Journal of Machine Learning Research",
+    "publisher": "Journal of Machine Learning Research",
+    "type": "report"
+  }
+]

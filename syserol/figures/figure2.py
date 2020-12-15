@@ -9,6 +9,7 @@ from ..tensor import perform_CMTF
 from ..dataImport import getAxes, load_file
 from matplotlib import gridspec, pyplot as plt
 
+# TODO: Add subplot letters.
 
 def makeFigure():
     """ Generate Figure 3 for Paper, Showing Interpretation of All Data from Decomposed Tensor"""
@@ -50,14 +51,14 @@ def makeFigure():
             values1 = subjects[:, i]
             values2 = subjects[:, i + 1]
             data = {
-                f"Component {i+1}": values1,
-                f"Component {i+2}": values2,
+                f"Cmp. {i+1}": values1,
+                f"Cmp. {i+2}": values2,
                 "Groups": subjinfo["class.etuv"],
             }
             df = pd.DataFrame(data)
             a = sns.scatterplot(
-                x=f"Component {i+1}",
-                y=f"Component {i+2}",
+                x=f"Cmp. {i+1}",
+                y=f"Cmp. {i+2}",
                 hue="Groups",
                 data=df,
                 palette="Set1",
@@ -72,8 +73,8 @@ def makeFigure():
             values1 = receptors[:, i]
             values2 = receptors[:, i + 1]
             data = {
-                f"Component {i+1}": values1,
-                f"Component {i+2}": values2,
+                f"Cmp. {i+1}": values1,
+                f"Cmp. {i+2}": values2,
                 "Receptor": detections,
             }
             df = pd.DataFrame(data)
@@ -102,8 +103,8 @@ def makeFigure():
                 "d",
             )
             b = sns.scatterplot(
-                x=f"Component {i+1}",
-                y=f"Component {i+2}",
+                x=f"Cmp. {i+1}",
+                y=f"Cmp. {i+2}",
                 hue="Receptor",
                 style="Receptor",
                 markers=markers,
@@ -119,8 +120,8 @@ def makeFigure():
             values1 = antigens[:, i]
             values2 = antigens[:, i + 1]
             data = {
-                f"Component {i+1}": values1,
-                f"Component {i+2}": values2,
+                f"Cmp. {i+1}": values1,
+                f"Cmp. {i+2}": values2,
                 "Antigens": antigen,
             }
             df = pd.DataFrame(data)
@@ -168,8 +169,8 @@ def makeFigure():
                 "H",
             )
             c = sns.scatterplot(
-                x=f"Component {i+1}",
-                y=f"Component {i+2}",
+                x=f"Cmp. {i+1}",
+                y=f"Cmp. {i+2}",
                 hue="Antigens",
                 style="Antigens",
                 markers=markers,
@@ -186,15 +187,15 @@ def makeFigure():
             values1 = glyc[:, i]
             values2 = glyc[:, i + 1]
             data = {
-                f"Component {i+1}": values1,
-                f"Component {i+2}": values2,
+                f"Cmp. {i+1}": values1,
+                f"Cmp. {i+2}": values2,
                 "G": glycaninf["GS"],
                 "FB": glycaninf["FB"],
             }
             df = pd.DataFrame(data)
             d = sns.scatterplot(
-                x=f"Component {i+1}",
-                y=f"Component {i+2}",
+                x=f"Cmp. {i+1}",
+                y=f"Cmp. {i+2}",
                 hue="G",
                 style="FB",
                 data=df,
@@ -224,10 +225,10 @@ def makeFigure():
         colors = ["blue", "orange", "green", "red"]
         cmap = sns.color_palette(colors)
 
-        subs = pd.DataFrame(subjects, columns=[f"Component {i}" for i in np.arange(1, subjects.shape[1] + 1)], index=subjinfo["class.etuv"])
-        rec = pd.DataFrame(receptors, columns=[f"Component {i}" for i in np.arange(1, subjects.shape[1] + 1)], index=detections)
-        ant = pd.DataFrame(antigens, columns=[f"Component {i}" for i in np.arange(1, subjects.shape[1] + 1)], index=antigen)
-        glycans = pd.DataFrame(glyc, columns=[f"Component {i}" for i in np.arange(1, subjects.shape[1] + 1)], index=glycaninf["glycan"])
+        subs = pd.DataFrame(subjects, columns=[f"Cmp. {i}" for i in np.arange(1, subjects.shape[1] + 1)], index=subjinfo["class.etuv"])
+        rec = pd.DataFrame(receptors, columns=[f"Cmp. {i}" for i in np.arange(1, subjects.shape[1] + 1)], index=detections)
+        ant = pd.DataFrame(antigens, columns=[f"Cmp. {i}" for i in np.arange(1, subjects.shape[1] + 1)], index=antigen)
+        glycans = pd.DataFrame(glyc, columns=[f"Cmp. {i}" for i in np.arange(1, subjects.shape[1] + 1)], index=glycaninf["glycan"])
 
         vmin = min(subs.values.min(), rec.values.min(), ant.values.min(), glycans.values.min()) * .75
         vmax = max(subs.values.max(), rec.values.max(), ant.values.max(), glycans.values.max()) * .75

@@ -16,7 +16,7 @@ def makeFigure():
     # Get list of axis objects
     ax, f = getSetup((6, 3), (1, 2))
 
-    comps = np.arange(1, 14)
+    comps = np.arange(1, 13)
     tensorArr = np.zeros(comps.shape)
     pred_acc = np.zeros(comps.shape)
 
@@ -35,6 +35,7 @@ def makeFigure():
     ax[0].set_xticks([x for x in comps])
     ax[0].set_xticklabels([x for x in comps])
     ax[0].set_ylim(0.4, 1)
+    # TODO: Remove this eventually.
 
     Q2X = evaluate_missing(comps)
     ax[1].scatter(comps, Q2X)
