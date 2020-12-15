@@ -38,6 +38,7 @@ def makeFigure():
     glycaninf["FB"] = glycaninf["FB"].replace(to_replace=[np.nan, ""], value=["Total", "No F or B"])
     glycaninf.loc[19:24, "GS"] = glycaninf.loc[19:24, "glycan"]
     _, detections, antigen = getAxes()
+    detections = [x[:2] + 'γ' + x[3:] if x[:2] == 'Fc' else x for x in detections]
     subjinfo = load_file("meta-subjects")
 
     if (heatmap == False):
