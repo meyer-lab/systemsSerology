@@ -23,7 +23,6 @@ def makeFigure():
         ax[i].text(.9, .9, f"ρ = {round(accuracy, 3)}", {"color": "red", "fontsize": 8}, horizontalalignment="right",
                    verticalalignment="bottom", transform=ax[i].transAxes)
         ax[i].set_title(func)
-        lim = max(ax[i].get_xlim()[1], ax[i].get_ylim()[1])
         ax[i].set_xlim(0,)
         ax[i].set_ylim(0,)
         ax[i].set_aspect(1 / ax[i].get_data_ratio())

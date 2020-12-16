@@ -16,13 +16,17 @@ def makeFigure():
     tFac, _, _ = perform_CMTF()
     X = tFac.factors[0]
 
-    perf = class_predictions(X)[1]
-    perfLO = np.zeros(X.shape[1])
 
-    for ii in range(X.shape[1]):
-        XX = np.delete(X.copy(), ii, axis=1)
-        perfLO[ii] = class_predictions(XX)[1]
-    data = {"Feature Importance": perf - perfLO, "Component Number": np.arange(1, X.shape[1]+1)}
+    classes = []
+    for cidx in range(2):
+        perf = class_predictions(X)[cidx]
+        perfLO = np.zeros(X.shape[1])
+
+        for ii in range(X.shape[1]):
+            XX = np.delete(X.copy(), ii, axis=1)
+            perfLO[ii] = class_predictions(XX)[cidx]
+        classes.extend(perf - perfLO)
+    data = {"Feature Importance": classes, "Component Number": [str(x) for x in np.arange(1, X.shape[1]+1).tolist()] * 2, "Class": [x for i in [[j] * 10 for j in ["Progression", "Viremia"]] for x in i]}
     class_df = pd.DataFrame(data)
 
     funcs = []
@@ -37,9 +41,8 @@ def makeFigure():
     data = {"Feature Importance": funcs, "Component Number": [str(x) for x in np.arange(1, X.shape[1]+1).tolist()] * 6, "Function": [x for i in [[j] * 10 for j in functions] for x in i]}
     funcs_df = pd.DataFrame(data)
 
-    a = sns.barplot(x="Component Number", y="Feature Importance", hue="Function", data=funcs_df, ax=ax[0])
-    a.set_ylim(-.01, .17)
-    sns.barplot(x="Component Number", y="Feature Importance", data=class_df, ax=ax[1], color="b")
+    sns.barplot(x="Component Number", y="Feature Importance", hue="Function", data=funcs_df, ax=ax[0])
+    sns.barplot(x="Component Number", y="Feature Importance", hue="Class", data=class_df, ax=ax[1])
 
     # Add subplot labels
     subplotLabel(ax)
