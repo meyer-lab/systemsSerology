@@ -73,14 +73,14 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
             unfold = tl.unfold(tOrig, m)
             tFac.factors[m] = censored_lstsq(kr, unfold.T)
 
-        # Solve for the glycan matrix fit
-        mFac.factors[1] = np.linalg.lstsq(mFac.factors[0][selPat, :], mOrig[selPat, :], rcond=None)[0].T
+        if ii % 20 == 0:
+            # Solve for the glycan matrix fit
+            mFac.factors[1] = np.linalg.lstsq(mFac.factors[0][selPat, :], mOrig[selPat, :], rcond=None)[0].T
 
-        if ii % 50 == 0:
             R2X_last = R2X
             R2X = calcR2X(tOrig, mOrig, tFac, mFac)
 
-        if R2X - R2X_last < 1e-6:
+        if R2X - R2X_last < 1e-7:
             break
 
     tFac.normalize()
