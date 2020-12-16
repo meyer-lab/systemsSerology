@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 2100 900" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1.5;">
+    <g transform="matrix(1,0,0,1,-80,0)">
+        <path d="M389.375,368.829L300.673,450L300.673,835.271L389.375,706.071L389.375,368.829Z" style="fill:white;stroke:black;stroke-width:2.5px;"/>
+    </g>
+    <g transform="matrix(0.87523,0,0,0.87523,46.2169,-24.9833)">
+        <rect x="300.673" y="449.953" width="151.419" height="385.318" style="fill:white;stroke:black;stroke-width:2.86px;"/>
+    </g>
+    <g transform="matrix(0.393067,0.91951,-0.91951,0.393067,1886.36,-1006.6)">
+        <circle cx="1420.68" cy="714.143" r="152.348" style="fill:rgb(150,249,207);fill-opacity:0.5;stroke:black;stroke-width:2.71px;"/>
+    </g>
+    <g transform="matrix(0.393067,0.91951,-0.91951,0.393067,1883.17,-880.374)">
+        <circle cx="1420.68" cy="714.143" r="152.348" style="fill:rgb(104,197,239);fill-opacity:0.5;stroke:black;stroke-width:2.71px;"/>
+    </g>
+    <g transform="matrix(1,0,0,1,341.096,-145.658)">
+        <text x="1300.39px" y="725.776px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:50px;">CP</text>
+    </g>
+    <g transform="matrix(1,0,0,1,342.329,29.7218)">
+        <text x="1300.39px" y="725.776px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:50px;">CP</text>
+    </g>
+    <g transform="matrix(1,0,0,1,1003.13,2.60287)">
+        <text x="715.386px" y="661.823px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:50px;">CMTF</text>
+    </g>
+    <g transform="matrix(0.949001,0,0,1.16448,96.8491,-122.419)">
+        <rect x="1603.68" y="460.917" width="463.596" height="391.418" style="fill:none;stroke:black;stroke-width:2.55px;"/>
+    </g>
+    <g transform="matrix(1,0,0,1,371.2,584.875)">
+        <text x="1538.69px" y="266.661px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:50px;">TMTF</text>
+    </g>
+    <g transform="matrix(1,0,0,1,593.779,-188.211)">
+        <text x="1082.42px" y="697.75px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:33.333px;">antigen-speciﬁc</text>
+        <text x="1151.91px" y="732.174px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:33.333px;">tensor</text>
+    </g>
+    <g transform="matrix(1,0,0,1,586.936,106.118)">
+        <text x="1100.05px" y="697.75px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:33.333px;">glycan matrix</text>
+    </g>
+    <g transform="matrix(1,0,0,1,410.671,18.5283)">
+        <text x="1149.19px" y="424.42px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:66.667px;">d</text>
+    </g>
+    <g transform="matrix(1,0,0,1,-1128.57,-358.374)">
+        <text x="1149.19px" y="424.42px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:66.667px;">a</text>
+    </g>
+    <g transform="matrix(1,0,0,1,-1130.52,-7.86946)">
+        <text x="1149.19px" y="424.42px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:66.667px;">b</text>
+    </g>
+    <g transform="matrix(1,0,0,1,-432.969,-20.2392)">
+        <text x="1149.19px" y="424.42px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:66.667px;">c</text>
+    </g>
+    <g transform="matrix(1,0,0,1,-80,0)">
+        <rect x="300.673" y="449.953" width="151.419" height="385.318" style="fill:white;stroke:black;stroke-width:2.5px;"/>
+    </g>
+    <g transform="matrix(0.87523,0,0,0.87523,196.217,-24.9833)">
+        <rect x="300.673" y="449.953" width="151.419" height="385.318" style="fill:none;stroke:black;stroke-width:3.09px;"/>
+    </g>
+    <g transform="matrix(1,0,0,1,-80,0)">
+        <path d="M452.092,450L521.902,368.829L521.902,706.071L452.092,835.271L452.092,450Z" style="fill:white;stroke:black;stroke-width:2.5px;"/>
+    </g>
+    <g transform="matrix(1,0,0,1,-80,0)">
+        <path d="M389.375,368.829L300.673,449.953L452.092,450L521.902,368.829L389.375,368.829Z" style="fill:white;stroke:black;stroke-width:2.5px;"/>
+    </g>
+    <g transform="matrix(1,0,0,1,-94.1881,-5.95826)">
+        <text x="313.943px" y="870.768px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:33.333px;">Receptors</text>
+    </g>
+    <g transform="matrix(1,0,0,1,132.06,-125.872)">
+        <text x="313.943px" y="870.768px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:33.333px;">Glycans</text>
+    </g>
+    <g transform="matrix(1,0,0,1,91.2797,-73.8363)">
+        <text x="313.943px" y="870.768px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:33.333px;">Antigens</text>
+    </g>
+    <g transform="matrix(6.12323e-17,-1,1,6.12323e-17,-424.319,865.215)">
+        <text x="184.73px" y="630.887px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:33.333px;">Subjects</text>
+    </g>
+    <g transform="matrix(6.12323e-17,1,-1,6.12323e-17,1235.11,285.388)">
+        <text x="184.73px" y="630.887px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:33.333px;">Subjects</text>
+    </g>
+</svg>
