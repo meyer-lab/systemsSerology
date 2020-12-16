@@ -80,7 +80,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
             R2X_last = R2X
             R2X = calcR2X(tOrig, mOrig, tFac, mFac)
 
-        if R2X - R2X_last < 1e-7:
+        if R2X - R2X_last < 1e-6:
             break
 
     tFac.normalize()
