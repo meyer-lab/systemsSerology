@@ -76,7 +76,6 @@ def RegressionHelper(X, Y, classify=False):
             better = pearsonr(Y, Y_pred_G)[0] > pearsonr(Y, Y_pred)[0]
 
         if better:
-            coef = np.zeros(X.shape[1])
             Y_pred = Y_pred_G
 
     return Y_pred, coef

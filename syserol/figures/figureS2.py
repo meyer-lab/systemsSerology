@@ -20,7 +20,7 @@ def makeFigure():
     detections = [x[:2] + 'γ' + x[3:] if x[:2] == 'Fc' else x for x in detections]
     del detections[3]
 
-    # Remove fully missing patients
+    # Remove fully missing subjects
     missing = np.all(np.isnan(cube), axis=0)
     cube = cube[:, ~missing]
 
