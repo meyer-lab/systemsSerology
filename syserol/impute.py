@@ -9,7 +9,7 @@ from .tensor import perform_CMTF
 def evaluate_missing(comps, numSample=15):
     """ check differences between original and recon values for different number of components. """
     cube, glyCube = createCube()
-    np.random.seed(1) # Avoid random variation in this output
+    np.random.seed(1)  # Avoid random variation in this output
 
     R2X = np.zeros(comps.shape)
     missingCube = np.copy(cube)

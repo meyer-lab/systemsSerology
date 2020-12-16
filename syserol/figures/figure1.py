@@ -41,7 +41,7 @@ def makeFigure():
     ax[1].set_ylabel("Q2X of Imputation")
     ax[1].set_xlabel("Number of Components")
     ax[1].set_xticks([x for x in comps])
-    ax[1].set_xticklabels([x for x in comps])    
+    ax[1].set_xticklabels([x for x in comps])
     ax[1].set_ylim(0, 1)
 
     # Add subplot labels

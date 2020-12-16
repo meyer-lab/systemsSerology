@@ -116,7 +116,7 @@ def importAlterDF(function=True, subjects=False):
 
 
 def selectAlter(Y, Y_pred, evaluation, subset=None):
-    """ Subset Y for sets of patients. """
+    """ Subset Y for sets of subjects. """
     df = importAlterDF().dropna()
     subjects = getAxes()[0]
 
