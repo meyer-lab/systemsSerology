@@ -73,10 +73,10 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
             unfold = tl.unfold(tOrig, m)
             tFac.factors[m] = censored_lstsq(kr, unfold.T)
 
-        if ii % 20 == 0:
-            # Solve for the glycan matrix fit
-            mFac.factors[1] = np.linalg.lstsq(mFac.factors[0][selPat, :], mOrig[selPat, :], rcond=None)[0].T
+        # Solve for the glycan matrix fit
+        mFac.factors[1] = np.linalg.lstsq(mFac.factors[0][selPat, :], mOrig[selPat, :], rcond=None)[0].T
 
+        if ii % 20 == 0:
             R2X_last = R2X
             R2X = calcR2X(tOrig, mOrig, tFac, mFac)
 
