@@ -6,7 +6,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import scale
 from sklearn.linear_model import ElasticNetCV, LogisticRegressionCV
 from sklearn.gaussian_process import GaussianProcessClassifier, GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import ConstantKernel, RBF, WhiteKernel
+from sklearn.gaussian_process.kernels import ConstantKernel, Matern, WhiteKernel
 from scipy.stats import pearsonr
 from .dataImport import (
     importFunction,
@@ -48,7 +48,7 @@ def function_prediction(Xin, function="ADCC", evaluation="all"):
 
 def RegressionHelper(X, Y, classify=False):
     """ Function with the regression cross-validation strategy. """
-    kern = ConstantKernel() * RBF(length_scale=np.ones(X.shape[1])) + WhiteKernel()
+    kern = ConstantKernel() * Matern(length_scale=np.ones(X.shape[1])) + WhiteKernel()
 
     if classify:
         X = scale(X)
