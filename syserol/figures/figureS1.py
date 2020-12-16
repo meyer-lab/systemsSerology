@@ -7,8 +7,6 @@ from ..regression import function_prediction
 from ..dataImport import functions
 from ..tensor import perform_CMTF
 
-# TODO: Fix IFNg to use γ
-# TODO: x- and y-axis should go to 0.0
 
 def makeFigure():
     """ Show predicted vs. actual of decomposition prediction. """
@@ -22,10 +20,12 @@ def makeFigure():
         ax[i].set_ylabel("Predicted Values")
         m, b = np.polyfit(x, y, 1)  # line of best fit
         ax[i].plot(x, m * x + b, 'k--', color="red")
-        ax[i].text(.9, .9, f"ρ = {round(accuracy, 3)}", {"color": "red", "fontsize": 8}, horizontalalignment="right",
+        ax[i].text(.9, .1, f"ρ = {round(accuracy, 3)}", {"color": "red", "fontsize": 8}, horizontalalignment="right",
                    verticalalignment="bottom", transform=ax[i].transAxes)
         ax[i].set_title(func)
-        ax[i].axis('equal')
+        ax[i].set_xlim(0,)
+        ax[i].set_ylim(0,)
+        ax[i].set_aspect(1 / ax[i].get_data_ratio())
 
     subplotLabel(ax)
     return f

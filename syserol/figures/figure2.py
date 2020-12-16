@@ -9,7 +9,6 @@ from ..tensor import perform_CMTF
 from ..dataImport import getAxes, load_file
 from matplotlib import gridspec, pyplot as plt
 
-# TODO: Add subplot letters.
 
 def makeFigure():
     """ Generate Figure 3 for Paper, Showing Interpretation of All Data from Decomposed Tensor"""
@@ -263,5 +262,7 @@ def makeFigure():
     ax[1].set_title("Receptors", fontsize=15)
     ax[2].set_title("Antigens", fontsize=15)
     ax[3].set_title("Glycans", fontsize=15)
+
+    subplotLabel(ax)
 
     return f
