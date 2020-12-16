@@ -30,13 +30,13 @@ def function_elastic_net(function="ADCC"):
     return Y, Y_pred, pearsonr(Y, Y_pred)[0], coef
 
 
-def function_prediction(tensorFac, function="ADCC", evaluation="all"):
+def function_prediction(Xin, function="ADCC", evaluation="all"):
     """ Predict functions using our decomposition and regression methods"""
     func, _ = importFunction()
 
     Y = func[function]
     subset = np.isfinite(Y)
-    X = tensorFac[1][0][subset, :]  # subjects x components matrix
+    X = Xin[subset, :]  # subjects x components matrix
     Y = Y[subset]
 
     # Perform Regression

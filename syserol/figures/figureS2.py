@@ -47,8 +47,8 @@ def makeFigure():
         ax.set_ylabel(detections[yi])
         ax.set_xticks(ax.get_xticks().tolist())
         ax.set_xticklabels(ax.get_xticks().tolist(), rotation=20, ha='right')
-        ax.set_ylim(bottom=-2000)
-        ax.set_xlim(left=-2000)
+        ax.set_ylim(bottom=-2000, top=180000)
+        ax.set_xlim(left=-2000, right=180000)
 
     subplotLabel(axs)
 

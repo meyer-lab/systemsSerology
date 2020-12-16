@@ -142,5 +142,4 @@ venv
 .idea/
 
 *.svg
-*.ipynb
 .vscode/settings.json

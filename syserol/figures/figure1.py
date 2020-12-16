@@ -23,7 +23,7 @@ def makeFigure():
     for i, cc in enumerate(comps):
         tFac, _, R2X = perform_CMTF(r=cc)
         tensorArr[i] = R2X
-        accur = [function_prediction(tFac, function=f, evaluation="all")[2] for f in functions]
+        accur = [function_prediction(tFac[1][0], function=f, evaluation="all")[2] for f in functions]
         cp, nv, _, _ = class_predictions(tFac[1][0])  # Our accuracies
         accur.append(cp)
         accur.append(nv)
