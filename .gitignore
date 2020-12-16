@@ -141,5 +141,5 @@ cython_debug/
 venv
 .idea/
 
-*.svg
+output
 .vscode/settings.json
