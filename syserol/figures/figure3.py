@@ -14,8 +14,6 @@ from ..classify import class_predictions, two_way_classifications
 from .common import subplotLabel, getSetup
 from ..tensor import perform_CMTF
 
-# TODO: The legends in (A) and (B) should be the same.
-# TODO: Remove the baseline line in (B).
 
 def makeFigure():
     """ Show Similarity in Prediction of Alter Model and Our Model"""
@@ -44,7 +42,6 @@ def makeFigure():
     # Create DataFrame
     baselineNV = 0.5083  # datasetEV3/Fc.array/class.nv/lambda.min/score_details.txt "No information rate"
     baselineCP = 0.5304  # datasetEV3/Fc.array/class.cp/lambda.min/score_details.txt "No information rate"
-    avg = np.mean([baselineNV, baselineCP])
     accuracies = np.array(
         [accuracyCvP, cp_accuracy, cp_notAlter, baselineCP, accuracyVvN, nv_accuracy, nv_notAlter, baselineNV]
     )
@@ -95,13 +92,13 @@ def makeFigure():
     a.tick_params(axis="x")
     a.set_ylabel("Accuracy")
     a.set_xlabel("Function")
+    a.get_legend().remove()
 
     # Class Plot
     b = sns.scatterplot(
         y="Accuracies", x="Class", style="Model", hue="Model", data=classes, ax=ax[1]
     )
     # Formatting
-    b.plot([-0.5, 5.5], [avg, avg], "--", color="green")
     b.axvspan(-0.5, 0.5, alpha=0.1, color="grey")
     b.set_xlim(-0.5, 1.5)
     b.set_ylim(0.45, 1)
@@ -111,11 +108,14 @@ def makeFigure():
     b.set_ylabel("Accuracy")
     b.set_xlabel("Class Prediction")
     b.tick_params(axis="x")
+    b.legend(fontsize=8.5, title='Model', title_fontsize=10)
 
     # Component Weights
     sns.set()
     a = sns.barplot(data=function_df, x="Component", y="Weights", hue="Function", ax=ax[2])
+    a.legend(fontsize=8, title='Model', title_fontsize=10)
     b = sns.barplot(data=class_df, x="Component", y="Weights", hue="Class", ax=ax[3])
+    b.legend(fontsize=8.5, title='Model', title_fontsize=10)
 
     subplotLabel(ax)
 

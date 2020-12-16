@@ -70,13 +70,14 @@ def getAxes():
     return subjects, detections, antigen
 
 
-functions = ["ADCD", "ADCC", "ADNP", "CD107a", "IFNy", "MIP1b"]
+functions = ["ADCD", "ADCC", "ADNP", "CD107a", "IFNγ", "MIP1b"]
 
 
 def importFunction():
     """ Import functional data. """
     subjects, _, _ = getAxes()
     df = load_file("data-function")
+    df.columns = ["subject", "ADCD", "ADCC", "ADNP", "CD107a", "IFNγ", "MIP1b"]
     df_a = pd.DataFrame({"subject": subjects})
 
     df = df_a.merge(df, on="subject", how="left")
