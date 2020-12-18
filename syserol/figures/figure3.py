@@ -50,25 +50,9 @@ def makeFigure():
     data = {"Accuracies": accuracies, "Class": category, "Model": model}
     classes = pd.DataFrame(data)  # Class Predictions DataFrame, Figure 2B
 
-    """Provide details about our model"""
-    # Factor data
-    # Collect function component weights from elastic net prediction
-    function_coefs = [function_prediction(tFac[1][0], function=f, evaluation="all")[3] for f in functions]
-    flat_func_coefs = [func_coef for func in function_coefs for func_coef in func]
-    function = [fun for fun in functions for i in range(tFac.rank)]
-    components = [i + 1 for i in range(tFac.rank)] * 6
-    data = {"Weights": flat_func_coefs, "Function": function, "Component": components}
-    function_df = pd.DataFrame(data)
-
-    # Collect classification component weights
-    _, _, cp_coef, nv_coef = class_predictions(tFac[1][0])
-    components = [i + 1 for i in range(tFac.rank)] * 2
-    category = ["Progression"] * tFac.rank + ["Viremia"] * tFac.rank
-    data = {"Weights": np.hstack((cp_coef, nv_coef)), "Class": category, "Component": components}
-    class_df = pd.DataFrame(data)
 
     # PLOT DataFrames
-    ax, f = getSetup((6, 6), (2, 2))
+    ax, f = getSetup((6, 3), (1, 2))
     sns.set()
     # Function Plot
     a = sns.pointplot(
@@ -108,13 +92,6 @@ def makeFigure():
     b.set_ylabel("Accuracy")
     b.set_xlabel("Class Prediction")
     b.tick_params(axis="x")
-    b.legend(fontsize=8.5, title='Model', title_fontsize=10)
-
-    # Component Weights
-    sns.set()
-    a = sns.barplot(data=function_df, x="Component", y="Weights", hue="Function", ax=ax[2])
-    a.legend(fontsize=8, title='Model', title_fontsize=10)
-    b = sns.barplot(data=class_df, x="Component", y="Weights", hue="Class", ax=ax[3])
     b.legend(fontsize=8.5, title='Model', title_fontsize=10)
 
     subplotLabel(ax)
