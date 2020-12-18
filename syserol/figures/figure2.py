@@ -229,8 +229,8 @@ def makeFigure():
         ant = pd.DataFrame(antigens, columns=[f"Cmp. {i}" for i in np.arange(1, subjects.shape[1] + 1)], index=antigen)
         glycans = pd.DataFrame(glyc, columns=[f"Cmp. {i}" for i in np.arange(1, subjects.shape[1] + 1)], index=glycaninf["glycan"])
 
-        vmin = min(subs.values.min(), rec.values.min(), ant.values.min(), glycans.values.min()) * .75
-        vmax = max(subs.values.max(), rec.values.max(), ant.values.max(), glycans.values.max()) * .75
+        vmin = min(subs.values.min(), rec.values.min(), ant.values.min(), glycans.values.min()) * .6
+        vmax = max(subs.values.max(), rec.values.max(), ant.values.max(), glycans.values.max()) * .6
 
         sns.heatmap(subs, cmap="PRGn", center=0, xticklabels=True, yticklabels=False, cbar_ax=ax4, vmin=vmin, vmax=vmax, ax=ax2)
 

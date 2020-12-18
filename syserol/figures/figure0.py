@@ -37,7 +37,7 @@ def makeFigure():
 
         _, _, TMTFR2X[i] = perform_CMTF(tOrig, mOrig, r=cc)
 
-    ax[0].scatter(comps, TMTFR2X)
+    ax[0].scatter(comps, TMTFR2X, color='k', s=10)
     ax[0].set_ylabel("TMTF R2X")
     ax[0].set_xlabel("Number of Components")
     ax[0].set_xticks([x for x in comps])
@@ -52,7 +52,8 @@ def makeFigure():
     ax[1].set_xlabel("Size of Factorization")
     ax[1].set_ylim(bottom=0.0)
     ax[1].set_xlim(2**8, 2**12)
-
+    ax[1].legend(["Principal Component Analysis", "Tensor Factorization"])
+    
     # Add subplot labels
     subplotLabel(ax)
 
