@@ -4,6 +4,7 @@ This creates Figure 3 for the Paper.
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from string import ascii_lowercase
 from .common import subplotLabel, getSetup
 from ..tensor import perform_CMTF
 from ..dataImport import getAxes, load_file
@@ -229,8 +230,8 @@ def makeFigure():
         ant = pd.DataFrame(antigens, columns=[f"Cmp. {i}" for i in np.arange(1, subjects.shape[1] + 1)], index=antigen)
         glycans = pd.DataFrame(glyc, columns=[f"Cmp. {i}" for i in np.arange(1, subjects.shape[1] + 1)], index=glycaninf["glycan"])
 
-        vmin = min(subs.values.min(), rec.values.min(), ant.values.min(), glycans.values.min()) * .75
-        vmax = max(subs.values.max(), rec.values.max(), ant.values.max(), glycans.values.max()) * .75
+        vmin = min(subs.values.min(), rec.values.min(), ant.values.min(), glycans.values.min()) * .6
+        vmax = max(subs.values.max(), rec.values.max(), ant.values.max(), glycans.values.max()) * .6
 
         sns.heatmap(subs, cmap="PRGn", center=0, xticklabels=True, yticklabels=False, cbar_ax=ax4, vmin=vmin, vmax=vmax, ax=ax2)
 
@@ -263,6 +264,7 @@ def makeFigure():
     ax[2].set_title("Antigens", fontsize=15)
     ax[3].set_title("Glycans", fontsize=15)
 
-    subplotLabel(ax)
+    for ii, ax in enumerate(ax):
+        ax.text(-0.2, 1.1, ascii_lowercase[ii], transform=ax.transAxes, fontsize=25, fontweight="bold", va="top")
 
     return f
