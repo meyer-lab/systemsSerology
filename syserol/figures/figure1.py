@@ -15,12 +15,12 @@ def makeFigure():
     comps = np.arange(1, 13)
 
     Q2X = evaluate_missing(comps)
-    ax[1].scatter(comps, Q2X)
-    ax[1].set_ylabel("Q2X of Imputation")
-    ax[1].set_xlabel("Number of Components")
-    ax[1].set_xticks([x for x in comps])
-    ax[1].set_xticklabels([x for x in comps])
-    ax[1].set_ylim(0, 1)
+    ax[0].scatter(comps, Q2X)
+    ax[0].set_ylabel("Q2X of Imputation")
+    ax[0].set_xlabel("Number of Components")
+    ax[0].set_xticks([x for x in comps])
+    ax[0].set_xticklabels([x for x in comps])
+    ax[0].set_ylim(0, 1)
 
     # Add subplot labels
     subplotLabel(ax)

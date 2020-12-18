@@ -4,6 +4,7 @@ This creates Figure 3 for the Paper.
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from string import ascii_lowercase
 from .common import subplotLabel, getSetup
 from ..tensor import perform_CMTF
 from ..dataImport import getAxes, load_file
@@ -263,6 +264,7 @@ def makeFigure():
     ax[2].set_title("Antigens", fontsize=15)
     ax[3].set_title("Glycans", fontsize=15)
 
-    subplotLabel(ax)
+    for ii, ax in enumerate(ax):
+        ax.text(-0.2, 1.1, ascii_lowercase[ii], transform=ax.transAxes, fontsize=25, fontweight="bold", va="top")
 
     return f
