@@ -18,6 +18,20 @@ def calcR2X(tensorIn, matrixIn, tensorFac, matrixFac):
     return 1.0 - (tErr + mErr) / (np.nanvar(tensorIn) + np.nanvar(matrixIn))
 
 
+def reorient_factors(tensorFac, matrixFac):
+    """ This function ensures that factors are negative on at most one direction. """
+    for jj in range(1, len(tensorFac)):
+        # Calculate the sign of the current factor in each component
+        means = np.sign(np.mean(tensorFac[jj], axis=0))
+
+        # Update both the current and last factor
+        tensorFac[0] *= means[np.newaxis, :]
+        matrixFac[0] *= means[np.newaxis, :]
+        matrixFac[1] *= means[np.newaxis, :]
+        tensorFac[jj] *= means[np.newaxis, :]
+    return tensorFac, matrixFac
+
+
 def censored_lstsq(A, B):
     """Solves least squares problem subject to missing data.
 
@@ -85,5 +99,8 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
 
     tFac.normalize()
     mFac.normalize()
+
+    # Reorient the later tensor factors
+    tFac.factors, mFac.factors = reorient_factors(tFac.factors, mFac.factors)
 
     return tFac, mFac, R2X
