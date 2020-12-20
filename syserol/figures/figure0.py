@@ -52,7 +52,7 @@ def makeFigure():
     ax[1].set_xlabel("Size of Factorization")
     ax[1].set_ylim(bottom=0.0)
     ax[1].set_xlim(2**8, 2**12)
-    ax[1].legend(["Principal Component Analysis", "Tensor Factorization"])
+    ax[1].legend()
     
     # Add subplot labels
     subplotLabel(ax)
