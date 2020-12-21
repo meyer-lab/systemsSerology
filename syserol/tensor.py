@@ -5,6 +5,7 @@ import numpy as np
 from scipy.linalg import khatri_rao
 import tensorly as tl
 from tensorly.decomposition._cp import initialize_cp
+from tensorly.decomposition import tucker
 from tensorly.cp_tensor import CPTensor
 from .dataImport import createCube
 
@@ -13,7 +14,11 @@ tl.set_backend('numpy')
 
 def calcR2X(tensorIn, matrixIn, tensorFac, matrixFac):
     """ Calculate R2X. """
-    tErr = np.nanvar(tl.cp_to_tensor(tensorFac) - tensorIn)
+    if isinstance(tensorFac, CPTensor):
+        tErr = np.nanvar(tl.cp_to_tensor(tensorFac) - tensorIn)
+    else:
+        tErr = np.nanvar(tl.tucker_to_tensor(tensorFac) - tensorIn)
+
     mErr = np.nanvar(tl.cp_to_tensor(matrixFac) - matrixIn)
     return 1.0 - (tErr + mErr) / (np.nanvar(tensorIn) + np.nanvar(matrixIn))
 
@@ -54,7 +59,7 @@ def censored_lstsq(A, B):
     return X.T
 
 
-def perform_CMTF(tOrig=None, mOrig=None, r=10):
+def perform_TMTF(tOrig=None, mOrig=None, r=10):
     """ Perform CMTF decomposition. """
     if tOrig is None:
         tOrig, mOrig = createCube()
@@ -102,5 +107,39 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
 
     # Reorient the later tensor factors
     tFac.factors, mFac.factors = reorient_factors(tFac.factors, mFac.factors)
+
+    return tFac, mFac, R2X
+
+
+def perform_CMTF(tOrig=None, mOrig=None, r=10):
+    """ Perform CMTF decomposition. """
+    if tOrig is None:
+        tOrig, mOrig = createCube()
+
+    tFac, mFac, _ = perform_TMTF(tOrig, mOrig, 10)
+    tRecon = tl.cp_to_tensor(tFac)
+    mRecon = tl.cp_to_tensor(mFac)
+    tmask = np.isfinite(tOrig)
+    mmask = np.isfinite(mOrig)
+    tensor = np.copy(tOrig)
+    matrix = np.copy(mOrig)
+    tensor[~tmask] = tRecon[~tmask]
+    matrix[~mmask] = mRecon[~mmask]
+
+    # Pre-unfold
+    selPat = np.all(np.isfinite(mOrig), axis=1)
+    unfolded = tl.unfold(tOrig, 0)
+    missing = np.any(np.isnan(unfolded), axis=0)
+    unfolded = unfolded[:, ~missing]
+
+    tFac = tucker(tensor, r, n_iter_max=100, tol=10e-12, init='svd', verbose=False)
+
+    #mFac.factors[0] = tFac.factors[0]
+    #mFac.factors[1] = np.linalg.lstsq(mFac.factors[0][selPat, :], mOrig[selPat, :], rcond=None)[0].T
+    #mFac.rank = r
+
+    R2X = calcR2X(tOrig, mOrig, tFac, mFac)
+
+    print(R2X)
 
     return tFac, mFac, R2X
