@@ -9,7 +9,7 @@ from ..tensor import perform_CMTF
 def test_R2X():
     """ Test to ensure R2X for higher components is larger. """
     arr = []
-    for i in range(1, 10):
+    for i in range(1, 4):
         facT, facM, tensorR2X = perform_CMTF(r=i)
         assert np.all(np.isfinite(facT.factors[0]))
         assert np.all(np.isfinite(facT.factors[1]))

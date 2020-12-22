@@ -29,7 +29,7 @@ from scipy.sparse.linalg import svds
 from functools import partial
 
 
-def emsvd(Y, k, tol=1E-3, maxiter=3000):
+def emsvd(Y, k, tol=1E-6):
     """
     Approximate SVD on data with missing values via expectation-maximization
 
@@ -38,22 +38,13 @@ def emsvd(Y, k, tol=1E-3, maxiter=3000):
     Y:          (nobs, ndim) data matrix, missing values denoted by NaN/Inf
     k:          number of singular values/vectors to find (default: k=ndim)
     tol:        convergence tolerance on change in trace norm
-    maxiter:    maximum number of EM steps to perform (default: no limit)
-
-    Returns:
-    -----------
-    Y_hat:      (nobs, ndim) reconstructed data matrix
-    mu_hat:     (ndim,) estimated column means for reconstructed data
-    U, s, Vt:   singular values and vectors (see np.linalg.svd and 
-                scipy.sparse.linalg.svds for details)
     """
     # initialize the missing values to their respective column means
-    Y = np.copy(Y)
     valid = np.isfinite(Y)
     Y = np.nan_to_num(Y)
     y_prev = np.copy(Y)
 
-    for ii in range(maxiter):
+    for ii in range(9000):
         # SVD on filled-in data
         U, s, Vt = svds(Y, k=k)
 
@@ -69,42 +60,36 @@ def emsvd(Y, k, tol=1E-3, maxiter=3000):
     return U
 
 
-def perform_CMTF(tOrig=None, mOrig=None, r=10):
+def perform_CMTF(tOrig=None, mOrig=None, r=4):
     """ Perform CMTF decomposition. """
     if tOrig is None:
         tOrig, mOrig = createCube()
 
     r = int(r)
     tOrig = np.copy(tOrig)
+    tmask = np.isnan(tOrig)
+    oldR2X = -1.0
 
     tMat = np.reshape(np.copy(tOrig), (181, -1))
     tMat = tMat[:, ~np.all(np.isnan(tMat), axis=0)]
     tMat = np.hstack((tMat, mOrig))
-    factorOne = emsvd(tMat, r)
 
     tFac = tucker(np.nan_to_num(tOrig), r, n_iter_max=1)
-    tFac.factors[0] = factorOne
+    tFac.factors[0] = emsvd(tMat, r)
 
     mFac = CPTensor(initialize_cp(np.nan_to_num(mOrig), r))
     mFac.factors[0] = tFac.factors[0]
     selPat = np.all(np.isfinite(mOrig), axis=1)
     mFac.factors[1] = np.linalg.lstsq(mFac.factors[0][selPat, :], mOrig[selPat, :], rcond=None)[0].T
 
-    for m in [1, 2]:
-        tFac.factors[m] = emsvd(tl.unfold(np.copy(tOrig), m), r)
-
-    tmask = np.isnan(tOrig)
-
-    for ii in range(5):
+    for ii in range(10000):
         tOrig[tmask] = tl.tucker_to_tensor(tFac)[tmask]
-        tFac.core = tl.tenalg.multi_mode_dot(tOrig, tFac.factors, modes=[0, 1, 2], transpose=True)
+        tFac = tucker(tOrig, r, n_iter_max=1, init=tFac, fixed_factors=[0])
+        R2X = calcR2X(tOrig, mOrig, tFac, mFac)
 
-    for ii in range(5):
-        print(calcR2X(tOrig, mOrig, tFac, mFac))
-        tFac = tucker(tOrig, r, n_iter_max=2, init=tFac, fixed_factors=[0])
-        tOrig[tmask] = tl.tucker_to_tensor(tFac)[tmask]
+        if (ii > 100) and (R2X - oldR2X < 1e-6):
+            break
 
-    R2X = calcR2X(tOrig, mOrig, tFac, mFac)
-    print(R2X)
+        oldR2X = R2X
 
     return tFac, mFac, R2X

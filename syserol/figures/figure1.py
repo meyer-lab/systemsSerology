@@ -12,7 +12,7 @@ def makeFigure():
     # Get list of axis objects
     ax, f = getSetup((3, 3), (1, 1))
 
-    comps = np.arange(1, 13)
+    comps = np.arange(1, 6)
 
     Q2X = evaluate_missing(comps)
     ax[0].scatter(comps, Q2X)

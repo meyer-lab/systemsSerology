@@ -17,7 +17,7 @@ def makeFigure():
     # Get list of axis objects
     ax, f = getSetup((6, 3), (1, 2))
 
-    comps = np.arange(1, 11)
+    comps = np.arange(1, 6)
     TMTFR2X = np.zeros(comps.shape)
     PCAR2X = np.zeros(comps.shape)
 
@@ -28,7 +28,7 @@ def makeFigure():
     tMat = np.hstack((tMat, mOrig))
 
     sizePCA = comps * np.sum(tMat.shape)
-    sizeTfac = comps * (np.sum(tOrig.shape) + mOrig.shape[1])
+    sizeTfac = comps * (np.sum(tOrig.shape) + mOrig.shape[1]) + np.power(comps, 3)
 
     for i, cc in enumerate(comps):
         outt = PCA(tMat, ncomp=cc, missing="fill-em", standardize=False, demean=False, normalize=False)
