@@ -75,19 +75,20 @@ def perform_CMTF(tOrig=None, mOrig=None, r=4):
     tMat = np.hstack((tMat, mOrig))
 
     tFac = tucker(np.nan_to_num(tOrig), r, n_iter_max=1)
-    tFac.factors[0] = emsvd(tMat, r)
+    tFac.factors[0] = emsvd(tMat, tFac.rank[0])
 
-    mFac = CPTensor(initialize_cp(np.nan_to_num(mOrig), r))
+    mFac = CPTensor(initialize_cp(np.nan_to_num(mOrig), tFac.rank[0]))
     mFac.factors[0] = tFac.factors[0]
     selPat = np.all(np.isfinite(mOrig), axis=1)
     mFac.factors[1] = np.linalg.lstsq(mFac.factors[0][selPat, :], mOrig[selPat, :], rcond=None)[0].T
 
-    for ii in range(10000):
-        tOrig[tmask] = tl.tucker_to_tensor(tFac)[tmask]
-        tFac = tucker(tOrig, r, n_iter_max=1, init=tFac, fixed_factors=[0])
+    tensor = np.copy(tOrig)
+    for ii in range(4000):
+        tensor[tmask] = tl.tucker_to_tensor(tFac)[tmask]
+        tFac = tucker(tensor, tFac.rank, n_iter_max=1, init=tFac, fixed_factors=[0])
         R2X = calcR2X(tOrig, mOrig, tFac, mFac)
 
-        if (ii > 100) and (R2X - oldR2X < 1e-6):
+        if (ii > 400) and (R2X - oldR2X < 1e-12):
             break
 
         oldR2X = R2X
