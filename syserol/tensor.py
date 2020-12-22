@@ -60,7 +60,7 @@ def emsvd(Y, k, tol=1E-6):
     return U
 
 
-def perform_CMTF(tOrig=None, mOrig=None, r=4):
+def perform_CMTF(tOrig=None, mOrig=None, r=6):
     """ Perform CMTF decomposition. """
     if tOrig is None:
         tOrig, mOrig = createCube()
