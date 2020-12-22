@@ -4,6 +4,7 @@ Tensor decomposition methods
 import numpy as np
 from scipy.linalg import khatri_rao
 import tensorly as tl
+from statsmodels.multivariate.pca import PCA
 from tensorly.decomposition._cp import initialize_cp
 from tensorly.decomposition import tucker
 from tensorly.cp_tensor import CPTensor
@@ -23,92 +24,49 @@ def calcR2X(tensorIn, matrixIn, tensorFac, matrixFac):
     return 1.0 - (tErr + mErr) / (np.nanvar(tensorIn) + np.nanvar(matrixIn))
 
 
-def reorient_factors(tensorFac, matrixFac):
-    """ This function ensures that factors are negative on at most one direction. """
-    for jj in range(1, len(tensorFac)):
-        # Calculate the sign of the current factor in each component
-        means = np.sign(np.mean(tensorFac[jj], axis=0))
-
-        # Update both the current and last factor
-        tensorFac[0] *= means[np.newaxis, :]
-        matrixFac[0] *= means[np.newaxis, :]
-        matrixFac[1] *= means[np.newaxis, :]
-        tensorFac[jj] *= means[np.newaxis, :]
-    return tensorFac, matrixFac
+import numpy as np
+from scipy.sparse.linalg import svds
+from functools import partial
 
 
-def censored_lstsq(A, B):
-    """Solves least squares problem subject to missing data.
-
-    Note: uses a for loop over the columns of B, leading to a
-    slower but more numerically stable algorithm
-
-    Args
-    ----
-    A (ndarray) : m x r matrix
-    B (ndarray) : m x n matrix
-
-    Returns
-    -------
-    X (ndarray) : r x n matrix that minimizes norm(M*(AX - B))
+def emsvd(Y, k, tol=1E-3, maxiter=3000):
     """
-    X = np.empty((A.shape[1], B.shape[1]))
-    for i in range(B.shape[1]):
-        m = np.isfinite(B[:, i])  # drop rows where mask is zero
-        X[:, i] = np.linalg.lstsq(A[m], B[m, i], rcond=None)[0]
-    return X.T
+    Approximate SVD on data with missing values via expectation-maximization
 
+    Inputs:
+    -----------
+    Y:          (nobs, ndim) data matrix, missing values denoted by NaN/Inf
+    k:          number of singular values/vectors to find (default: k=ndim)
+    tol:        convergence tolerance on change in trace norm
+    maxiter:    maximum number of EM steps to perform (default: no limit)
 
-def perform_TMTF(tOrig=None, mOrig=None, r=10):
-    """ Perform CMTF decomposition. """
-    if tOrig is None:
-        tOrig, mOrig = createCube()
+    Returns:
+    -----------
+    Y_hat:      (nobs, ndim) reconstructed data matrix
+    mu_hat:     (ndim,) estimated column means for reconstructed data
+    U, s, Vt:   singular values and vectors (see np.linalg.svd and 
+                scipy.sparse.linalg.svds for details)
+    """
+    # initialize the missing values to their respective column means
+    Y = np.copy(Y)
+    valid = np.isfinite(Y)
+    Y = np.nan_to_num(Y)
+    y_prev = np.copy(Y)
 
-    tFac = CPTensor(initialize_cp(np.nan_to_num(tOrig, nan=np.nanmean(tOrig)), r, non_negative=True))
-    mFac = CPTensor(initialize_cp(np.nan_to_num(mOrig, nan=np.nanmean(mOrig)), r, non_negative=True))
+    for ii in range(maxiter):
+        # SVD on filled-in data
+        U, s, Vt = svds(Y, k=k)
 
-    # Pre-unfold
-    selPat = np.all(np.isfinite(mOrig), axis=1)
-    unfolded = tl.unfold(tOrig, 0)
-    missing = np.any(np.isnan(unfolded), axis=0)
-    unfolded = unfolded[:, ~missing]
+        # impute missing values
+        Y[~valid] = (U.dot(np.diag(s)).dot(Vt))[~valid]
 
-    R2X = -1.0
-    mFac.factors[0] = tFac.factors[0]
-    mFac.factors[1] = np.linalg.lstsq(mFac.factors[0][selPat, :], mOrig[selPat, :], rcond=None)[0].T
-
-    for ii in range(8000):
-        # Solve for the subject matrix
-        kr = khatri_rao(tFac.factors[1], tFac.factors[2])[~missing, :]
-        kr2 = np.vstack((kr, mFac.factors[1]))
-        unfolded2 = np.hstack((unfolded, mOrig))
-
-        tFac.factors[0] = censored_lstsq(kr2, unfolded2.T)
-        mFac.factors[0] = tFac.factors[0]
-
-        # PARAFAC on other antigen modes
-        for m in [1, 2]:
-            kr = khatri_rao(tFac.factors[0], tFac.factors[3 - m])
-            unfold = tl.unfold(tOrig, m)
-            tFac.factors[m] = censored_lstsq(kr, unfold.T)
-
-        # Solve for the glycan matrix fit
-        mFac.factors[1] = np.linalg.lstsq(mFac.factors[0][selPat, :], mOrig[selPat, :], rcond=None)[0].T
-
-        if ii % 20 == 0:
-            R2X_last = R2X
-            R2X = calcR2X(tOrig, mOrig, tFac, mFac)
-
-        if R2X - R2X_last < 1e-6:
+        # test convergence using relative change in trace norm
+        if np.linalg.norm(Y - y_prev) < tol:
             break
 
-    tFac.normalize()
-    mFac.normalize()
+        y_prev = np.copy(Y)
 
-    # Reorient the later tensor factors
-    tFac.factors, mFac.factors = reorient_factors(tFac.factors, mFac.factors)
-
-    return tFac, mFac, R2X
+    return U
 
 
 def perform_CMTF(tOrig=None, mOrig=None, r=10):
@@ -116,30 +74,37 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
     if tOrig is None:
         tOrig, mOrig = createCube()
 
-    tFac, mFac, _ = perform_TMTF(tOrig, mOrig, 10)
-    tRecon = tl.cp_to_tensor(tFac)
-    mRecon = tl.cp_to_tensor(mFac)
-    tmask = np.isfinite(tOrig)
-    mmask = np.isfinite(mOrig)
-    tensor = np.copy(tOrig)
-    matrix = np.copy(mOrig)
-    tensor[~tmask] = tRecon[~tmask]
-    matrix[~mmask] = mRecon[~mmask]
+    r = int(r)
+    tOrig = np.copy(tOrig)
 
-    # Pre-unfold
+    tMat = np.reshape(np.copy(tOrig), (181, -1))
+    tMat = tMat[:, ~np.all(np.isnan(tMat), axis=0)]
+    tMat = np.hstack((tMat, mOrig))
+    factorOne = emsvd(tMat, r)
+
+    tFac = tucker(np.nan_to_num(tOrig), r, n_iter_max=1)
+    tFac.factors[0] = factorOne
+
+    mFac = CPTensor(initialize_cp(np.nan_to_num(mOrig), r))
+    mFac.factors[0] = tFac.factors[0]
     selPat = np.all(np.isfinite(mOrig), axis=1)
-    unfolded = tl.unfold(tOrig, 0)
-    missing = np.any(np.isnan(unfolded), axis=0)
-    unfolded = unfolded[:, ~missing]
+    mFac.factors[1] = np.linalg.lstsq(mFac.factors[0][selPat, :], mOrig[selPat, :], rcond=None)[0].T
 
-    tFac = tucker(tensor, r, n_iter_max=100, tol=10e-12, init='svd', verbose=False)
+    for m in [1, 2]:
+        tFac.factors[m] = emsvd(tl.unfold(np.copy(tOrig), m), r)
 
-    #mFac.factors[0] = tFac.factors[0]
-    #mFac.factors[1] = np.linalg.lstsq(mFac.factors[0][selPat, :], mOrig[selPat, :], rcond=None)[0].T
-    #mFac.rank = r
+    tmask = np.isnan(tOrig)
+
+    for ii in range(5):
+        tOrig[tmask] = tl.tucker_to_tensor(tFac)[tmask]
+        tFac.core = tl.tenalg.multi_mode_dot(tOrig, tFac.factors, modes=[0, 1, 2], transpose=True)
+
+    for ii in range(5):
+        print(calcR2X(tOrig, mOrig, tFac, mFac))
+        tFac = tucker(tOrig, r, n_iter_max=2, init=tFac, fixed_factors=[0])
+        tOrig[tmask] = tl.tucker_to_tensor(tFac)[tmask]
 
     R2X = calcR2X(tOrig, mOrig, tFac, mFac)
-
     print(R2X)
 
     return tFac, mFac, R2X

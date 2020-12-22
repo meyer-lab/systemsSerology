@@ -17,7 +17,7 @@ def makeFigure():
     # Get list of axis objects
     ax, f = getSetup((6, 3), (1, 2))
 
-    comps = np.arange(1, 13)
+    comps = np.arange(1, 11)
     TMTFR2X = np.zeros(comps.shape)
     PCAR2X = np.zeros(comps.shape)
 

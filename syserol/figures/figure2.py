@@ -233,13 +233,13 @@ def makeFigure():
         vmin = min(subs.values.min(), rec.values.min(), ant.values.min(), glycans.values.min()) * .6
         vmax = max(subs.values.max(), rec.values.max(), ant.values.max(), glycans.values.max()) * .6
 
-        sns.heatmap(subs, cmap="PRGn", center=0, xticklabels=True, yticklabels=False, cbar_ax=ax4, vmin=vmin, vmax=vmax, ax=ax2)
+        sns.heatmap(subs, cmap="PRGn", center=0, xticklabels=True, yticklabels=False, cbar_ax=ax4, ax=ax2)
 
-        sns.heatmap(rec, cmap="PRGn", center=0, yticklabels=True, cbar=False, vmin=vmin, vmax=vmax, ax=ax6)
+        sns.heatmap(rec, cmap="PRGn", center=0, yticklabels=True, cbar=False, ax=ax6)
 
-        sns.heatmap(ant, cmap="PRGn", center=0, yticklabels=True, cbar=False, vmin=vmin, vmax=vmax, ax=ax8)
+        sns.heatmap(ant, cmap="PRGn", center=0, yticklabels=True, cbar=False, ax=ax8)
 
-        sns.heatmap(glycans, cmap="PRGn", center=0, yticklabels=True, cbar=False, vmin=vmin, vmax=vmax, ax=ax10)
+        sns.heatmap(glycans, cmap="PRGn", center=0, yticklabels=True, cbar=False, ax=ax10)
 
         test = pd.DataFrame(subs.index)
         test = test.set_index(["class.etuv"])
