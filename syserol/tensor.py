@@ -8,7 +8,7 @@ from tensorly.decomposition._cp import initialize_cp
 from tensorly.cp_tensor import CPTensor
 from .dataImport import createCube
 
-tl.set_backend('numpy')
+tl.set_backend("numpy")
 
 
 def calcR2X(tensorIn, matrixIn, tensorFac, matrixFac):

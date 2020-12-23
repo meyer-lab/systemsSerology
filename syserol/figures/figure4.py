@@ -30,9 +30,13 @@ def makeFigure():
         # Cutoff values less than 0.01
         perf = perf - perfLO
         perf[perf < 0.01] = 0.0
-        perf *= np.sign(coef) # Indicate direction of effect
+        perf *= np.sign(coef)  # Indicate direction of effect
         classes.extend(perf)
-    data = {"Feature Importance": classes, "Component": [str(x) for x in np.arange(1, X.shape[1] + 1).tolist()] * 2, "Class": [x for i in [[j] * 10 for j in ["Progression", "Viremia"]] for x in i]}
+    data = {
+        "Feature Importance": classes,
+        "Component": [str(x) for x in np.arange(1, X.shape[1] + 1).tolist()] * 2,
+        "Class": [x for i in [[j] * 10 for j in ["Progression", "Viremia"]] for x in i],
+    }
     class_df = pd.DataFrame(data)
 
     funcs = []
@@ -47,9 +51,13 @@ def makeFigure():
         # Cutoff values less than 0.01
         perf = perf - perfLO
         perf[perf < 0.01] = 0.0
-        perf *= np.sign(coef) # Indicate direction of effect
+        perf *= np.sign(coef)  # Indicate direction of effect
         funcs.extend(perf)
-    data = {"Feature Importance": funcs, "Component": [str(x) for x in np.arange(1, X.shape[1] + 1).tolist()] * 6, "Function": [x for i in [[j] * 10 for j in functions] for x in i]}
+    data = {
+        "Feature Importance": funcs,
+        "Component": [str(x) for x in np.arange(1, X.shape[1] + 1).tolist()] * 6,
+        "Function": [x for i in [[j] * 10 for j in functions] for x in i],
+    }
     funcs_df = pd.DataFrame(data)
 
     sns.barplot(x="Component", y="Feature Importance", hue="Function", data=funcs_df, ax=ax[0])
