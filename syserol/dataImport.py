@@ -11,9 +11,7 @@ path_here = dirname(dirname(__file__))
 
 def load_file(name):
     """ Return a requested data file. """
-    data = pd.read_csv(
-        join(path_here, "syserol/data/" + name + ".csv"), delimiter=",", comment="#"
-    )
+    data = pd.read_csv(join(path_here, "syserol/data/" + name + ".csv"), delimiter=",", comment="#")
 
     return data
 
@@ -70,14 +68,14 @@ def getAxes():
     return subjects, detections, antigen
 
 
-functions = ["ADCD", "ADCC", "ADNP", "CD107a", "IFNγ", "MIP1b"]
+functions = ["ADCD", "ADCC", "ADNP", "CD107a", "IFNγ", "MIP1β"]
 
 
 def importFunction():
     """ Import functional data. """
     subjects, _, _ = getAxes()
     df = load_file("data-function")
-    df.columns = ["subject", "ADCD", "ADCC", "ADNP", "CD107a", "IFNγ", "MIP1b"]
+    df.columns = ["subject"] + functions
     df_a = pd.DataFrame({"subject": subjects})
 
     df = df_a.merge(df, on="subject", how="left")
@@ -107,10 +105,7 @@ def importAlterDF(function=True, subjects=False):
     igg = igg.pivot(index="subject", columns="variable", values="value")
     subj = load_file("meta-subjects")["subject"]
     data_frames = [lum, glyc, igg, func, subj]
-    df_merged = reduce(
-        lambda left, right: pd.merge(left, right, on=["subject"], how="inner"),
-        data_frames,
-    )
+    df_merged = reduce(lambda left, right: pd.merge(left, right, on=["subject"], how="inner"), data_frames,)
 
     return df_merged
 
