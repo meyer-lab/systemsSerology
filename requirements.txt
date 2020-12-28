@@ -3,14 +3,14 @@ scipy==1.5.4
 pytest==6.2.1
 pytest-cov==2.10.1
 manubot==0.5.0
-pandas==1.1.5
+pandas==1.2.0
 pandoc-fignos==2.4.0
 pandoc-eqnos==2.5.0
 pandoc-tablenos==2.3.0
 matplotlib==3.3.3
 seaborn==0.11.1
 svgutils==0.3.1
-tensorly==0.5.1
-scikit-learn==0.23.2
+git+https://github.com/tensorly/tensorly.git#e0dd5a4ea5015e55be420ec08a0920662797cbd7
+scikit-learn==0.24.0
 statsmodels==0.12.1
 pylint==2.6.0

@@ -4,8 +4,7 @@ Tensor decomposition methods
 import numpy as np
 from scipy.linalg import khatri_rao
 import tensorly as tl
-from tensorly.decomposition._cp import initialize_cp
-from tensorly.cp_tensor import CPTensor
+from tensorly.decomposition._nn_cp import initialize_nn_cp
 from .dataImport import createCube
 
 tl.set_backend("numpy")
@@ -59,8 +58,8 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
     if tOrig is None:
         tOrig, mOrig = createCube()
 
-    tFac = CPTensor(initialize_cp(np.nan_to_num(tOrig, nan=np.nanmean(tOrig)), r, non_negative=True))
-    mFac = CPTensor(initialize_cp(np.nan_to_num(mOrig, nan=np.nanmean(mOrig)), r, non_negative=True))
+    tFac = initialize_nn_cp(np.nan_to_num(tOrig, nan=np.nanmean(tOrig)), r)
+    mFac = initialize_nn_cp(np.nan_to_num(mOrig, nan=np.nanmean(mOrig)), r)
 
     # Pre-unfold
     selPat = np.all(np.isfinite(mOrig), axis=1)
