@@ -25,7 +25,7 @@ def makeFigure():
     accuracies = accuracies + [function_prediction(tFac[1][0], function=f, evaluation="notAlter")[2] for f in functions]
 
     # Create DataFrame
-    model = ["Alter Model"] * 6 + ["Our Model"] * 6 + ["Excluded Cases"] * 6
+    model = ["Alter et al"] * 6 + ["TMTF (Alter cases)"] * 6 + ["TMTF (Alter excluded)"] * 6
     function = functions + functions + functions
     data = {"Accuracy": accuracies, "Model": model, "Function": function}
     functions_df = pd.DataFrame(data)  # Function Prediction DataFrame, Figure 2A
@@ -41,7 +41,7 @@ def makeFigure():
     baselineCP = 0.5304  # datasetEV3/Fc.array/class.cp/lambda.min/score_details.txt "No information rate"
     accuracies = np.array([accuracyCvP, cp_accuracy, cp_notAlter, baselineCP, accuracyVvN, nv_accuracy, nv_notAlter, baselineNV])
     category = ["Progression"] * 4 + ["Viremia"] * 4
-    model = ["Alter Model", "Our Model", "Excluded Cases", "Baseline"] * 2
+    model = ["Alter et al", "TMTF (Alter cases)", "TMTF (Alter excluded)", "Randomized"] * 2
     data = {"Accuracies": accuracies, "Class": category, "Model": model}
     classes = pd.DataFrame(data)  # Class Predictions DataFrame, Figure 2B
 
