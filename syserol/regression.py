@@ -55,10 +55,10 @@ def RegressionHelper(X, Y, classify=False):
     if classify:
         X = scale(X)
         est = LogisticRegressionCV(penalty="elasticnet", solver="saga")
-        estG = GaussianProcessClassifier(kern, warm_start=True)
+        estG = GaussianProcessClassifier(kern, warm_start=True, n_restarts_optimizer=5)
     else:
         est = ElasticNetCV(normalize=True)
-        estG = GaussianProcessRegressor(kern, normalize_y=True)
+        estG = GaussianProcessRegressor(kern, normalize_y=True, n_restarts_optimizer=5)
 
     est.l1_ratios = [0.8]
     est.cv = 10
