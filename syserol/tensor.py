@@ -58,7 +58,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
     if tOrig is None:
         tOrig, mOrig = createCube()
 
-    tFac = initialize_cp(np.nan_to_num(tOrig, nan=np.nanmean(tOrig)), r, non_negative=True)
+    tFac = initialize_cp(np.nan_to_num(tOrig), r, non_negative=True)
 
     # Everything from the original mFac will be overwritten
     mFac = initialize_cp(np.nan_to_num(mOrig), r)
