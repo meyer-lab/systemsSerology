@@ -49,7 +49,7 @@ def makeFigure():
     ax, f = getSetup((6, 3), (1, 2))
     sns.set()
     # Function Plot
-    a = sns.pointplot(y="Accuracy", x="Function", style="Model", hue="Model", join=False, data=functions_df, ax=ax[0])
+    a = sns.scatterplot(y="Accuracy", x="Function", style="Model", hue="Model", data=functions_df, ax=ax[0])
     # Formatting
     shades = [-0.5, 1.5, 3.5]
     for i in shades:
@@ -65,7 +65,7 @@ def makeFigure():
     a.get_legend().remove()
 
     # Class Plot
-    b = sns.pointplot(y="Accuracies", x="Class", style="Model", hue="Model", join=False, data=classes, ax=ax[1])
+    b = sns.scatterplot(y="Accuracies", x="Class", style="Model", hue="Model", data=classes, ax=ax[1])
     # Formatting
     b.axvspan(-0.5, 0.5, alpha=0.1, color="grey")
     b.set_xlim(-0.5, 1.5)
