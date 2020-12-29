@@ -10,7 +10,7 @@ pandoc-tablenos==2.3.0
 matplotlib==3.3.3
 seaborn==0.11.1
 svgutils==0.3.1
-git+https://github.com/tensorly/tensorly.git#e0dd5a4ea5015e55be420ec08a0920662797cbd7
+tensorly==0.5.1
 scikit-learn==0.24.0
 statsmodels==0.12.1
 pylint==2.6.0
