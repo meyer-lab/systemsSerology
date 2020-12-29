@@ -23,7 +23,7 @@ def importLuminex(antigen=None):
 
     if antigen is not None:
         df = df[df["variable"].str.contains(antigen)]
-        df["variable"] = df["variable"].str.replace("." + antigen, "")
+        df["variable"] = df["variable"].str.replace("." + antigen, "", regex=False)
 
         # Filter out bad antigen matches
         df = df[~df["variable"].str.contains("235")]
@@ -50,7 +50,7 @@ def importIGG():
     df = load_file("data-luminex-igg")
     df = pd.melt(df, id_vars=["subject"])
 
-    df["variable"] = df["variable"].str.replace("IgG.", "")
+    df["variable"] = df["variable"].str.replace("IgG.", "", regex=False)
 
     return df
 
