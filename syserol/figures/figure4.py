@@ -63,6 +63,12 @@ def makeFigure():
     sns.barplot(x="Component", y="Feature Importance", hue="Function", data=funcs_df, ax=ax[0])
     sns.barplot(x="Component", y="Feature Importance", hue="Class", data=class_df, ax=ax[1])
 
+    # Formatting
+    shades = np.arange(1.5, 9.0, step=2.0)
+    for axx in ax:
+        for i in shades:
+            axx.axvspan(i, i + 1, alpha=0.1, color="grey")
+
     # Add subplot labels
     subplotLabel(ax)
 
