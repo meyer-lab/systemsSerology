@@ -59,7 +59,9 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
         tOrig, mOrig = createCube()
 
     tFac = initialize_cp(np.nan_to_num(tOrig, nan=np.nanmean(tOrig)), r, non_negative=True)
-    mFac = initialize_cp(np.nan_to_num(mOrig, nan=np.nanmean(mOrig)), r, non_negative=True)
+
+    # Everything from the original mFac will be overwritten
+    mFac = initialize_cp(np.nan_to_num(mOrig), r)
 
     # Pre-unfold
     selPat = np.all(np.isfinite(mOrig), axis=1)
