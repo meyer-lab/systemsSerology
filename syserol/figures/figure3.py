@@ -5,10 +5,7 @@ This creates Paper Figure 2.
 import pandas as pd
 import numpy as np
 import seaborn as sns
-from ..regression import (
-    function_elastic_net,
-    function_prediction
-)
+from ..regression import function_elastic_net, function_prediction
 from ..dataImport import functions
 from ..classify import class_predictions, two_way_classifications
 from .common import subplotLabel, getSetup
@@ -28,7 +25,7 @@ def makeFigure():
     accuracies = accuracies + [function_prediction(tFac[1][0], function=f, evaluation="notAlter")[2] for f in functions]
 
     # Create DataFrame
-    model = ["Alter Model"] * 6 + ["Our Model"] * 6 + ["Excluded Cases"] * 6
+    model = ["Alter et al"] * 6 + ["TMTF (Alter cases)"] * 6 + ["TMTF (Alter excluded)"] * 6
     function = functions + functions + functions
     data = {"Accuracy": accuracies, "Model": model, "Function": function}
     functions_df = pd.DataFrame(data)  # Function Prediction DataFrame, Figure 2A
@@ -42,28 +39,17 @@ def makeFigure():
     # Create DataFrame
     baselineNV = 0.5083  # datasetEV3/Fc.array/class.nv/lambda.min/score_details.txt "No information rate"
     baselineCP = 0.5304  # datasetEV3/Fc.array/class.cp/lambda.min/score_details.txt "No information rate"
-    accuracies = np.array(
-        [accuracyCvP, cp_accuracy, cp_notAlter, baselineCP, accuracyVvN, nv_accuracy, nv_notAlter, baselineNV]
-    )
+    accuracies = np.array([accuracyCvP, cp_accuracy, cp_notAlter, baselineCP, accuracyVvN, nv_accuracy, nv_notAlter, baselineNV])
     category = ["Progression"] * 4 + ["Viremia"] * 4
-    model = ["Alter Model", "Our Model", "Excluded Cases", "Baseline"] * 2
+    model = ["Alter et al", "TMTF (Alter cases)", "TMTF (Alter excluded)", "Randomized"] * 2
     data = {"Accuracies": accuracies, "Class": category, "Model": model}
     classes = pd.DataFrame(data)  # Class Predictions DataFrame, Figure 2B
-
 
     # PLOT DataFrames
     ax, f = getSetup((6, 3), (1, 2))
     sns.set()
     # Function Plot
-    a = sns.pointplot(
-        y="Accuracy",
-        x="Function",
-        hue="Model",
-        markers=["o", "x", "d"],
-        join=False,
-        data=functions_df,
-        ax=ax[0],
-    )
+    a = sns.scatterplot(y="Accuracy", x="Function", style="Model", hue="Model", data=functions_df, ax=ax[0])
     # Formatting
     shades = [-0.5, 1.5, 3.5]
     for i in shades:
@@ -79,9 +65,7 @@ def makeFigure():
     a.get_legend().remove()
 
     # Class Plot
-    b = sns.scatterplot(
-        y="Accuracies", x="Class", style="Model", hue="Model", data=classes, ax=ax[1]
-    )
+    b = sns.scatterplot(y="Accuracies", x="Class", style="Model", hue="Model", data=classes, ax=ax[1])
     # Formatting
     b.axvspan(-0.5, 0.5, alpha=0.1, color="grey")
     b.set_xlim(-0.5, 1.5)
@@ -92,7 +76,7 @@ def makeFigure():
     b.set_ylabel("Accuracy")
     b.set_xlabel("Class Prediction")
     b.tick_params(axis="x")
-    b.legend(fontsize=8.5, title='Model', title_fontsize=10)
+    b.legend(fontsize=8.5, title="Model", title_fontsize=10)
 
     subplotLabel(ax)
 

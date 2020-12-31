@@ -19,9 +19,16 @@ def makeFigure():
         ax[i].set_xlabel("Actual Values")
         ax[i].set_ylabel("Predicted Values")
         m, b = np.polyfit(x, y, 1)  # line of best fit
-        ax[i].plot(x, m * x + b, 'k--', color="red")
-        ax[i].text(.9, .1, f"ρ = {round(accuracy, 3)}", {"color": "red", "fontsize": 8}, horizontalalignment="right",
-                   verticalalignment="bottom", transform=ax[i].transAxes)
+        ax[i].plot(x, m * x + b, "k--", color="red")
+        ax[i].text(
+            0.9,
+            0.1,
+            f"ρ = {round(accuracy, 3)}",
+            {"color": "red", "fontsize": 8},
+            horizontalalignment="right",
+            verticalalignment="bottom",
+            transform=ax[i].transAxes,
+        )
         ax[i].set_title(func)
         ax[i].set_xlim(0,)
         ax[i].set_ylim(0,)

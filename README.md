@@ -1,7 +1,8 @@
-# Dissecting systems serology with structured factorization
+# Structured decomposition improves systems serology prediction and interpretation
 
 ![tests](https://github.com/meyer-lab/systemsSerology/workflows/Run%20tests/badge.svg?branch=master)
 [![codecov](https://codecov.io/gh/meyer-lab/systemsSerology/branch/master/graph/badge.svg)](https://codecov.io/gh/meyer-lab/systemsSerology)
 
 [Manuscript Build](https://meyer-lab.github.io/systemsSerology/manuscript.html)
 
+Systems serology measurements provide a more comprehensive view of humoral immunity by comprehensively profiling both the antigen binding and Fc properties of antibodies. Identifying patterns in these measurements will help to guide vaccine and therapeutic antibody development, alongside improving our understanding of disorders in humoral immunity. Furthermore, consistent patterns across diseases may reflect conserved regulatory mechanisms; recognizing these may help to combine vaccines, antibody-based interventions, and other immunotherapies to maximize protection. A common feature of systems serology studies is structured biophysical profiling across disease-relevant antigen targets, properties of antibodies' interation with the immune system, and serological samples. These are typically produced alongside additional measurements that are not antigen-specific. Here, we report a new form of tensor factorization, total tensor-matrix factorization (TMTF), which can greatly reduce this data into consistently observed patterns by recognizing the structure of these data. TMTF outperforms standard methods like principal components analysis in the extent of reduction possible. Data reduction in turn improves prediction of immune functional responses, classification of subjects based on their HIV-1 control, and interpretation of these resulting models. Therefore, we propose that TMTF will be an effective general strategy for exploring and using systems serology.

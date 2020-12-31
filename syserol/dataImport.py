@@ -11,9 +11,7 @@ path_here = dirname(dirname(__file__))
 
 def load_file(name):
     """ Return a requested data file. """
-    data = pd.read_csv(
-        join(path_here, "syserol/data/" + name + ".csv"), delimiter=",", comment="#"
-    )
+    data = pd.read_csv(join(path_here, "syserol/data/" + name + ".csv"), delimiter=",", comment="#")
 
     return data
 
@@ -25,7 +23,7 @@ def importLuminex(antigen=None):
 
     if antigen is not None:
         df = df[df["variable"].str.contains(antigen)]
-        df["variable"] = df["variable"].str.replace("." + antigen, "")
+        df["variable"] = df["variable"].str.replace("." + antigen, "", regex=False)
 
         # Filter out bad antigen matches
         df = df[~df["variable"].str.contains("235")]
@@ -52,7 +50,7 @@ def importIGG():
     df = load_file("data-luminex-igg")
     df = pd.melt(df, id_vars=["subject"])
 
-    df["variable"] = df["variable"].str.replace("IgG.", "")
+    df["variable"] = df["variable"].str.replace("IgG.", "", regex=False)
 
     return df
 
@@ -70,14 +68,14 @@ def getAxes():
     return subjects, detections, antigen
 
 
-functions = ["ADCD", "ADCC", "ADNP", "CD107a", "IFNγ", "MIP1b"]
+functions = ["ADCD", "ADCC", "ADNP", "CD107a", "IFNγ", "MIP1β"]
 
 
 def importFunction():
     """ Import functional data. """
     subjects, _, _ = getAxes()
     df = load_file("data-function")
-    df.columns = ["subject", "ADCD", "ADCC", "ADNP", "CD107a", "IFNγ", "MIP1b"]
+    df.columns = ["subject"] + functions
     df_a = pd.DataFrame({"subject": subjects})
 
     df = df_a.merge(df, on="subject", how="left")
@@ -107,10 +105,7 @@ def importAlterDF(function=True, subjects=False):
     igg = igg.pivot(index="subject", columns="variable", values="value")
     subj = load_file("meta-subjects")["subject"]
     data_frames = [lum, glyc, igg, func, subj]
-    df_merged = reduce(
-        lambda left, right: pd.merge(left, right, on=["subject"], how="inner"),
-        data_frames,
-    )
+    df_merged = reduce(lambda left, right: pd.merge(left, right, on=["subject"], how="inner"), data_frames,)
 
     return df_merged
 
@@ -139,7 +134,7 @@ def selectAlter(Y, Y_pred, evaluation, subset=None):
 
 
 @lru_cache()
-def createCube(powert=True):
+def createCube():
     """ Import the data and assemble the antigen cube. """
     subjects, detections, antigen = getAxes()
     cube = np.full([len(subjects), len(detections), len(antigen)], np.nan)
@@ -169,11 +164,12 @@ def createCube(powert=True):
 
     # Clip to 0 as there are a few strongly negative outliers
     # IIa.H/R were offset to negative, so correct that
+    # TODO: Mention in manuscript
     cube[:, 1:11, :] = np.clip(cube[:, 1:11, :], 0, 175000)
 
-    # Power normalization
-    if powert:
-        cube[:, 5, :] = np.power(cube[:, 5, :], 2.58) * 4.28e-9
+    # gp140.HXBc2,gp140/SOSIP is consistently much larger
+    # TODO: Mention in manuscript
+    cube[:, :, 25] /= 100000.0
 
     # Check that there are no slices with completely missing data
     assert ~np.any(np.all(np.isnan(cube), axis=(0, 1)))
