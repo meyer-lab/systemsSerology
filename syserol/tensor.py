@@ -53,7 +53,7 @@ def censored_lstsq(A, B):
     return X.T
 
 
-def perform_CMTF(tOrig=None, mOrig=None, r=8):
+def perform_CMTF(tOrig=None, mOrig=None, r=9):
     """ Perform CMTF decomposition. """
     if tOrig is None:
         tOrig, mOrig = createCube()
@@ -73,7 +73,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=8):
     mFac.factors[0] = tFac.factors[0]
     mFac.factors[1] = np.linalg.lstsq(mFac.factors[0][selPat, :], mOrig[selPat, :], rcond=None)[0].T
 
-    for ii in range(200):
+    for ii in range(8000):
         # Solve for the subject matrix
         kr = khatri_rao(tFac.factors[1], tFac.factors[2])[~missing, :]
         kr2 = np.vstack((kr, mFac.factors[1]))
