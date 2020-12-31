@@ -11,7 +11,7 @@ from ..dataImport import createCube, getAxes
 
 def makeFigure():
     """ Compare genotype vs non-genotype specific readings. """
-    cube, _ = createCube(powert=False)
+    cube, _ = createCube()
     _, detections, _ = getAxes()
 
     cube = tl.unfold(cube[:, 1:11, :], 1)
