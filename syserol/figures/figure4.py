@@ -15,15 +15,16 @@ def makeFigure():
 
     tFac, _, _ = perform_CMTF()
     X = tFac.factors[0]
+    ncomp = X.shape[1]
 
     classes = []
     for cidx in range(2):
         outt = class_predictions(X)
         perf = outt[cidx]
         coef = outt[cidx + 2]
-        perfLO = np.zeros(X.shape[1])
+        perfLO = np.zeros(ncomp)
 
-        for ii in range(X.shape[1]):
+        for ii in range(ncomp):
             XX = np.delete(X.copy(), ii, axis=1)
             perfLO[ii] = class_predictions(XX)[cidx]
 
@@ -34,17 +35,17 @@ def makeFigure():
         classes.extend(perf)
     data = {
         "Feature Importance": classes,
-        "Component": [str(x) for x in np.arange(1, X.shape[1] + 1).tolist()] * 2,
-        "Class": [x for i in [[j] * 10 for j in ["Progression", "Viremia"]] for x in i],
+        "Component": [str(x) for x in np.arange(1, ncomp + 1).tolist()] * 2,
+        "Class": [x for i in [[j] * ncomp for j in ["Progression", "Viremia"]] for x in i],
     }
     class_df = pd.DataFrame(data)
 
     funcs = []
     for function in functions:
         _, _, perf, coef = function_prediction(X, function=function)
-        perfLO = np.zeros(X.shape[1])
+        perfLO = np.zeros(ncomp)
 
-        for ii in range(X.shape[1]):
+        for ii in range(ncomp):
             XX = np.delete(X.copy(), ii, axis=1)
             perfLO[ii] = function_prediction(XX, function=function)[2]
 
@@ -55,8 +56,8 @@ def makeFigure():
         funcs.extend(perf)
     data = {
         "Feature Importance": funcs,
-        "Component": [str(x) for x in np.arange(1, X.shape[1] + 1).tolist()] * 6,
-        "Function": [x for i in [[j] * 10 for j in functions] for x in i],
+        "Component": [str(x) for x in np.arange(1, ncomp + 1).tolist()] * 6,
+        "Function": [x for i in [[j] * ncomp for j in functions] for x in i],
     }
     funcs_df = pd.DataFrame(data)
 
