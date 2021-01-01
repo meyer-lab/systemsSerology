@@ -49,19 +49,19 @@ def function_prediction(Xin, function="ADCC", evaluation="all"):
 
 def RegressionHelper(X, Y, classify=False):
     """ Function with the regression cross-validation strategy. """
-    kern = RBF(length_scale=np.ones(X.shape[1]), length_scale_bounds=(1e-5, 1e9))
+    kern = RBF(np.ones(X.shape[1]), (1e-5, 1e9))
     kern = ConstantKernel() * kern
-    kern = kern + WhiteKernel(noise_level_bounds=(1e-3, 1e2))
+    kern += WhiteKernel(noise_level_bounds=(1e-9, 1))
 
     if classify:
         X = scale(X)
         est = LogisticRegressionCV(penalty="elasticnet", solver="saga")
-        estG = GaussianProcessClassifier(kern, warm_start=True, n_restarts_optimizer=5)
-        cv = StratifiedKFold(n_splits=20, shuffle=True)
+        estG = GaussianProcessClassifier(kern, warm_start=True)
+        cv = StratifiedKFold(n_splits=30, shuffle=True)
     else:
         est = ElasticNetCV(normalize=True)
-        estG = GaussianProcessRegressor(kern, normalize_y=True, n_restarts_optimizer=5)
-        cv = KFold(n_splits=20, shuffle=True)
+        estG = GaussianProcessRegressor(kern, normalize_y=True)
+        cv = KFold(n_splits=30, shuffle=True)
 
     est.l1_ratios = [0.8]
     est.cv = 10
