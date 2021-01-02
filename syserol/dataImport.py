@@ -1,5 +1,4 @@
 """ Data import and processing. """
-import pickle
 from functools import reduce
 from functools import lru_cache
 from os.path import join, dirname

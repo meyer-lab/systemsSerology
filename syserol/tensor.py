@@ -1,6 +1,9 @@
 """
 Tensor decomposition methods
 """
+import os
+from os.path import join, dirname
+import pickle
 import numpy as np
 from scipy.linalg import khatri_rao
 import tensorly as tl
@@ -8,6 +11,7 @@ from tensorly.decomposition._cp import initialize_cp
 from .dataImport import createCube
 
 tl.set_backend("numpy")
+path_here = dirname(dirname(__file__))
 
 
 def calcR2X(tensorIn, matrixIn, tensorFac, matrixFac):
@@ -55,6 +59,16 @@ def censored_lstsq(A, B):
 
 def perform_CMTF(tOrig=None, mOrig=None, r=10):
     """ Perform CMTF decomposition. """
+    filename = join(path_here, "syserol/data/" + str(r) + ".pkl")
+
+    if (tOrig is None) and (r > 3):
+        pick = True
+        if os.path.exists(filename):
+            with open(filename, 'rb') as p:
+                return pickle.load(p)
+    else:
+        pick = False
+
     if tOrig is None:
         tOrig, mOrig = createCube()
 
@@ -95,7 +109,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
             R2X_last = R2X
             R2X = calcR2X(tOrig, mOrig, tFac, mFac)
 
-        if R2X - R2X_last < 1e-6:
+        if R2X - R2X_last < 1e-7:
             break
 
     tFac.normalize()
@@ -103,5 +117,9 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
 
     # Reorient the later tensor factors
     tFac.factors, mFac.factors = reorient_factors(tFac.factors, mFac.factors)
+
+    if pick:
+        with open(filename, 'wb') as p:
+            pickle.dump((tFac, mFac, R2X), p)
 
     return tFac, mFac, R2X
