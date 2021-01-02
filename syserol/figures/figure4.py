@@ -18,21 +18,10 @@ def makeFigure():
     ncomp = X.shape[1]
 
     classes = []
-    for cidx in range(2):
-        outt = class_predictions(X)
-        perf = outt[cidx]
-        coef = outt[cidx + 2]
-        perfLO = np.zeros(ncomp)
+    outt = class_predictions(X)
+    classes.extend(outt[2] / np.var(outt[2]))
+    classes.extend(outt[3] / np.var(outt[3]))
 
-        for ii in range(ncomp):
-            XX = np.delete(X.copy(), ii, axis=1)
-            perfLO[ii] = class_predictions(XX)[cidx]
-
-        # Cutoff values less than 0.01
-        perf = perf - perfLO
-        perf[perf < 0.01] = 0.0
-        perf *= np.sign(coef)  # Indicate direction of effect
-        classes.extend(perf)
     data = {
         "Feature Importance": classes,
         "Component": [str(x) for x in np.arange(1, ncomp + 1).tolist()] * 2,
@@ -42,18 +31,9 @@ def makeFigure():
 
     funcs = []
     for function in functions:
-        _, _, perf, coef = function_prediction(X, function=function)
-        perfLO = np.zeros(ncomp)
-
-        for ii in range(ncomp):
-            XX = np.delete(X.copy(), ii, axis=1)
-            perfLO[ii] = function_prediction(XX, function=function)[2]
-
-        # Cutoff values less than 0.01
-        perf = perf - perfLO
-        perf[perf < 0.01] = 0.0
-        perf *= np.sign(coef)  # Indicate direction of effect
-        funcs.extend(perf)
+        coef = function_prediction(X, function=function)[3]
+        coef /= np.var(coef)
+        funcs.extend(coef)
     data = {
         "Feature Importance": funcs,
         "Component": [str(x) for x in np.arange(1, ncomp + 1).tolist()] * 6,

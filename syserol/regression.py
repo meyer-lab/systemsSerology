@@ -83,5 +83,9 @@ def RegressionHelper(X, Y, classify=False):
 
         if better:
             Y_pred = Y_pred_G
+            coefOld = coef
+            params = estG.kernel_.get_params()
+            coef = 1.0 / params["k1__k2__length_scale"]
+            coef *= np.sign(coefOld)
 
     return Y_pred, coef
