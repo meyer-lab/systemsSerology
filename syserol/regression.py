@@ -67,7 +67,7 @@ def RegressionHelper(X, Y, classify=False):
         cv = KFold(n_splits=30, shuffle=True)
 
     if X.shape[1] < 20:
-        est.l1_ratios = [0.8, 0.9]
+        est.l1_ratios = [0.5, 0.8]
     else:
         est.l1_ratios = [0.8]
 
