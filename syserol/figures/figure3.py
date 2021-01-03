@@ -18,11 +18,10 @@ def makeFigure():
     tFac, _, _ = perform_CMTF()
 
     # Gather Function Prediction Accuracies
-    accuracies = [function_elastic_net(f)[2] for f in functions]
-    accuracies = accuracies + [function_prediction(tFac[1][0], function=f, evaluation="Alter")[2] for f in functions]
+    preds = [function_prediction(tFac[1][0], function=f)[2] for f in functions]
 
-    # Subjects left out of Alter
-    accuracies = accuracies + [function_prediction(tFac[1][0], function=f, evaluation="notAlter")[2] for f in functions]
+    accuracies = [function_elastic_net(f)[2] for f in functions]
+    accuracies = accuracies + [p["Alter"] for p in preds] + [p["Not"] for p in preds]
 
     # Create DataFrame
     model = ["Alter et al"] * 6 + ["TMTF (Alter cases)"] * 6 + ["TMTF (Alter excluded)"] * 6
@@ -33,13 +32,12 @@ def makeFigure():
     # Gather Class Prediction Accuracies
     accuracyCvP, accuracyVvN = two_way_classifications()  # Alter accuracies
     # Run our model
-    cp_accuracy, nv_accuracy, _, _ = class_predictions(tFac[1][0], "Alter")  # Our accuracies
-    cp_notAlter, nv_notAlter, _, _ = class_predictions(tFac[1][0], "notAlter")
+    accuracy, _, _ = class_predictions(tFac[1][0])  # Our accuracies
 
     # Create DataFrame
     baselineNV = 0.5083  # datasetEV3/Fc.array/class.nv/lambda.min/score_details.txt "No information rate"
     baselineCP = 0.5304  # datasetEV3/Fc.array/class.cp/lambda.min/score_details.txt "No information rate"
-    accuracies = np.array([accuracyCvP, cp_accuracy, cp_notAlter, baselineCP, accuracyVvN, nv_accuracy, nv_notAlter, baselineNV])
+    accuracies = np.array([accuracyCvP, accuracy["cp_Alter"], accuracy["cp_Not"], baselineCP, accuracyVvN, accuracy["nv_Alter"], accuracy["nv_Not"], baselineNV])
     category = ["Progression"] * 4 + ["Viremia"] * 4
     model = ["Alter et al", "TMTF (Alter cases)", "TMTF (Alter excluded)", "Randomized"] * 2
     data = {"Accuracies": accuracies, "Class": category, "Model": model}

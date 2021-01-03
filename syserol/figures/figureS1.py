@@ -14,7 +14,7 @@ def makeFigure():
     # Plot Actual vs. Predicted Values for each Function
     tensorFac, _, _ = perform_CMTF()
     for i, func in enumerate(functions):
-        x, y, accuracy, _ = function_prediction(tensorFac[1][0], function=func, evaluation="all")
+        x, y, accuracy, _ = function_prediction(tensorFac[1][0], function=func)
         ax[i].scatter(x, y, s=2)
         ax[i].set_xlabel("Actual Values")
         ax[i].set_ylabel("Predicted Values")
@@ -23,7 +23,7 @@ def makeFigure():
         ax[i].text(
             0.9,
             0.1,
-            f"ρ = {round(accuracy, 3)}",
+            f"ρ = {round(accuracy["all"], 3)}",
             {"color": "red", "fontsize": 8},
             horizontalalignment="right",
             verticalalignment="bottom",

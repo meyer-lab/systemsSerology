@@ -12,14 +12,19 @@ def getClassPred(X, df):
     return RegressionHelper(X, Y1, classify=True), RegressionHelper(X, Y2, classify=True), Y1, Y2
 
 
-def class_predictions(X, evaluation="all"):
+def class_predictions(X):
     """ Predict Subject Class with Decomposed Tensor Data """
     # Load Data
     cp, nv, Y_cp, Y_nv = getClassPred(X, load_file("meta-subjects"))
 
-    cp_acc = accuracy_score(*selectAlter(Y_cp, cp[0], evaluation))
-    nv_acc = accuracy_score(*selectAlter(Y_nv, nv[0], evaluation))
-    return cp_acc, nv_acc, cp[1], nv[1]
+    accuracies = {}
+    accuracies["cp_all"] = accuracy_score(*selectAlter(Y_cp, cp[0], "all"))
+    accuracies["nv_all"] = accuracy_score(*selectAlter(Y_nv, nv[0], "all"))
+    accuracies["cp_Alter"] = accuracy_score(*selectAlter(Y_cp, cp[0], "Alter"))
+    accuracies["nv_Alter"] = accuracy_score(*selectAlter(Y_nv, nv[0], "Alter"))
+    accuracies["cp_Not"] = accuracy_score(*selectAlter(Y_cp, cp[0], "notAlter"))
+    accuracies["nv_Not"] = accuracy_score(*selectAlter(Y_nv, nv[0], "notAlter"))
+    return accuracies, cp[1], nv[1]
 
 
 def two_way_classifications():
