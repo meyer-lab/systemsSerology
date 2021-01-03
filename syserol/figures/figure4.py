@@ -19,8 +19,8 @@ def makeFigure():
 
     classes = []
     outt = class_predictions(X)
-    classes.extend(outt[2] / np.var(outt[2]))
-    classes.extend(outt[3] / np.var(outt[3]))
+    classes.extend(outt[2] / np.max(np.absolute(outt[2])))
+    classes.extend(outt[3] / np.max(np.absolute(outt[3])))
 
     data = {
         "Feature Importance": classes,
@@ -32,7 +32,7 @@ def makeFigure():
     funcs = []
     for function in functions:
         coef = function_prediction(X, function=function)[3]
-        coef /= np.var(coef)
+        coef /= np.max(np.absolute(coef))
         funcs.extend(coef)
     data = {
         "Feature Importance": funcs,
