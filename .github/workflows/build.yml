@@ -15,7 +15,7 @@ jobs:
         key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
     - name: Install dependencies
       run: |
-        git submodule update --init --recursive && make clean
+        git submodule update --init --recursive
         make venv
     - name: Build figures
       run: make all -j 3
