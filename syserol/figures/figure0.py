@@ -6,8 +6,6 @@ import numpy as np
 from statsmodels.multivariate.pca import PCA
 from .common import subplotLabel, getSetup
 from ..impute import evaluate_missing
-from ..regression import function_prediction
-from ..classify import class_predictions
 from ..tensor import perform_CMTF
 from ..dataImport import functions, createCube
 

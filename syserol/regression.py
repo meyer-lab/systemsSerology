@@ -42,14 +42,17 @@ def function_prediction(Xin, function="ADCC", evaluation="all"):
 
     # Perform Regression
     Y_pred, coef = RegressionHelper(X, Y)
-    Y, Y_pred = selectAlter(Y, Y_pred, evaluation, subset=subset)
+    accuracy = {}
+    accuracy["all"] = pearsonr(*selectAlter(Y, Y_pred, "all", subset))[0]
+    accuracy["Not"] = pearsonr(*selectAlter(Y, Y_pred, "notAlter", subset))[0]
+    accuracy["Alter"] = pearsonr(*selectAlter(Y, Y_pred, "Alter", subset))[0]
 
-    return Y, Y_pred, pearsonr(Y, Y_pred)[0], coef
+    return Y, Y_pred, accuracy, coef
 
 
 def RegressionHelper(X, Y, classify=False):
     """ Function with the regression cross-validation strategy. """
-    kern = RBF(np.ones(X.shape[1]), (1e-5, 1e9))
+    kern = RBF(np.ones(X.shape[1]), (1e-5, np.inf))
     kern = ConstantKernel() * kern
     kern += WhiteKernel(noise_level_bounds=(1e-9, 1))
 
@@ -63,9 +66,14 @@ def RegressionHelper(X, Y, classify=False):
         estG = GaussianProcessRegressor(kern, normalize_y=True)
         cv = KFold(n_splits=30, shuffle=True)
 
-    est.l1_ratios = [0.8]
+    if X.shape[1] < 20:
+        est.l1_ratios = [0.8, 0.995]
+    else:
+        est.l1_ratios = [0.8]
+
+    est.l1_ratio = est.l1_ratios
     est.cv = 10
-    est.max_iter = 10000
+    est.max_iter = 1000000
 
     est = est.fit(X, Y)
     coef = np.squeeze(est.coef_)
