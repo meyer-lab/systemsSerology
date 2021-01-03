@@ -9,6 +9,7 @@ venv/bin/activate: requirements.txt
 	test -d venv || virtualenv venv
 	. venv/bin/activate && pip install --prefer-binary -Uqr requirements.txt
 	touch venv/bin/activate
+	touch -m output/figure*.svg
 
 output/figure%.svg: venv genFigure.py
 	mkdir -p output
