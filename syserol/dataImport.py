@@ -1,5 +1,4 @@
 """ Data import and processing. """
-import pickle
 from functools import reduce
 from functools import lru_cache
 from os.path import join, dirname
@@ -164,11 +163,9 @@ def createCube():
 
     # Clip to 0 as there are a few strongly negative outliers
     # IIa.H/R were offset to negative, so correct that
-    # TODO: Mention in manuscript
-    cube[:, 1:11, :] = np.clip(cube[:, 1:11, :], 0, 175000)
+    cube[:, 1:11, :] = np.clip(cube[:, 1:11, :], 0, None)
 
     # gp140.HXBc2,gp140/SOSIP is consistently much larger
-    # TODO: Mention in manuscript
     cube[:, :, 25] /= 100000.0
 
     # Check that there are no slices with completely missing data
