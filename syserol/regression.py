@@ -31,7 +31,7 @@ def function_elastic_net(function="ADCC"):
     return Y, Y_pred, pearsonr(Y, Y_pred)[0], coef
 
 
-def function_prediction(Xin, function="ADCC", evaluation="all"):
+def function_prediction(Xin, function="ADCC"):
     """ Predict functions using our decomposition and regression methods"""
     func, _ = importFunction()
 
@@ -43,9 +43,7 @@ def function_prediction(Xin, function="ADCC", evaluation="all"):
     # Perform Regression
     Y_pred, coef = RegressionHelper(X, Y)
     accuracy = {}
-    accuracy["all"] = pearsonr(*selectAlter(Y, Y_pred, "all", subset))[0]
-    accuracy["Not"] = pearsonr(*selectAlter(Y, Y_pred, "notAlter", subset))[0]
-    accuracy["Alter"] = pearsonr(*selectAlter(Y, Y_pred, "Alter", subset))[0]
+    accuracy["all"] = pearsonr(*selectAlter(Y, Y_pred, subset))[0]
 
     return Y, Y_pred, accuracy, coef
 

@@ -20,10 +20,6 @@ def class_predictions(X):
     accuracies = {}
     accuracies["cp_all"] = accuracy_score(*selectAlter(Y_cp, cp[0], "all"))
     accuracies["nv_all"] = accuracy_score(*selectAlter(Y_nv, nv[0], "all"))
-    accuracies["cp_Alter"] = accuracy_score(*selectAlter(Y_cp, cp[0], "Alter"))
-    accuracies["nv_Alter"] = accuracy_score(*selectAlter(Y_nv, nv[0], "Alter"))
-    accuracies["cp_Not"] = accuracy_score(*selectAlter(Y_cp, cp[0], "notAlter"))
-    accuracies["nv_Not"] = accuracy_score(*selectAlter(Y_nv, nv[0], "notAlter"))
     return accuracies, cp[1], nv[1]
 
 

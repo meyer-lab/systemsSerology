@@ -21,11 +21,11 @@ def makeFigure():
     preds = [function_prediction(tFac[1][0], function=f)[2] for f in functions]
 
     accuracies = [function_elastic_net(f)[2] for f in functions]
-    accuracies = accuracies + [p["Alter"] for p in preds] + [p["Not"] for p in preds]
+    accuracies = accuracies + [p["all"] for p in preds]
 
     # Create DataFrame
-    model = ["Alter et al"] * 6 + ["TMTF (Alter cases)"] * 6 + ["TMTF (Alter excluded)"] * 6
-    function = functions + functions + functions
+    model = ["Alter et al"] * 6 + ["TMTF"] * 6
+    function = functions + functions
     data = {"Accuracy": accuracies, "Model": model, "Function": function}
     functions_df = pd.DataFrame(data)  # Function Prediction DataFrame, Figure 2A
 
@@ -37,9 +37,9 @@ def makeFigure():
     # Create DataFrame
     baselineNV = 0.5083  # datasetEV3/Fc.array/class.nv/lambda.min/score_details.txt "No information rate"
     baselineCP = 0.5304  # datasetEV3/Fc.array/class.cp/lambda.min/score_details.txt "No information rate"
-    accuracies = np.array([accuracyCvP, accuracy["cp_Alter"], accuracy["cp_Not"], baselineCP, accuracyVvN, accuracy["nv_Alter"], accuracy["nv_Not"], baselineNV])
-    category = ["Progression"] * 4 + ["Viremia"] * 4
-    model = ["Alter et al", "TMTF (Alter cases)", "TMTF (Alter excluded)", "Randomized"] * 2
+    accuracies = np.array([accuracyCvP, accuracy["cp_all"], baselineCP, accuracyVvN, accuracy["nv_all"], baselineNV])
+    category = ["Progression"] * 3 + ["Viremia"] * 3
+    model = ["Alter et al", "TMTF (Alter cases)", "Randomized"] * 2
     data = {"Accuracies": accuracies, "Class": category, "Model": model}
     classes = pd.DataFrame(data)  # Class Predictions DataFrame, Figure 2B
 
