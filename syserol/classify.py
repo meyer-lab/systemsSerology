@@ -18,8 +18,8 @@ def class_predictions(X):
     cp, nv, Y_cp, Y_nv = getClassPred(X, load_file("meta-subjects"))
 
     accuracies = {}
-    accuracies["cp_all"] = accuracy_score(*selectAlter(Y_cp, cp[0], "all"))
-    accuracies["nv_all"] = accuracy_score(*selectAlter(Y_nv, nv[0], "all"))
+    accuracies["cp_all"] = accuracy_score(*selectAlter(Y_cp, cp[0]))
+    accuracies["nv_all"] = accuracy_score(*selectAlter(Y_nv, nv[0]))
     return accuracies, cp[1], nv[1]
 
 
