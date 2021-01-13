@@ -4,7 +4,7 @@ import pandas as pd
 from sklearn.model_selection import cross_val_predict
 from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import scale
-from sklearn.linear_model import ElasticNetCV, LogisticRegressionCV
+from sklearn.linear_model import ElasticNetCV, LogisticRegressionCV, LogisticRegression, ElasticNet
 from sklearn.gaussian_process import GaussianProcessClassifier, GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import ConstantKernel, RBF, WhiteKernel
 from sklearn.model_selection import KFold, StratifiedKFold
@@ -42,44 +42,39 @@ def function_prediction(Xin, function="ADCC"):
 
     # Perform Regression
     Y_pred, coef = RegressionHelper(X, Y)
-    accuracy = {}
-    accuracy["all"] = pearsonr(*selectAlter(Y, Y_pred, subset))[0]
+    accuracy = pearsonr(*selectAlter(Y, Y_pred, subset))[0]
 
     return Y, Y_pred, accuracy, coef
 
 
 def RegressionHelper(X, Y, classify=False):
     """ Function with the regression cross-validation strategy. """
-    kern = RBF(np.ones(X.shape[1]), (1e-5, np.inf))
-    kern = ConstantKernel() * kern
-    kern += WhiteKernel(noise_level_bounds=(1e-9, 1))
+    kern = ConstantKernel() * RBF(np.ones(X.shape[1]), (1e-2, 1e14))
+    kern += WhiteKernel(noise_level_bounds=(0.001, 0.8))
 
     if classify:
         X = scale(X)
-        est = LogisticRegressionCV(penalty="elasticnet", solver="saga")
-        estG = GaussianProcessClassifier(kern, warm_start=True)
-        cv = StratifiedKFold(n_splits=30, shuffle=True)
+        estCV = LogisticRegressionCV(penalty="elasticnet", solver="saga", cv=10, l1_ratios=[0.8], n_jobs=-1, max_iter=1000000)
+        estCV.fit(X, Y)
+        est = LogisticRegression(C=estCV.C_[0], penalty="elasticnet", solver="saga", l1_ratio=0.8, max_iter=1000000)
+        estG = GaussianProcessClassifier(kern, n_restarts_optimizer=40)
+        cv = StratifiedKFold(n_splits=10, shuffle=True)
     else:
-        est = ElasticNetCV(normalize=True)
-        estG = GaussianProcessRegressor(kern, normalize_y=True)
-        cv = KFold(n_splits=30, shuffle=True)
-
-    if X.shape[1] < 20:
-        est.l1_ratios = [0.5, 0.8]
-    else:
-        est.l1_ratios = [0.8]
-
-    est.l1_ratio = est.l1_ratios
-    est.cv = 10
-    est.max_iter = 1000000
+        estCV = ElasticNetCV(normalize=True, l1_ratio=0.8, cv=10, n_jobs=-1, max_iter=1000000)
+        estCV.fit(X, Y)
+        est = ElasticNet(normalize=True, alpha=estCV.alpha_, l1_ratio=0.8, max_iter=1000000)
+        estG = GaussianProcessRegressor(kern, normalize_y=True, n_restarts_optimizer=20)
+        cv = KFold(n_splits=10, shuffle=True)
 
     est = est.fit(X, Y)
     coef = np.squeeze(est.coef_)
-
     Y_pred = cross_val_predict(est, X, Y, cv=cv, n_jobs=-1)
 
     if X.shape[1] < 20:
         estG.fit(X, Y)
+        coef = np.sign(coef) / estG.kernel_.get_params()["k1__k2__length_scale"]
+        estG.optimizer = None
+        estG.kernel = estG.kernel_
         Y_pred_G = cross_val_predict(estG, X, Y, cv=cv, n_jobs=-1)
 
         if classify:
@@ -88,10 +83,6 @@ def RegressionHelper(X, Y, classify=False):
             better = pearsonr(Y, Y_pred_G)[0] > pearsonr(Y, Y_pred)[0]
 
         if better:
-            Y_pred = Y_pred_G
-            coefOld = coef
-            params = estG.kernel_.get_params()
-            coef = 1.0 / params["k1__k2__length_scale"]
-            coef *= np.sign(coefOld)
+            return Y_pred_G, coef
 
     return Y_pred, coef

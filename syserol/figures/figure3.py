@@ -21,7 +21,7 @@ def makeFigure():
     preds = [function_prediction(tFac[1][0], function=f)[2] for f in functions]
 
     accuracies = [function_elastic_net(f)[2] for f in functions]
-    accuracies = accuracies + [p["all"] for p in preds]
+    accuracies = accuracies + preds
 
     # Create DataFrame
     model = ["Alter et al"] * 6 + ["TMTF"] * 6
@@ -39,7 +39,7 @@ def makeFigure():
     baselineCP = 0.5304  # datasetEV3/Fc.array/class.cp/lambda.min/score_details.txt "No information rate"
     accuracies = np.array([accuracyCvP, accuracy["cp_all"], baselineCP, accuracyVvN, accuracy["nv_all"], baselineNV])
     category = ["Progression"] * 3 + ["Viremia"] * 3
-    model = ["Alter et al", "TMTF (Alter cases)", "Randomized"] * 2
+    model = ["Alter et al", "TMTF", "Randomized"] * 2
     data = {"Accuracies": accuracies, "Class": category, "Model": model}
     classes = pd.DataFrame(data)  # Class Predictions DataFrame, Figure 2B
 

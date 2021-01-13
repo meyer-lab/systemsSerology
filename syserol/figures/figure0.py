@@ -5,7 +5,6 @@ This creates Figure 1.
 import numpy as np
 from statsmodels.multivariate.pca import PCA
 from .common import subplotLabel, getSetup
-from ..impute import evaluate_missing
 from ..tensor import perform_CMTF
 from ..dataImport import functions, createCube
 

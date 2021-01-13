@@ -1,6 +1,5 @@
 """ Data import and processing. """
 from functools import reduce
-from functools import lru_cache
 from os.path import join, dirname
 import numpy as np
 import pandas as pd
@@ -10,9 +9,7 @@ path_here = dirname(dirname(__file__))
 
 def load_file(name):
     """ Return a requested data file. """
-    data = pd.read_csv(join(path_here, "syserol/data/" + name + ".csv"), delimiter=",", comment="#")
-
-    return data
+    return pd.read_csv(join(path_here, "syserol/data/" + name + ".csv"), delimiter=",", comment="#")
 
 
 def importLuminex(antigen=None):
@@ -102,7 +99,7 @@ def importAlterDF(function=True, subjects=False):
     igg = igg.pivot(index="subject", columns="variable", values="value")
     subj = load_file("meta-subjects")["subject"]
     data_frames = [lum, igg, func, subj]
-    df_merged = reduce(lambda left, right: pd.merge(left, right, on=["subject"], how="inner"), data_frames,)
+    df_merged = reduce(lambda left, right: pd.merge(left, right, on=["subject"], how="inner"), data_frames)
 
     return df_merged
 
@@ -123,7 +120,6 @@ def selectAlter(Y, Y_pred, subset=None):
     return Y, Y_pred
 
 
-@lru_cache()
 def createCube():
     """ Import the data and assemble the antigen cube. """
     subjects, detections, antigen = getAxes()

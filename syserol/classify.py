@@ -6,8 +6,8 @@ from .regression import RegressionHelper
 
 def getClassPred(X, df):
     """ Extract Ys for classification. """
-    Y1 = (df["class.cp"] == "controller").astype(int)  # controllers are 1s, progressors are 0s
-    Y2 = (df["class.nv"] == "viremic").astype(int)  # viremic = 1, nonviremic = 0
+    Y1 = (df["class.cp"] == "controller").astype(int)  # control 1, progress 0
+    Y2 = (df["class.nv"] == "viremic").astype(int)  # viremic 1, nonviremic 0
 
     return RegressionHelper(X, Y1, classify=True), RegressionHelper(X, Y2, classify=True), Y1, Y2
 

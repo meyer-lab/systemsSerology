@@ -23,7 +23,7 @@ def makeFigure():
         ax[i].text(
             0.9,
             0.1,
-            f"ρ = {round(accuracy['all'], 3)}",
+            f"ρ = {round(accuracy, 3)}",
             {"color": "red", "fontsize": 8},
             horizontalalignment="right",
             verticalalignment="bottom",
