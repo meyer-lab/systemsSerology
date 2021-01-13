@@ -89,8 +89,6 @@ def importAlterDF(function=True, subjects=False):
     """ Recreate Alter DF, Import Luminex, Luminex-IGG, Subject group pairs, and Glycan into DF"""
     df = importLuminex()
     lum = df.pivot(index="subject", columns="variable", values="value")
-    _, df2 = importGlycan()
-    glyc = df2.pivot(index="subject", columns="variable", values="value")
 
     # Should we import functions or classes?
     if function is True:
@@ -103,13 +101,13 @@ def importAlterDF(function=True, subjects=False):
     igg = importIGG()
     igg = igg.pivot(index="subject", columns="variable", values="value")
     subj = load_file("meta-subjects")["subject"]
-    data_frames = [lum, glyc, igg, func, subj]
+    data_frames = [lum, igg, func, subj]
     df_merged = reduce(lambda left, right: pd.merge(left, right, on=["subject"], how="inner"), data_frames,)
 
     return df_merged
 
 
-def selectAlter(Y, Y_pred, evaluation, subset=None):
+def selectAlter(Y, Y_pred, subset=None):
     """ Subset Y for sets of subjects. """
     df = importAlterDF().dropna()
     subjects = getAxes()[0]
@@ -120,13 +118,6 @@ def selectAlter(Y, Y_pred, evaluation, subset=None):
 
     if subset is not None:
         idx = idx[subset]
-
-    if evaluation == "Alter":
-        Y, Y_pred = Y[idx], Y_pred[idx]
-    elif evaluation == "notAlter":
-        Y, Y_pred = Y[~idx], Y_pred[~idx]
-    elif evaluation != "all":
-        raise ValueError("Bad evaluation selection.")
 
     assert Y.shape == Y_pred.shape
     return Y, Y_pred
