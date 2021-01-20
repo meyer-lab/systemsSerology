@@ -30,9 +30,9 @@ def makeFigure():
             transform=ax[i].transAxes,
         )
         ax[i].set_title(func)
-        ax[i].set_xlim(0,)
-        ax[i].set_ylim(0,)
-        ax[i].set_aspect(1 / ax[i].get_data_ratio())
+        lim = max(max(x), max(y))
+        ax[i].set_xlim(0, lim * 1.1)
+        ax[i].set_ylim(0, lim * 1.1)
 
     subplotLabel(ax)
     return f
