@@ -12,7 +12,7 @@ def makeFigure():
     # Get list of axis objects
     ax, f = getSetup((3, 3), (1, 1))
 
-    comps = np.arange(1, 12)
+    comps = np.arange(1, 4)
 
     Q2X_TMTF, Q2X_PCA = evaluate_missing(comps)
     ax[0].plot(comps, Q2X_PCA, "r.", label="PCA")

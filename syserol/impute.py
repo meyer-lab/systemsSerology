@@ -15,7 +15,8 @@ def evaluate_missing(comps, numSample=15):
 
     # Build flattened matrix from cube + glycube, for PCA imputation, below
     tMat = np.reshape(cube, (181, -1))
-    tMat = tMat[:, ~np.all(np.isnan(tMat), axis=0)]
+    flatIDX = ~np.all(np.isnan(tMat), axis=0)
+    tMat = tMat[:, flatIDX]
     tMat = np.hstack((tMat, glyCube))
 
     # TMTF IMPUTATION
@@ -26,6 +27,11 @@ def evaluate_missing(comps, numSample=15):
         idxs = np.argwhere(np.isfinite(missingCube))
         _, j, k = idxs[np.random.choice(idxs.shape[0], 1)][0]
         missingCube[:, j, k] = np.nan
+
+    # Build flattened matrix from cube + glycube, for PCA imputation, below
+    imputeFlattened = np.reshape(missingCube, (181, -1))
+    imputeFlattened = imputeFlattened[:, flatIDX]
+    imputeFlattened = np.hstack((imputeFlattened, glyCube))
 
     # Remove any original values that are not imputed, so as to only compare imputed values
     imputeVals = np.copy(cube)
@@ -40,12 +46,6 @@ def evaluate_missing(comps, numSample=15):
         R2X_TMTF[ii] = 1.0 - np.nanvar(tensorR - imputeVals) / np.nanvar(imputeVals)
 
     # PCA IMPUTATION
-    # Evaluate ability to impute missing data using flat matrix and PCA
-    imputeFlattened = np.copy(tMat)
-    for _ in range(numSample):
-        idxs = np.argwhere(np.isfinite(imputeFlattened))
-        _, j= idxs[np.random.choice(idxs.shape[0], 1)][0]
-        imputeFlattened[:, j] = np.nan
 
     # Remove any original values that are not imputed, so as to only compare imputed values
     imputeVals_matrix = np.copy(tMat)
