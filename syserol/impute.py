@@ -7,7 +7,7 @@ from .dataImport import createCube
 from .tensor import perform_CMTF
 
 
-def evaluate_missing(comps, numSample=15):
+def evaluate_missing(comps, numSample=150):
     """ check differences between original and recon values for different number of components. """
     # Evaluate ability to impute missing data using cube and tensor factorization
     cube, glyCube = createCube()
@@ -25,8 +25,8 @@ def evaluate_missing(comps, numSample=15):
     missingCube = np.copy(cube)
     for _ in range(numSample):
         idxs = np.argwhere(np.isfinite(missingCube))
-        _, j, k = idxs[np.random.choice(idxs.shape[0], 1)][0]
-        missingCube[:, j, k] = np.nan
+        i, j, k = idxs[np.random.choice(idxs.shape[0], 1)][0]
+        missingCube[i, j, k] = np.nan
 
     # Build flattened matrix from cube + glycube, for PCA imputation, below
     imputeFlattened = np.reshape(missingCube, (181, -1))
