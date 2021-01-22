@@ -53,7 +53,7 @@ def evaluate_missing(comps, numSample=15):
 
     R2X_PCA = np.zeros(comps.shape)
     for ii, cc in enumerate(comps):
-        outt = PCA(tMat, ncomp=cc, missing="fill-em", standardize=False, demean=False, normalize=False)
+        outt = PCA(imputeFlattened, ncomp=cc, missing="fill-em", standardize=False, demean=False, normalize=False)
         recon = outt.scores @ outt.loadings.T
         recon[np.isfinite(imputeFlattened)] = np.nan
 
