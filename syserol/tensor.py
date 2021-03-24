@@ -35,7 +35,7 @@ def reorient_factors(tensorFac, matrixFac):
     return tensorFac, matrixFac
 
 
-def censored_lstsq(A, B):
+def censored_lstsq(A: np.ndarray, B: np.ndarray, uniqueInfo) -> np.ndarray:
     """Solves least squares problem subject to missing data.
 
     Note: uses a for loop over the columns of B, leading to a
@@ -51,9 +51,14 @@ def censored_lstsq(A, B):
     X (ndarray) : r x n matrix that minimizes norm(M*(AX - B))
     """
     X = np.empty((A.shape[1], B.shape[1]))
-    for i in range(B.shape[1]):
-        m = np.isfinite(B[:, i])  # drop rows where mask is zero
-        X[:, i] = np.linalg.lstsq(A[m], B[m, i], rcond=None)[0]
+    unique, uIDX = uniqueInfo
+
+    for i in range(unique.shape[1]):
+        uI = (uIDX == i)
+        uu = np.squeeze(unique[:, i])
+
+        Bx = B[uu, :]
+        X[:, uI] = np.linalg.lstsq(A[uu, :], Bx[:, uI], rcond=None)[0]
     return X.T
 
 
@@ -79,9 +84,11 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
 
     # Pre-unfold
     selPat = np.all(np.isfinite(mOrig), axis=1)
-    unfolded = tl.unfold(tOrig, 0)
-    missing = np.any(np.isnan(unfolded), axis=0)
-    unfolded = unfolded[:, ~missing]
+    unfolded = [tl.unfold(tOrig, i) for i in range(3)]
+    unfolded[0] = np.hstack((unfolded[0], mOrig))
+
+    # Precalculate the missingness patterns
+    uniqueInfo = [np.unique(np.isfinite(B.T), axis=1, return_inverse=True) for B in unfolded]
 
     R2X = -1.0
     mFac.factors[0] = tFac.factors[0]
@@ -89,18 +96,16 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
 
     for ii in range(8000):
         # Solve for the subject matrix
-        kr = khatri_rao(tFac.factors[1], tFac.factors[2])[~missing, :]
+        kr = khatri_rao(tFac.factors[1], tFac.factors[2])
         kr2 = np.vstack((kr, mFac.factors[1]))
-        unfolded2 = np.hstack((unfolded, mOrig))
 
-        tFac.factors[0] = censored_lstsq(kr2, unfolded2.T)
+        tFac.factors[0] = censored_lstsq(kr2, unfolded[0].T, uniqueInfo[0])
         mFac.factors[0] = tFac.factors[0]
 
         # PARAFAC on other antigen modes
         for m in [1, 2]:
             kr = khatri_rao(tFac.factors[0], tFac.factors[3 - m])
-            unfold = tl.unfold(tOrig, m)
-            tFac.factors[m] = censored_lstsq(kr, unfold.T)
+            tFac.factors[m] = censored_lstsq(kr, unfolded[m].T, uniqueInfo[m])
 
         # Solve for the glycan matrix fit
         mFac.factors[1] = np.linalg.lstsq(mFac.factors[0][selPat, :], mOrig[selPat, :], rcond=None)[0].T
