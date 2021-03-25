@@ -15,7 +15,7 @@ def makeFigure():
     comps = np.arange(1, 12)
 
     Q2X = evaluate_missing(comps)
-    ax[0].scatter(comps, Q2X, 'k')
+    ax[0].scatter(comps, Q2X)
     ax[0].set_ylabel("Q2X of Imputation")
     ax[0].set_xlabel("Number of Components")
     ax[0].set_xticks([x for x in comps])
