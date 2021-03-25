@@ -25,7 +25,7 @@ def makeFigure():
     data = {
         "Feature Importance": classes,
         "Component": [str(x) for x in np.arange(1, ncomp + 1).tolist()] * 2,
-        "Class": [x for i in [[j] * ncomp for j in ["Progression", "Viremia"]] for x in i],
+        "Class": [x for i in [[j] * ncomp for j in ["Controller/Progressor", "Viremic/Non-Viremic"]] for x in i],
     }
     class_df = pd.DataFrame(data)
 

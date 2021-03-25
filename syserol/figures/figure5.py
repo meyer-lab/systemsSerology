@@ -38,7 +38,7 @@ def makeFigure():
     baselineNV = 0.5083  # datasetEV3/Fc.array/class.nv/lambda.min/score_details.txt "No information rate"
     baselineCP = 0.5304  # datasetEV3/Fc.array/class.cp/lambda.min/score_details.txt "No information rate"
     accuracies = np.array([accuracyCvP, accuracy["cp_all"], baselineCP, accuracyVvN, accuracy["nv_all"], baselineNV])
-    category = ["Progression"] * 3 + ["Viremia"] * 3
+    category = ["Controller/Progressor"] * 3 + ["Viremic/Non-Viremic"] * 3
     model = ["Alter et al", "TMTF", "Randomized"] * 2
     data = {"Accuracies": accuracies, "Class": category, "Model": model}
     classes = pd.DataFrame(data)  # Class Predictions DataFrame, Figure 2B
