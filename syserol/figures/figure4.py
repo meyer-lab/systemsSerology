@@ -1,57 +1,93 @@
+"""
+This creates Figure 3 for the Paper.
+"""
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from string import ascii_lowercase
+from .common import subplotLabel, getSetup
 from ..tensor import perform_CMTF
-from ..regression import function_prediction
-from ..classify import class_predictions
-from ..dataImport import functions
-from .common import getSetup, subplotLabel
+from ..dataImport import getAxes, load_file
+from matplotlib import gridspec, pyplot as plt
 
 
 def makeFigure():
-    """Get a list of the axis objects and create a figure"""
-    # Get list of axis objects
-    ax, f = getSetup((6, 3), (1, 2))
+    """ Generate Figure 3 for Paper, Showing Interpretation of All Data from Decomposed Tensor"""
+    tensorFac, matrixFac, _ = perform_CMTF()
 
-    tFac, _, _ = perform_CMTF()
-    X = tFac.factors[0]
-    ncomp = X.shape[1]
+    # Gather tensor data matrices
+    subjects = np.squeeze(tensorFac.factors[0])
+    receptors = np.squeeze(tensorFac.factors[1])
+    antigens = np.squeeze(tensorFac.factors[2])
+    glyc = np.squeeze(matrixFac.factors[1])
 
-    classes = []
-    outt = class_predictions(X)
-    classes.extend(outt[1] / np.max(np.absolute(outt[1])))
-    classes.extend(outt[2] / np.max(np.absolute(outt[2])))
+    # Gather grouping info
+    glycaninf = load_file("meta-glycans")
+    glycaninf = glycaninf.replace(to_replace=["false", "b", "f", "g1", "g2", "g0", "s"], value=["", "B", "F", "G1", "G2", "G0", "S"],)
+    for i in np.arange(0, len(glycaninf)):
+        if "S1" in glycaninf.iloc[i, 0]:
+            glycaninf.iloc[i, 2] = "S1"
+        if "S2" in glycaninf.iloc[i, 0]:
+            glycaninf.iloc[i, 2] = "S2"
+    glycaninf["FB"] = glycaninf["f"] + glycaninf["b"]
+    glycaninf["GS"] = glycaninf["g"] + glycaninf["s"]
+    glycaninf["FB"] = glycaninf["FB"].replace(to_replace=[np.nan, ""], value=["Total", "No F or B"])
+    glycaninf.loc[19:24, "GS"] = glycaninf.loc[19:24, "glycan"]
+    _, detections, antigen = getAxes()
+    detections = [x[:2] + "γ" + x[3:] if x[:2] == "Fc" else x for x in detections]
+    subjinfo = load_file("meta-subjects")
 
-    data = {
-        "Feature Importance": classes,
-        "Component": [str(x) for x in np.arange(1, ncomp + 1).tolist()] * 2,
-        "Class": [x for i in [[j] * ncomp for j in ["Progression", "Viremia"]] for x in i],
-    }
-    class_df = pd.DataFrame(data)
+    f = plt.figure(figsize=(21, 7))
+    gs = gridspec.GridSpec(1, 10, width_ratios=[3, 25, 3, 2, 16, 25, 18, 25, 10, 25], wspace=0)
+    ax1 = plt.subplot(gs[0])
+    ax2 = plt.subplot(gs[1])
+    ax4 = plt.subplot(gs[3])
+    ax6 = plt.subplot(gs[5])
+    ax8 = plt.subplot(gs[7])
+    ax10 = plt.subplot(gs[9])
 
-    funcs = []
-    for function in functions:
-        coef = function_prediction(X, function=function)[3]
-        coef /= np.max(np.absolute(coef))
-        funcs.extend(coef)
-    data = {
-        "Feature Importance": funcs,
-        "Component": [str(x) for x in np.arange(1, ncomp + 1).tolist()] * 6,
-        "Function": [x for i in [[j] * ncomp for j in functions] for x in i],
-    }
-    funcs_df = pd.DataFrame(data)
+    colors = ["blue", "orange", "green", "red"]
+    cmap = sns.color_palette(colors)
 
-    sns.barplot(x="Component", y="Feature Importance", hue="Function", data=funcs_df, ax=ax[0])
-    sns.barplot(x="Component", y="Feature Importance", hue="Class", data=class_df, ax=ax[1])
+    subs = pd.DataFrame(subjects, columns=[f"Cmp. {i}" for i in np.arange(1, subjects.shape[1] + 1)], index=subjinfo["class.etuv"])
+    rec = pd.DataFrame(receptors, columns=[f"Cmp. {i}" for i in np.arange(1, subjects.shape[1] + 1)], index=detections)
+    ant = pd.DataFrame(antigens, columns=[f"Cmp. {i}" for i in np.arange(1, subjects.shape[1] + 1)], index=antigen)
+    glycans = pd.DataFrame(glyc, columns=[f"Cmp. {i}" for i in np.arange(1, subjects.shape[1] + 1)], index=glycaninf["glycan"])
 
-    # Formatting
-    shades = np.arange(-.5, ncomp - 1, step=2.0)
-    for axx in ax:
-        for i in shades:
-            axx.axvspan(i, i + 1, alpha=0.1, color="grey")
-        axx.set_xlim(-.5, ncomp - .5)
+    vmin = min(subs.values.min(), rec.values.min(), ant.values.min(), glycans.values.min()) * 0.6
+    vmax = max(subs.values.max(), rec.values.max(), ant.values.max(), glycans.values.max()) * 0.6
 
-    # Add subplot labels
-    subplotLabel(ax)
+    sns.heatmap(subs, cmap="PRGn", center=0, xticklabels=True, yticklabels=False, cbar_ax=ax4, vmin=vmin, vmax=vmax, ax=ax2)
+    sns.heatmap(rec, cmap="PRGn", center=0, yticklabels=True, cbar=False, vmin=vmin, vmax=vmax, ax=ax6)
+    sns.heatmap(ant, cmap="PRGn", center=0, yticklabels=True, cbar=False, vmin=vmin, vmax=vmax, ax=ax8)
+    sns.heatmap(glycans, cmap="PRGn", center=0, yticklabels=True, cbar=False, vmin=vmin, vmax=vmax, ax=ax10)
+
+    test = pd.DataFrame(subs.index)
+    test = test.set_index(["class.etuv"])
+    test["Class"] = 0
+    test[test.index == "EC"] = 0
+    test[test.index == "TP"] = 1
+    test[test.index == "UP"] = 2
+    test[test.index == "VC"] = 3
+
+    sns.heatmap(
+        test, ax=ax1, cbar_kws=dict(use_gridspec=False, location="left", fraction=0.4, pad=0.3), yticklabels=False, xticklabels=True, cmap=cmap
+    )
+    colorbar = ax1.collections[0].colorbar
+    colorbar.set_ticks([0.4, 1.2, 1.9, 2.6])
+    colorbar.set_ticklabels(["EC", "UP", "TP", "VC"])
+    ax1.set_ylabel("")
+    ax2.set_ylabel("")
+    ax10.set_ylabel("")
+    ax1.set_xticklabels(test.columns, rotation=90)
+    ax = [ax2, ax6, ax8, ax10]
+
+    ax[0].set_title("Subjects", fontsize=15)
+    ax[1].set_title("Receptors", fontsize=15)
+    ax[2].set_title("Antigens", fontsize=15)
+    ax[3].set_title("Glycans", fontsize=15)
+
+    for ii, ax in enumerate(ax):
+        ax.text(-0.2, 1.1, ascii_lowercase[ii], transform=ax.transAxes, fontsize=25, fontweight="bold", va="top")
 
     return f
