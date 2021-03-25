@@ -1,5 +1,5 @@
 """
-This creates Paper Figure 2.
+This creates Paper Figure 5.
 """
 
 import pandas as pd
@@ -27,7 +27,7 @@ def makeFigure():
     model = ["Alter et al"] * 6 + ["TMTF"] * 6
     function = functions + functions
     data = {"Accuracy": accuracies, "Model": model, "Function": function}
-    functions_df = pd.DataFrame(data)  # Function Prediction DataFrame, Figure 2A
+    functions_df = pd.DataFrame(data)  # Function Prediction DataFrame, Figure 5A
 
     # Gather Class Prediction Accuracies
     accuracyCvP, accuracyVvN = two_way_classifications()  # Alter accuracies
@@ -38,10 +38,10 @@ def makeFigure():
     baselineNV = 0.5083  # datasetEV3/Fc.array/class.nv/lambda.min/score_details.txt "No information rate"
     baselineCP = 0.5304  # datasetEV3/Fc.array/class.cp/lambda.min/score_details.txt "No information rate"
     accuracies = np.array([accuracyCvP, accuracy["cp_all"], baselineCP, accuracyVvN, accuracy["nv_all"], baselineNV])
-    category = ["Progression"] * 3 + ["Viremia"] * 3
+    category = ["Controller/Progressor"] * 3 + ["Viremic/Non-Viremic"] * 3
     model = ["Alter et al", "TMTF", "Randomized"] * 2
     data = {"Accuracies": accuracies, "Class": category, "Model": model}
-    classes = pd.DataFrame(data)  # Class Predictions DataFrame, Figure 2B
+    classes = pd.DataFrame(data)  # Class Predictions DataFrame, Figure 5B
 
     # PLOT DataFrames
     ax, f = getSetup((6, 3), (1, 2))
