@@ -1,5 +1,5 @@
 """
-This creates Figure 3 for the Paper.
+This creates Figure 4 for the Paper.
 """
 import numpy as np
 import pandas as pd
