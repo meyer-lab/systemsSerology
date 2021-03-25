@@ -76,6 +76,5 @@ def makeFigure():
     b.tick_params(axis="x")
     b.legend(fontsize=8.5, title="Model", title_fontsize=10)
 
-    subplotLabel(ax)
 
     return f
