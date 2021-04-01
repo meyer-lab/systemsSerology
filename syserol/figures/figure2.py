@@ -7,6 +7,7 @@ from statsmodels.multivariate.pca import PCA
 from .common import subplotLabel, getSetup
 from ..tensor import perform_CMTF
 from ..dataImport import functions, createCube
+from matplotlib.ticker import ScalarFormatter
 
 
 def makeFigure():
@@ -49,6 +50,7 @@ def makeFigure():
     ax[1].set_xlabel("Size of Factorization")
     ax[1].set_ylim(bottom=0.0)
     ax[1].set_xlim(2 ** 8, 2 ** 12)
+    ax[1].xaxis.set_major_formatter(ScalarFormatter())
     ax[1].legend()
 
     # Add subplot labels
