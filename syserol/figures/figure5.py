@@ -21,11 +21,12 @@ def makeFigure():
     preds = [function_prediction(tFac[1][0], function=f)[2] for f in functions]
 
     accuracies = [function_elastic_net(f)[2] for f in functions]
-    accuracies = accuracies + preds
+    baselines = [-0.1350231, -0.09590986, -0.09508032, -0.1092717, -0.0990803, -0.1176652] #datasetEV3/Fc.array/ADCC...MIP1b/summary.txt "perm min"
+    accuracies = accuracies + preds + baselines
 
     # Create DataFrame
-    model = ["Alter et al"] * 6 + ["TMTF"] * 6
-    function = functions + functions
+    model = ["Alter et al"] * 6 + ["TMTF"] * 6 + ["Randomized"] * 6
+    function = functions + functions + functions
     data = {"Accuracy": accuracies, "Model": model, "Function": function}
     functions_df = pd.DataFrame(data)  # Function Prediction DataFrame, Figure 5A
 
@@ -53,7 +54,7 @@ def makeFigure():
     for i in shades:
         a.axvspan(i, i + 1, alpha=0.1, color="grey")
     a.set_xlim(-0.5, 5.5)
-    a.set_ylim(0, 1)
+    a.set_ylim(-0.3, 1)
     a.grid(False)
     a.xaxis.tick_top()
     a.xaxis.set_label_position("top")
