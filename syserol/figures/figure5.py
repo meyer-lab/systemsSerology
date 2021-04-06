@@ -21,7 +21,7 @@ def makeFigure():
     preds = [function_prediction(tFac[1][0], function=f)[2] for f in functions]
 
     accuracies = [function_elastic_net(f)[2] for f in functions]
-    baselines = [-0.1350231, -0.09590986, -0.09508032, -0.1092717, -0.0990803, -0.1176652] #datasetEV3/Fc.array/ADCC...MIP1b/summary.txt "perm min"
+    baselines = [function_elastic_net(f, True)[2] for f in functions]
     accuracies = accuracies + preds + baselines
 
     # Create DataFrame
