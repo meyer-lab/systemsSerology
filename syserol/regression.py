@@ -17,7 +17,7 @@ from .dataImport import (
 )
 
 
-def function_elastic_net(function="ADCC"):
+def function_elastic_net(function="ADCC", random=False):
     """ Predict functions using elastic net according to Alter methods"""
     # Import Luminex, Luminex-IGG, Function, and Glycan into DF
     df = importAlterDF(function=True, subjects=False).dropna()
@@ -25,6 +25,8 @@ def function_elastic_net(function="ADCC"):
     # separate dataframes
     Y = df[function]
     X = df.drop(["subject"] + functions, axis=1)
+    if random == True:
+        X = X.sample(frac=1)
 
     # perform regression
     Y_pred, coef = RegressionHelper(X, Y)
