@@ -25,11 +25,10 @@ def makeFigure():
     accuracies = accuracies + preds + baselines
 
     # Create DataFrame
-    model = ["Alter et al"] * 6 + ["TMTF"] * 6 + ["Randomized"] * 6
+    model = ["TMTF"] * 6 + ["Alter et al"] * 6 + ["Randomized"] * 6
     function = functions + functions + functions
     data = {"Accuracy": accuracies, "Model": model, "Function": function}
-    # Function Prediction DataFrame, Figure 5A
-    functions_df = pd.DataFrame(data)
+    functions_df = pd.DataFrame(data)  # Function Prediction DataFrame, Figure 5A
 
     # Gather Class Prediction Accuracies
     accuracyCvP, accuracyVvN = two_way_classifications()  # Alter accuracies
@@ -37,12 +36,9 @@ def makeFigure():
     accuracy, _, _ = class_predictions(tFac[1][0])  # Our accuracies
 
     # Create DataFrame
-    # datasetEV3/Fc.array/class.nv/lambda.min/score_details.txt "No information rate"
-    baselineNV = 0.5083
-    # datasetEV3/Fc.array/class.cp/lambda.min/score_details.txt "No information rate"
-    baselineCP = 0.5304
-    accuracies = np.array([accuracyCvP, accuracy["cp_all"],
-                           baselineCP, accuracyVvN, accuracy["nv_all"], baselineNV])
+    baselineNV = 0.5083  # datasetEV3/Fc.array/class.nv/lambda.min/score_details.txt "No information rate"
+    baselineCP = 0.5304  # datasetEV3/Fc.array/class.cp/lambda.min/score_details.txt "No information rate"
+    accuracies = np.array([accuracyCvP, accuracy["cp_all"], baselineCP, accuracyVvN, accuracy["nv_all"], baselineNV])
     category = ["Controller/Progressor"] * 3 + ["Viremic/Non-Viremic"] * 3
     model = ["TMTF", "Alter et al", "Randomized"] * 2
     data = {"Accuracies": accuracies, "Class": category, "Model": model}
@@ -52,8 +48,7 @@ def makeFigure():
     ax, f = getSetup((6, 3), (1, 2))
     sns.set()
     # Function Plot
-    a = sns.scatterplot(y="Accuracy", x="Function", style="Model", hue="Model", data=functions_df, ax=ax[0], markers=[
-                        'o', 's'])
+    a = sns.scatterplot(y="Accuracy", x="Function", style="Model", hue="Model", data=functions_df, ax=ax[0])
     # Formatting
     shades = [-0.5, 1.5, 3.5]
     for i in shades:
@@ -69,9 +64,7 @@ def makeFigure():
     a.get_legend().remove()
 
     # Class Plot
-    b = sns.scatterplot(y="Accuracies", x="Class",
-                        style="Model", hue="Model", data=classes, ax=ax[1], markers=[
-                            'o', 's', 'X'])
+    b = sns.scatterplot(y="Accuracies", x="Class", style="Model", hue="Model", data=classes, ax=ax[1])
     # Formatting
     b.axvspan(-0.5, 0.5, alpha=0.1, color="grey")
     b.set_xlim(-0.5, 1.5)
