@@ -29,13 +29,14 @@ def makeFigure():
     sizeTfac = comps * (np.sum(tOrig.shape) + mOrig.shape[1])
 
     for i, cc in enumerate(comps):
-        outt = PCA(tMat, ncomp=cc, missing="fill-em", standardize=False, demean=False, normalize=False)
+        outt = PCA(tMat, ncomp=cc, missing="fill-em",
+                   standardize=False, demean=False, normalize=False)
         recon = outt.scores @ outt.loadings.T
         PCAR2X[i] = np.nanvar(tMat - recon) / np.nanvar(tMat)
 
         _, _, TMTFR2X[i] = perform_CMTF(r=cc)
 
-    ax[0].scatter(comps, TMTFR2X, color="k", s=10)
+    ax[0].scatter(comps, TMTFR2X, s=10)
     ax[0].set_ylabel("TMTF R2X")
     ax[0].set_xlabel("Number of Components")
     ax[0].set_xticks([x for x in comps])
@@ -44,8 +45,8 @@ def makeFigure():
     ax[0].set_xlim(0.0, np.amax(comps) + 0.5)
 
     ax[1].set_xscale("log", base=2)
-    ax[1].plot(sizePCA, PCAR2X, "r.", label="PCA")
-    ax[1].plot(sizeTfac, 1.0 - TMTFR2X, "k.", label="TMTF")
+    ax[1].plot(sizeTfac, 1.0 - TMTFR2X, ".", label="TMTF")
+    ax[1].plot(sizePCA, PCAR2X, ".", label="PCA")
     ax[1].set_ylabel("Normalized Unexplained Variance")
     ax[1].set_xlabel("Size of Factorization")
     ax[1].set_ylim(bottom=0.0)
