@@ -2,8 +2,9 @@
 Unit test file.
 """
 import numpy as np
+from tensorly.cp_tensor import _validate_cp_tensor
 from ..dataImport import createCube
-from ..tensor import perform_CMTF
+from ..tensor import perform_CMTF, delete_component
 
 
 def test_R2X():
@@ -21,3 +22,12 @@ def test_R2X():
     # confirm R2X is >= 0 and <=1
     assert np.min(arr) >= 0
     assert np.max(arr) <= 1
+
+
+def test_delete():
+    """ Test deleting a component results in a valid tensor. """
+    facT, facM, _ = perform_CMTF(r=5)
+    facT = delete_component(facT, 2)
+    facM = delete_component(facM, 3)
+
+    _validate_cp_tensor(facT)

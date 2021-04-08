@@ -35,6 +35,18 @@ def reorient_factors(tensorFac, matrixFac):
     return tensorFac, matrixFac
 
 
+def delete_component(cp_tensor, compNum):
+    """ Delete the indicated component. """
+    assert compNum < cp_tensor.rank
+
+    cp_tensor.weights = np.delete(cp_tensor.weights, compNum)
+    cp_tensor.rank -= 1
+    for i, fac in enumerate(cp_tensor.factors):
+        cp_tensor.factors[i] = np.delete(fac, compNum, axis=0)
+
+    return cp_tensor
+
+
 def censored_lstsq(A: np.ndarray, B: np.ndarray, uniqueInfo) -> np.ndarray:
     """Solves least squares problem subject to missing data.
 
