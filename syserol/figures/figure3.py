@@ -35,4 +35,7 @@ def makeFigure():
     ax[2].set_xlim(0, 1)
     ax[2].set_ylim(0, 1)
 
+    # Add subplot labels
+    subplotLabel(ax)
+
     return f
