@@ -38,9 +38,9 @@ def makeFigure():
     # Create DataFrame
     baselineNV = 0.5083  # datasetEV3/Fc.array/class.nv/lambda.min/score_details.txt "No information rate"
     baselineCP = 0.5304  # datasetEV3/Fc.array/class.cp/lambda.min/score_details.txt "No information rate"
-    accuracies = np.array([accuracyCvP, accuracy["cp_all"], baselineCP, accuracyVvN, accuracy["nv_all"], baselineNV])
-    category = ["Controller/Progressor"] * 3 + ["Viremic/Non-Viremic"] * 3
-    model = ["TMTF", "Alter et al", "Randomized"] * 2
+    accuracies = np.array([accuracyCvP, accuracy["cp_all"], baselineCP, accuracyVvN, accuracy["nv_all"], baselineNV, 0.0, 0.0, 0.0])
+    category = ["Controller/Progressor"] * 3 + ["Viremic/Non-Viremic"] * 3 + ["Four-Class"] * 3
+    model = ["TMTF", "Alter et al", "Randomized"] * 3
     data = {"Accuracies": accuracies, "Class": category, "Model": model}
     classes = pd.DataFrame(data)  # Class Predictions DataFrame, Figure 5B
 
@@ -67,7 +67,8 @@ def makeFigure():
     b = sns.scatterplot(y="Accuracies", x="Class", style="Model", hue="Model", data=classes, ax=ax[1])
     # Formatting
     b.axvspan(-0.5, 0.5, alpha=0.1, color="grey")
-    b.set_xlim(-0.5, 1.5)
+    b.axvspan(1.5, 2.5, alpha=0.1, color="grey")
+    b.set_xlim(-0.5, 2.5)
     b.set_ylim(0.45, 1)
     b.grid(False)
     b.xaxis.tick_top()

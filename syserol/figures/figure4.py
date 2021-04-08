@@ -54,13 +54,10 @@ def makeFigure():
     ant = pd.DataFrame(antigens, columns=[f"Cmp. {i}" for i in np.arange(1, subjects.shape[1] + 1)], index=antigen)
     glycans = pd.DataFrame(glyc, columns=[f"Cmp. {i}" for i in np.arange(1, subjects.shape[1] + 1)], index=glycaninf["glycan"])
 
-    vmin = min(subs.values.min(), rec.values.min(), ant.values.min(), glycans.values.min()) * 0.6
-    vmax = max(subs.values.max(), rec.values.max(), ant.values.max(), glycans.values.max()) * 0.6
-
-    sns.heatmap(subs, cmap="PRGn", center=0, xticklabels=True, yticklabels=False, cbar_ax=ax4, vmin=vmin, vmax=vmax, ax=ax2)
-    sns.heatmap(rec, cmap="PRGn", center=0, yticklabels=True, cbar=False, vmin=vmin, vmax=vmax, ax=ax6)
-    sns.heatmap(ant, cmap="PRGn", center=0, yticklabels=True, cbar=False, vmin=vmin, vmax=vmax, ax=ax8)
-    sns.heatmap(glycans, cmap="PRGn", center=0, yticklabels=True, cbar=False, vmin=vmin, vmax=vmax, ax=ax10)
+    sns.heatmap(subs, cmap="PRGn", center=0, xticklabels=True, yticklabels=False, cbar_ax=ax4, vmin=-1.0, vmax=1.0, ax=ax2)
+    sns.heatmap(rec, cmap="PRGn", center=0, yticklabels=True, cbar=False, vmin=-1.0, vmax=1.0, ax=ax6)
+    sns.heatmap(ant, cmap="PRGn", center=0, yticklabels=True, cbar=False, vmin=-1.0, vmax=1.0, ax=ax8)
+    sns.heatmap(glycans, cmap="PRGn", center=0, yticklabels=True, cbar=False, vmin=-1.0, vmax=1.0, ax=ax10)
 
     test = pd.DataFrame(subs.index)
     test = test.set_index(["class.etuv"])
