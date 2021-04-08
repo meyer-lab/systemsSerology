@@ -62,6 +62,18 @@ def censored_lstsq(A: np.ndarray, B: np.ndarray, uniqueInfo) -> np.ndarray:
     return X.T
 
 
+def cp_normalize(cp_tensor):
+    cp_tensor.factors[0] *= cp_tensor.weights
+    cp_tensor.weights = np.ones(cp_tensor.rank)
+
+    for i, factor in enumerate(cp_tensor.factors):
+        scales = np.linalg.norm(factor, ord=np.inf, axis=0)
+        cp_tensor.weights *= scales
+        cp_tensor.factors[i] /= scales
+
+    return cp_tensor
+
+
 def perform_CMTF(tOrig=None, mOrig=None, r=10):
     """ Perform CMTF decomposition. """
     filename = join(path_here, "syserol/data/" + str(r) + ".pkl")
@@ -70,7 +82,10 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
         pick = True
         if os.path.exists(filename):
             with open(filename, 'rb') as p:
-                return pickle.load(p)
+                tFac, mFac, R2X = pickle.load(p)
+                tFac = cp_normalize(tFac)
+                mFac = cp_normalize(mFac)
+                return tFac, mFac, R2X
     else:
         pick = False
 
@@ -117,8 +132,8 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
         if R2X - R2X_last < 1e-7:
             break
 
-    tFac.normalize()
-    mFac.normalize()
+    tFac = cp_normalize(tFac)
+    mFac = cp_normalize(mFac)
 
     # Reorient the later tensor factors
     tFac.factors, mFac.factors = reorient_factors(tFac.factors, mFac.factors)
