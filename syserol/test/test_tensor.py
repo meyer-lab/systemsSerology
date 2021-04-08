@@ -31,3 +31,4 @@ def test_delete():
     facM = delete_component(facM, 3)
 
     _validate_cp_tensor(facT)
+    _validate_cp_tensor(facM)
