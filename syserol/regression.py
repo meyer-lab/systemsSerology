@@ -49,16 +49,21 @@ def function_prediction(Xin, function="ADCC"):
     return Y, Y_pred, accuracy, coef
 
 
-def RegressionHelper(X, Y, classify=False):
+def RegressionHelper(X, Y, classify=False, four=False):
     """ Function with the regression cross-validation strategy. """
     kern = ConstantKernel() * RBF(np.ones(X.shape[1]), (1e-2, 1e14))
     kern += WhiteKernel(noise_level_bounds=(0.001, 0.8))
 
     if classify:
         X = scale(X)
-        estCV = LogisticRegressionCV(penalty="elasticnet", solver="saga", cv=10, l1_ratios=[0.8], n_jobs=-1, max_iter=1000000)
-        estCV.fit(X, Y)
-        est = LogisticRegression(C=estCV.C_[0], penalty="elasticnet", solver="saga", l1_ratio=0.8, max_iter=1000000)
+        if four:
+            estCV = LogisticRegressionCV(penalty="elasticnet", solver="saga", multi_class="multinomial", cv=10, l1_ratios=[0.8], n_jobs=-1, max_iter=1000000)
+            estCV.fit(X, Y)
+            est = LogisticRegression(C=estCV.C_[0], penalty="elasticnet", solver="saga", multi_class="multinomial", l1_ratio=0.8, max_iter=1000000)
+        else: 
+            estCV = LogisticRegressionCV(penalty="elasticnet", solver="saga", cv=10, l1_ratios=[0.8], n_jobs=-1, max_iter=1000000)
+            estCV.fit(X, Y)
+            est = LogisticRegression(C=estCV.C_[0], penalty="elasticnet", solver="saga", l1_ratio=0.8, max_iter=1000000)  
         estG = GaussianProcessClassifier(kern, n_restarts_optimizer=40)
         cv = StratifiedKFold(n_splits=10, shuffle=True)
     else:

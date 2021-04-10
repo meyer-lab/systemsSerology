@@ -31,3 +31,11 @@ def two_way_classifications():
     X = df.drop(["subject", "class.etuv", "class.cp", "class.nv"], axis=1)
     cp, nv, Y1, Y2 = getClassPred(X, df)
     return accuracy_score(Y1, cp[0]), accuracy_score(Y2, nv[0])
+
+def four_way_classification():
+    """ Predict classifications of subjects - EC, VC, TP, or UP"""
+    df = importAlterDF(function=False, subjects=True)
+    X = df.drop(["subject", "class.etuv", "class.cp", "class.nv"], axis=1)
+    Y = (df["class.etuv"]).replace(to_replace=["EC", "TP", "VC", "UP"], value = [1, 2, 3, 4])
+    Y_pred, _ = RegressionHelper(X, Y, classify=True, four=True)
+    return accuracy_score(Y, Y_pred)
