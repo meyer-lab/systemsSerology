@@ -19,8 +19,8 @@ def makeFigure():
 
     classes = []
     outt = class_predictions(X)
-    classes.extend(outt[1] / np.max(np.absolute(outt[1])))
-    classes.extend(outt[2] / np.max(np.absolute(outt[2])))
+    classes.extend(outt[1][1] / np.max(np.absolute(outt[1][1])))
+    classes.extend(outt[2][1] / np.max(np.absolute(outt[2][1])))
 
     data = {
         "Feature Importance": classes,
