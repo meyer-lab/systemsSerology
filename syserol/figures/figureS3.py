@@ -24,9 +24,7 @@ def makeFigure():
     estG = GaussianProcessClassifier(kern, n_restarts_optimizer=40)
 
     classifiers = {
-
         "GPC-nv": estG
-
     }
 
     X = np.vstack([X[:, 4], X[:, 5]]).T
@@ -45,8 +43,7 @@ def makeFigure():
 
     for index, (name, classifier) in enumerate(classifiers.items()):
         classifier.fit(X, y)
-        #cv = StratifiedKFold(n_splits=10, shuffle=True)
-        #y_pred = cross_val_predict(estG, X, y, cv=cv, n_jobs=-1)
+
         # View probabilities:
         probas = classifier.predict_proba(Xfull)
         n_classes = np.unique(y_pred).size
@@ -59,9 +56,8 @@ def makeFigure():
                        extent=(compAmin, compAmax, compBmin, compBmax), origin='lower')
             plt.xticks(())
             plt.yticks(())
-            idx = (y_pred == k)
-            if idx.any():
-                plt.scatter(X[idx, 0], X[idx, 1], marker='o', c='w', edgecolor='k')
+        
+            plt.scatter(X[:, 0], X[:, 1], marker='.', c=y, edgecolor='k')
 
     # Add subplot labels
     subplotLabel(ax)
