@@ -13,13 +13,15 @@ def makeFigure():
     X = tFac.factors[0]
 
     df = load_file("meta-subjects")
-    y = (df["class.nv"] == "viremic").astype(int)
+    Y1 = (df["class.cp"] == "controller").astype(int)  # control 1, progress 0
+    Y2 = (df["class.nv"] == "viremic").astype(int)  # viremic 1, nonviremic 0
 
     kern = ConstantKernel() * RBF(np.ones(2), (1e-2, 1e14))
     kern += WhiteKernel(noise_level_bounds=(0.001, 0.8))
     estG = GaussianProcessClassifier(kern, n_restarts_optimizer=40)
 
-    make_decision_plot(ax[0], estG, X[:, 4:6], y)
+    make_decision_plot(ax[0], estG, X[:, 4:6], Y2)
+    make_decision_plot(ax[1], estG, X[:, np.array([4, 6])], Y1)
 
     # Add subplot labels
     subplotLabel(ax)
@@ -33,9 +35,8 @@ def make_decision_plot(ax, classifier, X, y):
     xx, yy = np.meshgrid(xx, xx.T)
     Xfull = np.c_[xx.ravel(), yy.ravel()]
 
+    # Fit and get model probabilities
     classifier.fit(X, y)
-
-    # View probabilities:
     probas = classifier.predict_proba(Xfull)
 
     ax.imshow(probas[:, 0].reshape((100, 100)), extent=(-1.05, 1.05, -1.05, 1.05), origin='lower')
