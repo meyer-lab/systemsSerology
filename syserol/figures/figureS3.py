@@ -19,7 +19,6 @@ def makeFigure():
     y = (df["class.nv"] == "viremic").astype(int)
     y_pred = outt[2][0]
 
-
     kern = ConstantKernel() * RBF(np.ones(2), (1e-2, 1e14))
     kern += WhiteKernel(noise_level_bounds=(0.001, 0.8))
     estG = GaussianProcessClassifier(kern, n_restarts_optimizer=40)
@@ -57,7 +56,7 @@ def makeFigure():
             if k == 0:
                 plt.ylabel(name)
             plt.imshow(probas[:, k].reshape((100, 100)),
-                                    extent=(compAmin, compAmax, compBmin, compBmax), origin='lower')
+                       extent=(compAmin, compAmax, compBmin, compBmax), origin='lower')
             plt.xticks(())
             plt.yticks(())
             idx = (y_pred == k)
