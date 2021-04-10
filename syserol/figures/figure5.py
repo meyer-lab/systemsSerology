@@ -7,7 +7,7 @@ import numpy as np
 import seaborn as sns
 from ..regression import function_elastic_net, function_prediction
 from ..dataImport import functions
-from ..classify import class_predictions, two_way_classifications
+from ..classify import class_predictions, two_way_classifications, four_way_classification, four_class_predictions
 from .common import subplotLabel, getSetup
 from ..tensor import perform_CMTF
 
@@ -31,14 +31,19 @@ def makeFigure():
     functions_df = pd.DataFrame(data)  # Function Prediction DataFrame, Figure 5A
 
     # Gather Class Prediction Accuracies
+    # Viremia and Progression
     accuracyCvP, accuracyVvN = two_way_classifications()  # Alter accuracies
     # Run our model
     accuracy, _, _ = class_predictions(tFac[1][0])  # Our accuracies
+    # All 4 classes
+    accuracyAlter4class = four_way_classification()
+    accuracy4class = four_class_predictions(tFac[1][0])
+    random4class = four_class_predictions(tFac[1][0], True)
 
     # Create DataFrame
     baselineNV = 0.5083  # datasetEV3/Fc.array/class.nv/lambda.min/score_details.txt "No information rate"
     baselineCP = 0.5304  # datasetEV3/Fc.array/class.cp/lambda.min/score_details.txt "No information rate"
-    accuracies = np.array([accuracyCvP, accuracy["cp_all"], baselineCP, accuracyVvN, accuracy["nv_all"], baselineNV, 0.0, 0.0, 0.0])
+    accuracies = np.array([accuracy["cp_all"], accuracyCvP, baselineCP, accuracy["nv_all"], accuracyVvN, baselineNV, accuracy4class, accuracyAlter4class, random4class])
     category = ["Controller/Progressor"] * 3 + ["Viremic/Non-Viremic"] * 3 + ["Four-Class"] * 3
     model = ["TMTF", "Alter et al", "Randomized"] * 3
     data = {"Accuracies": accuracies, "Class": category, "Model": model}

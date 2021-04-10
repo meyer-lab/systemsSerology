@@ -13,7 +13,7 @@ def getClassPred(X, df):
 
 
 def class_predictions(X):
-    """ Predict Subject Class with Decomposed Tensor Data """
+    """ Predict subject class by progression (EC/VC vs TP/UP) or by viremia (EC/TP vs VC/UP) with Decomposed Tensor Data """
     # Load Data
     cp, nv, Y_cp, Y_nv = getClassPred(X, load_file("meta-subjects"))
 
@@ -22,6 +22,14 @@ def class_predictions(X):
     accuracies["nv_all"] = accuracy_score(*selectAlter(Y_nv, nv[0]))
     return accuracies, cp[1], nv[1]
 
+def four_class_predictions(X, random=False):
+    """ Predict subject class for EC, VC, TP, or UP, with Decomposed Tensor Data """
+    df = load_file("meta-subjects")
+    Y = (df["class.etuv"]).replace(to_replace=["EC", "TP", "VC", "UP"], value = [1, 2, 3, 4])
+    if random:
+        X = X.sample(frac=1)
+    Y_pred, _ = RegressionHelper(X, Y, classify=True, four=True)
+    return accuracy_score(*selectAlter(Y, Y_pred))
 
 def two_way_classifications():
     """ Predict classifications of subjects by progression (EC/VC vs TP/UP) or by viremia (EC/TP vs VC/UP) - Alter methods"""
@@ -33,9 +41,10 @@ def two_way_classifications():
     return accuracy_score(Y1, cp[0]), accuracy_score(Y2, nv[0])
 
 def four_way_classification():
-    """ Predict classifications of subjects - EC, VC, TP, or UP"""
+    """ Predict classifications of subjects - EC, VC, TP, or UP, according to Alter methods"""
     df = importAlterDF(function=False, subjects=True)
     X = df.drop(["subject", "class.etuv", "class.cp", "class.nv"], axis=1)
     Y = (df["class.etuv"]).replace(to_replace=["EC", "TP", "VC", "UP"], value = [1, 2, 3, 4])
     Y_pred, _ = RegressionHelper(X, Y, classify=True, four=True)
+
     return accuracy_score(Y, Y_pred)
