@@ -20,7 +20,7 @@ def class_predictions(X):
     accuracies = {}
     accuracies["cp_all"] = accuracy_score(*selectAlter(Y_cp, cp[0]))
     accuracies["nv_all"] = accuracy_score(*selectAlter(Y_nv, nv[0]))
-    return accuracies, cp[1], nv[1]
+    return accuracies, cp, nv
 
 
 def two_way_classifications():
