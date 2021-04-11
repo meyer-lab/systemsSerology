@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import cross_val_predict
 from sklearn.metrics import accuracy_score
-from sklearn.utils import resample
+from sklearn.utils import resample as resampleSK
 from sklearn.preprocessing import scale
 from sklearn.linear_model import ElasticNetCV, LogisticRegressionCV, LogisticRegression, ElasticNet
 from sklearn.gaussian_process import GaussianProcessClassifier, GaussianProcessRegressor
@@ -77,7 +77,7 @@ def RegressionHelper(X, Y, randomize=False, resample=False):
         np.random.shuffle(X)
 
     if resample:
-        X, Y = resample(X, Y)
+        X, Y = resampleSK(X, Y)
 
     if Y.dtype == int:
         X = scale(X)
