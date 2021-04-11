@@ -43,7 +43,7 @@ def function_prediction(Xin, function="ADCC", **kwargs):
     assert Y.dtype == float
 
     # Perform Regression
-    Y_pred, coef = RegressionHelper(X, Y, **kwargs)
+    Y_pred, coef, X, Y = RegressionHelper(X, Y, **kwargs)
     accuracy = pearsonr(*selectAlter(Y, Y_pred, subset))[0]
 
     return Y, Y_pred, accuracy, coef
