@@ -109,7 +109,7 @@ def selectAlter(Y, Y_pred, subset=None):
     df = importAlterDF().dropna()
     subjects = getAxes()[0]
 
-    idx = np.zeros(181, dtype=np.bool)
+    idx = np.zeros(181, dtype=bool)
     for subject in df["subject"]:
         idx[subjects.index(subject)] = 1
 

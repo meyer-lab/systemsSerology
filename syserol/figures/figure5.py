@@ -2,12 +2,9 @@
 This creates Paper Figure 5.
 """
 
-import pandas as pd
-import numpy as np
 import seaborn as sns
-from ..regression import function_elastic_net, function_prediction
-from ..dataImport import functions
-from ..classify import class_predictions, two_way_classifications
+from ..regression import make_regression_df
+from ..classify import class_predictions_df
 from .common import subplotLabel, getSetup
 from ..tensor import perform_CMTF
 
@@ -17,32 +14,11 @@ def makeFigure():
     # Decompose Cube
     tFac, _, _ = perform_CMTF()
 
-    # Gather Function Prediction Accuracies
-    preds = [function_prediction(tFac[1][0], function=f)[2] for f in functions]
+    # Function Prediction DataFrame, Figure 5A
+    functions_df = make_regression_df(tFac[1][0])
 
-    accuracies = [function_elastic_net(f)[2] for f in functions]
-    baselines = [function_elastic_net(f, True)[2] for f in functions]
-    accuracies = accuracies + preds + baselines
-
-    # Create DataFrame
-    model = ["CMTF"] * 6 + ["Alter et al"] * 6 + ["Randomized"] * 6
-    function = functions + functions + functions
-    data = {"Accuracy": accuracies, "Model": model, "Function": function}
-    functions_df = pd.DataFrame(data)  # Function Prediction DataFrame, Figure 5A
-
-    # Gather Class Prediction Accuracies
-    accuracyCvP, accuracyVvN = two_way_classifications()  # Alter accuracies
-    # Run our model
-    accuracy, _, _ = class_predictions(tFac[1][0])  # Our accuracies
-
-    # Create DataFrame
-    baselineNV = 0.5083  # datasetEV3/Fc.array/class.nv/lambda.min/score_details.txt "No information rate"
-    baselineCP = 0.5304  # datasetEV3/Fc.array/class.cp/lambda.min/score_details.txt "No information rate"
-    accuracies = np.array([accuracyCvP, accuracy["cp_all"], baselineCP, accuracyVvN, accuracy["nv_all"], baselineNV, 0.0, 0.0, 0.0])
-    category = ["Controller/Progressor"] * 3 + ["Viremic/Non-Viremic"] * 3 + ["Four-Class"] * 3
-    model = ["CMTF", "Alter et al", "Randomized"] * 3
-    data = {"Accuracies": accuracies, "Class": category, "Model": model}
-    classes = pd.DataFrame(data)  # Class Predictions DataFrame, Figure 5B
+    # Class Predictions DataFrame, Figure 5B
+    classes = class_predictions_df(tFac[1][0])
 
     # PLOT DataFrames
     ax, f = getSetup((6, 3), (1, 2))
