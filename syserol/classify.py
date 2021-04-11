@@ -31,12 +31,12 @@ def class_predictions(X, **kwargs):
     return accuracies, cp[1], nv[1]
 
 
-def class_predictions_df(X):
+def class_predictions_df(X, resample=False):
     # Alter accuracies
-    alterAcc = two_way_classifications()
+    alterAcc = two_way_classifications(resample=resample)
 
     # Our accuracies
-    accuracy = class_predictions(X)[0]
+    accuracy = class_predictions(X, resample=resample)[0]
 
     # Our accuracies baseline
     shuffled = class_predictions(X, randomize=True)[0]
@@ -49,13 +49,13 @@ def class_predictions_df(X):
     return pd.DataFrame(data)
 
 
-def two_way_classifications():
+def two_way_classifications(resample=False):
     """ Predict classifications of subjects by progression (EC/VC vs TP/UP) or by viremia (EC/TP vs VC/UP) - Alter methods"""
     df = importAlterDF(function=False, subjects=True)
 
     # Subset, Z score
     X = df.drop(["subject", "class.etuv", "class.cp", "class.nv"], axis=1)
-    cp, nv, all = getClassPred(X, df)
+    cp, nv, all = getClassPred(X, df, resample=resample)
 
     accuracies = {}
     accuracies["cp"] = accuracy_score(cp[3], cp[0])

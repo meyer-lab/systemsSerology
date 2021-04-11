@@ -18,7 +18,7 @@ from .dataImport import (
 )
 
 
-def function_elastic_net(function="ADCC", **kwargs):
+def function_elastic_net(function="ADCC", resample=False):
     """ Predict functions using elastic net according to Alter methods"""
     # Import Luminex, Luminex-IGG, Function, and Glycan into DF
     df = importAlterDF(function=True, subjects=False).dropna()
@@ -28,7 +28,7 @@ def function_elastic_net(function="ADCC", **kwargs):
     X = df.drop(["subject"] + functions, axis=1)
 
     # perform regression
-    Y_pred, coef = RegressionHelper(X, Y)
+    Y_pred, coef, X, Y = RegressionHelper(X, Y, resample=resample)
     return Y, Y_pred, pearsonr(Y, Y_pred)[0], coef
 
 
@@ -49,12 +49,12 @@ def function_prediction(Xin, function="ADCC", **kwargs):
     return Y, Y_pred, accuracy, coef
 
 
-def make_regression_df(X):
+def make_regression_df(X, resample=False):
     """ Make the dataframe of prediction accuracies. """
     # Gather Function Prediction Accuracies
-    preds = [function_prediction(X, function=f)[2] for f in functions]
+    preds = [function_prediction(X, resample=resample, function=f)[2] for f in functions]
 
-    accuracies = [function_elastic_net(f)[2] for f in functions]
+    accuracies = [function_elastic_net(f, resample=resample)[2] for f in functions]
     baselines = [function_prediction(X, function=f, randomize=True)[2] for f in functions]
     accuracies = accuracies + preds + baselines
 
@@ -68,11 +68,13 @@ def make_regression_df(X):
 
 def RegressionHelper(X, Y, randomize=False, resample=False):
     """ Function with the regression cross-validation strategy. """
+    X = np.copy(X)
+    Y = np.copy(Y)
     kern = ConstantKernel() * RBF(np.ones(X.shape[1]), (1e-2, 1e14))
     kern += WhiteKernel(noise_level_bounds=(0.001, 0.8))
 
     if randomize:
-        X = np.random.shuffle(X)
+        np.random.shuffle(X)
 
     if resample:
         X, Y = resample(X, Y)
@@ -109,6 +111,6 @@ def RegressionHelper(X, Y, randomize=False, resample=False):
             better = pearsonr(Y, Y_pred_G)[0] > pearsonr(Y, Y_pred)[0]
 
         if better:
-            return Y_pred_G, coef
+            return Y_pred_G, coef, X, Y
 
     return Y_pred, coef, X, Y
