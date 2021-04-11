@@ -152,8 +152,11 @@ def createCube():
     # IIa.H/R were offset to negative, so correct that
     cube[:, 1:11, :] = np.clip(cube[:, 1:11, :], 0, None)
 
-    # gp140.HXBc2,gp140/SOSIP is consistently much larger
-    cube[:, :, 25] /= 100000.0
+    # z-score across subjects
+    cube -= np.nanmean(cube, axis=(1, 2), keepdims=True)
+    cube /= np.nanstd(cube, axis=(1, 2), keepdims=True)
+    glyCube -= np.nanmean(glyCube, axis=1, keepdims=True)
+    glyCube /= np.nanstd(glyCube, axis=1, keepdims=True)
 
     # Check that there are no slices with completely missing data
     assert ~np.any(np.all(np.isnan(cube), axis=(0, 1)))
