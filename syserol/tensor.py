@@ -94,17 +94,14 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
         pick = True
         if os.path.exists(filename):
             with open(filename, 'rb') as p:
-                tFac, mFac, R2X = pickle.load(p)
-                tFac = cp_normalize(tFac)
-                mFac = cp_normalize(mFac)
-                return tFac, mFac, R2X
+                return pickle.load(p)
     else:
         pick = False
 
     if tOrig is None:
         tOrig, mOrig = createCube()
 
-    tFac = initialize_cp(np.nan_to_num(tOrig, nan=np.nanmean(tOrig)), r, non_negative=True)
+    tFac = initialize_cp(np.nan_to_num(tOrig), r)
 
     # Everything from the original mFac will be overwritten
     mFac = initialize_cp(np.nan_to_num(mOrig), r)
@@ -141,7 +138,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
             R2X_last = R2X
             R2X = calcR2X(tOrig, mOrig, tFac, mFac)
 
-        if R2X - R2X_last < 1e-7:
+        if R2X - R2X_last < 1e-9:
             break
 
     tFac = cp_normalize(tFac)
