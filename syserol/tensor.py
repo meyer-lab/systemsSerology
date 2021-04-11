@@ -90,7 +90,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
     """ Perform CMTF decomposition. """
     filename = join(path_here, "syserol/data/" + str(r) + ".pkl")
 
-    if (tOrig is None) and (r > 20):
+    if (tOrig is None) and (r > 2):
         pick = True
         if os.path.exists(filename):
             with open(filename, 'rb') as p:
@@ -141,7 +141,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
             R2X_last = R2X
             R2X = calcR2X(tOrig, mOrig, tFac, mFac)
 
-        if R2X - R2X_last < 1e-7:
+        if R2X - R2X_last < 1e-9:
             break
 
     tFac = cp_normalize(tFac)
