@@ -59,7 +59,7 @@ def make_regression_df(X, resample=False):
     accuracies = accuracies + preds + baselines
 
     # Create DataFrame
-    model = ["TMTF"] * 6 + ["Alter et al"] * 6 + ["Randomized"] * 6
+    model = ["CMTF"] * 6 + ["Alter et al"] * 6 + ["Randomized"] * 6
     function = functions + functions + functions
     data = {"Accuracy": accuracies, "Model": model, "Function": function}
     functions_df = pd.DataFrame(data)  # Function Prediction DataFrame, Figure 5A
