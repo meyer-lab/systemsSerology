@@ -2,9 +2,12 @@
 Unit test file.
 """
 import numpy as np
+import pandas as pd
+import pytest
 from tensorly.cp_tensor import _validate_cp_tensor
-from ..dataImport import createCube
 from ..tensor import perform_CMTF, delete_component
+from ..regression import make_regression_df
+from ..classify import class_predictions_df
 
 
 def test_R2X():
@@ -32,3 +35,18 @@ def test_delete():
 
     _validate_cp_tensor(facT)
     _validate_cp_tensor(facM)
+
+
+@pytest.mark.parametrize("resample", [False, True])
+def test_prediction_dfs(resample):
+    """ Test that we can assemble the prediction dataframes. """
+    tFac = perform_CMTF(r=3)[0]
+
+    # Function Prediction DataFrame, Figure 5A
+    functions_df = make_regression_df(tFac[1][0], resample=resample)
+
+    # Class Predictions DataFrame, Figure 5B
+    classes = class_predictions_df(tFac[1][0], resample=resample)
+
+    assert isinstance(functions_df, pd.DataFrame)
+    assert isinstance(classes, pd.DataFrame)
