@@ -84,21 +84,22 @@ def RegressionHelper(X, Y, randomize=False, resample=False):
         estCV = LogisticRegressionCV(penalty="elasticnet", solver="saga", cv=10, l1_ratios=[0.8], n_jobs=-1, max_iter=1000000)
         estCV.fit(X, Y)
         est = LogisticRegression(C=estCV.C_[0], penalty="elasticnet", solver="saga", l1_ratio=0.8, max_iter=1000000)
-        estG = GaussianProcessClassifier(kern, n_restarts_optimizer=40)
+        estG = GaussianProcessClassifier(kern, n_restarts_optimizer=5)
         cv = StratifiedKFold(n_splits=10, shuffle=True)
     else:
         assert Y.dtype == float
         estCV = ElasticNetCV(normalize=True, l1_ratio=0.8, cv=10, n_jobs=-1, max_iter=1000000)
         estCV.fit(X, Y)
         est = ElasticNet(normalize=True, alpha=estCV.alpha_, l1_ratio=0.8, max_iter=1000000)
-        estG = GaussianProcessRegressor(kern, normalize_y=True, n_restarts_optimizer=20)
+        estG = GaussianProcessRegressor(kern, normalize_y=True, n_restarts_optimizer=5)
         cv = KFold(n_splits=10, shuffle=True)
 
     est = est.fit(X, Y)
     coef = np.squeeze(est.coef_)
     Y_pred = cross_val_predict(est, X, Y, cv=cv, n_jobs=-1)
 
-    if X.shape[1] < 20:
+    # TODO: Get Gaussian process model working for multinomial case
+    if (X.shape[1] < 20) and (np.unique(Y).size != 4):
         estG.fit(X, Y)
         coef = np.sign(coef) / estG.kernel_.get_params()["k1__k2__length_scale"]
         estG.optimizer = None
