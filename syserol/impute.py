@@ -23,7 +23,7 @@ def evaluate_missing(comps, numSample=15):
 
     for ii, nComp in enumerate(comps):
         # reconstruct with some values missing
-        tensorR = tl.cp_to_tensor(perform_CMTF(missingCube, glyCube, nComp)[0])
+        tensorR = tl.cp_to_tensor(perform_CMTF(missingCube, glyCube, nComp))
         tensorR[np.isfinite(missingCube)] = np.nan
 
         # Compare original Cube with reconstructed cube, which was created from the cube with imputed missing values

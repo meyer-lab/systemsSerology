@@ -13,7 +13,7 @@ def makeFigure():
     # Get list of axis objects
     ax, f = getSetup((6, 3), (1, 2))
 
-    tFac, _, _ = perform_CMTF()
+    tFac = perform_CMTF()
     X = tFac.factors[0]
     ncomp = X.shape[1]
 
