@@ -12,11 +12,7 @@ def getClassPred(X, df, **kwargs):
     Y2 = (df["class.nv"] == "viremic").astype(int)  # viremic 1, nonviremic 0
     Y3 = 2 * Y2 + Y1  # Split to all four classes
 
-    returnList = []
-    returnList.append(RegressionHelper(X, Y1, **kwargs))
-    returnList.append(RegressionHelper(X, Y2, **kwargs))
-    returnList.append(RegressionHelper(X, Y3, **kwargs))
-    return returnList
+    return [RegressionHelper(X, YY, **kwargs) for YY in [Y1, Y2, Y3]]
 
 
 def class_predictions(X, **kwargs):
