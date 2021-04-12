@@ -109,7 +109,7 @@ def selectAlter(Y, Y_pred, subset=None):
     df = importAlterDF().dropna()
     subjects = getAxes()[0]
 
-    idx = np.zeros(181, dtype=np.bool)
+    idx = np.zeros(181, dtype=bool)
     for subject in df["subject"]:
         idx[subjects.index(subject)] = 1
 
@@ -151,9 +151,6 @@ def createCube():
     # Clip to 0 as there are a few strongly negative outliers
     # IIa.H/R were offset to negative, so correct that
     cube[:, 1:11, :] = np.clip(cube[:, 1:11, :], 0, None)
-
-    # gp140.HXBc2,gp140/SOSIP is consistently much larger
-    cube[:, :, 25] /= 100000.0
 
     # Check that there are no slices with completely missing data
     assert ~np.any(np.all(np.isnan(cube), axis=(0, 1)))

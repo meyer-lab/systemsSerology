@@ -16,7 +16,7 @@ def makeFigure():
     ax, f = getSetup((6, 3), (1, 2))
 
     comps = np.arange(1, 12)
-    TMTFR2X = np.zeros(comps.shape)
+    CMTFR2X = np.zeros(comps.shape)
     PCAR2X = np.zeros(comps.shape)
 
     tOrig, mOrig = createCube()
@@ -33,10 +33,10 @@ def makeFigure():
         recon = outt.scores @ outt.loadings.T
         PCAR2X[i] = np.nanvar(tMat - recon) / np.nanvar(tMat)
 
-        _, _, TMTFR2X[i] = perform_CMTF(r=cc)
+        CMTFR2X[i] = perform_CMTF(r=cc).R2X
 
-    ax[0].scatter(comps, TMTFR2X, s=10)
-    ax[0].set_ylabel("TMTF R2X")
+    ax[0].scatter(comps, CMTFR2X, s=10)
+    ax[0].set_ylabel("CMTF R2X")
     ax[0].set_xlabel("Number of Components")
     ax[0].set_xticks([x for x in comps])
     ax[0].set_xticklabels([x for x in comps])
@@ -44,7 +44,7 @@ def makeFigure():
     ax[0].set_xlim(0.0, np.amax(comps) + 0.5)
 
     ax[1].set_xscale("log", base=2)
-    ax[1].plot(sizeTfac, 1.0 - TMTFR2X, ".", label="TMTF")
+    ax[1].plot(sizeTfac, 1.0 - CMTFR2X, ".", label="CMTF")
     ax[1].plot(sizePCA, PCAR2X, ".", label="PCA")
     ax[1].set_ylabel("Normalized Unexplained Variance")
     ax[1].set_xlabel("Size of Factorization")
