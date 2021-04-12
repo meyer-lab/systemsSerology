@@ -120,7 +120,7 @@ def selectAlter(Y, Y_pred, subset=None):
     return Y, Y_pred
 
 
-def createCube(zscore=True):
+def createCube():
     """ Import the data and assemble the antigen cube. """
     subjects, detections, antigen = getAxes()
     cube = np.full([len(subjects), len(detections), len(antigen)], np.nan)
@@ -151,13 +151,6 @@ def createCube(zscore=True):
     # Clip to 0 as there are a few strongly negative outliers
     # IIa.H/R were offset to negative, so correct that
     cube[:, 1:11, :] = np.clip(cube[:, 1:11, :], 0, None)
-
-    # z-score across subjects
-    if zscore:
-        cube -= np.nanmean(cube, axis=(1, 2), keepdims=True)
-        cube /= np.nanstd(cube, axis=(1, 2), keepdims=True)
-        glyCube -= np.nanmean(glyCube, axis=1, keepdims=True)
-        glyCube /= np.nanstd(glyCube, axis=1, keepdims=True)
 
     # Check that there are no slices with completely missing data
     assert ~np.any(np.all(np.isnan(cube), axis=(0, 1)))

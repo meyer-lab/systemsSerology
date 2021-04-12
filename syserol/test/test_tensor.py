@@ -14,12 +14,12 @@ def test_R2X():
     """ Test to ensure R2X for higher components is larger. """
     arr = []
     for i in range(1, 5):
-        facT, facM, tensorR2X = perform_CMTF(r=i)
+        facT = perform_CMTF(r=i)
         assert np.all(np.isfinite(facT.factors[0]))
         assert np.all(np.isfinite(facT.factors[1]))
         assert np.all(np.isfinite(facT.factors[2]))
-        assert np.allclose(facT.factors[0], facM.factors[0])
-        arr.append(tensorR2X)
+        assert np.all(np.isfinite(facT.mFactor))
+        arr.append(facT.R2X)
     for j in range(len(arr) - 1):
         assert arr[j] < arr[j + 1]
     # confirm R2X is >= 0 and <=1
@@ -29,18 +29,16 @@ def test_R2X():
 
 def test_delete():
     """ Test deleting a component results in a valid tensor. """
-    facT, facM, _ = perform_CMTF(r=5)
+    facT = perform_CMTF(r=5)
     facT = delete_component(facT, 2)
-    facM = delete_component(facM, 3)
 
     _validate_cp_tensor(facT)
-    _validate_cp_tensor(facM)
 
 
 @pytest.mark.parametrize("resample", [False, True])
 def test_prediction_dfs(resample):
     """ Test that we can assemble the prediction dataframes. """
-    tFac = perform_CMTF(r=3)[0]
+    tFac = perform_CMTF(r=3)
 
     # Function Prediction DataFrame, Figure 5A
     functions_df = make_regression_df(tFac[1][0], resample=resample)

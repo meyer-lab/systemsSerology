@@ -7,44 +7,47 @@ import pickle
 import numpy as np
 from scipy.linalg import khatri_rao
 import tensorly as tl
-from tensorly.decomposition._cp import initialize_cp
+from tensorly.decomposition._nn_cp import initialize_nn_cp
 from .dataImport import createCube
 
 tl.set_backend("numpy")
 path_here = dirname(dirname(__file__))
 
 
-def calcR2X(tensorIn, matrixIn, tensorFac, matrixFac):
+def calcR2X(tIn, mIn, tFac):
     """ Calculate R2X. """
-    tErr = np.nanvar(tl.cp_to_tensor(tensorFac) - tensorIn)
-    mErr = np.nanvar(tl.cp_to_tensor(matrixFac) - matrixIn)
-    return 1.0 - (tErr + mErr) / (np.nanvar(tensorIn) + np.nanvar(matrixIn))
+    tErr = np.nanvar(tl.cp_to_tensor(tFac) - tIn)
+    mErr = np.nanvar(tFac.factors[0] @ tFac.mFactor.T - mIn)
+    return 1.0 - (tErr + mErr) / (np.nanvar(tIn) + np.nanvar(mIn))
 
 
-def reorient_factors(tensorFac, matrixFac):
+def reorient_factors(tFac):
     """ This function ensures that factors are negative on at most one direction. """
-    for jj in range(1, len(tensorFac)):
-        # Calculate the sign of the current factor in each component
-        means = np.sign(np.mean(tensorFac[jj], axis=0))
+    # Flip the subjects to be positive
+    subjMeans = np.sign(np.mean(tFac.factors[0], axis=0))
+    tFac.factors[0] *= subjMeans[np.newaxis, :]
+    tFac.factors[1] *= subjMeans[np.newaxis, :]
+    tFac.mFactor *= subjMeans[np.newaxis, :]
 
-        # Update both the current and last factor
-        tensorFac[0] *= means[np.newaxis, :]
-        matrixFac[0] *= means[np.newaxis, :]
-        matrixFac[1] *= means[np.newaxis, :]
-        tensorFac[jj] *= means[np.newaxis, :]
-    return tensorFac, matrixFac
+    # Flip the receptors to be positive
+    rMeans = np.sign(np.mean(tFac.factors[1], axis=0))
+    tFac.factors[1] *= rMeans[np.newaxis, :]
+    tFac.factors[2] *= rMeans[np.newaxis, :]
+    return tFac
 
 
-def delete_component(cp_tensor, compNum):
+def delete_component(tFac, compNum):
     """ Delete the indicated component. """
-    assert compNum < cp_tensor.rank
+    assert compNum < tFac.rank
 
-    cp_tensor.weights = np.delete(cp_tensor.weights, compNum)
-    cp_tensor.rank -= 1
-    for i, fac in enumerate(cp_tensor.factors):
-        cp_tensor.factors[i] = np.delete(fac, compNum, axis=0)
+    tFac.weights = np.delete(tFac.weights, compNum)
+    tFac.rank -= 1
 
-    return cp_tensor
+    tFac.mFactor = np.delete(tFac.mFactor, compNum, axis=0)
+    for i, fac in enumerate(tFac.factors):
+        tFac.factors[i] = np.delete(fac, compNum, axis=0)
+
+    return tFac
 
 
 def censored_lstsq(A: np.ndarray, B: np.ndarray, uniqueInfo) -> np.ndarray:
@@ -66,7 +69,7 @@ def censored_lstsq(A: np.ndarray, B: np.ndarray, uniqueInfo) -> np.ndarray:
     unique, uIDX = uniqueInfo
 
     for i in range(unique.shape[1]):
-        uI = (uIDX == i)
+        uI = uIDX == i
         uu = np.squeeze(unique[:, i])
 
         Bx = B[uu, :]
@@ -74,16 +77,25 @@ def censored_lstsq(A: np.ndarray, B: np.ndarray, uniqueInfo) -> np.ndarray:
     return X.T
 
 
-def cp_normalize(cp_tensor):
-    cp_tensor.factors[0] *= cp_tensor.weights
-    cp_tensor.weights = np.ones(cp_tensor.rank)
+def cp_normalize(tFac):
+    tFac.factors[0] *= tFac.weights
+    tFac.weights = np.ones(tFac.rank)
+    tFac.mWeights = np.ones(tFac.rank)
 
-    for i, factor in enumerate(cp_tensor.factors):
+    for i, factor in enumerate(tFac.factors):
         scales = np.linalg.norm(factor, ord=np.inf, axis=0)
-        cp_tensor.weights *= scales
-        cp_tensor.factors[i] /= scales
+        tFac.weights *= scales
+        if i == 0:
+            tFac.mWeights *= scales
 
-    return cp_tensor
+        tFac.factors[i] /= scales
+
+    # Handle matrix
+    scales = np.linalg.norm(tFac.mFactor, ord=np.inf, axis=0)
+    tFac.mWeights *= scales
+    tFac.mFactor /= scales
+
+    return tFac
 
 
 def perform_CMTF(tOrig=None, mOrig=None, r=10):
@@ -93,7 +105,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
     if (tOrig is None) and (r > 2):
         pick = True
         if os.path.exists(filename):
-            with open(filename, 'rb') as p:
+            with open(filename, "rb") as p:
                 return pickle.load(p)
     else:
         pick = False
@@ -101,10 +113,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
     if tOrig is None:
         tOrig, mOrig = createCube()
 
-    tFac = initialize_cp(np.nan_to_num(tOrig), r)
-
-    # Everything from the original mFac will be overwritten
-    mFac = initialize_cp(np.nan_to_num(mOrig), r)
+    tFac = initialize_nn_cp(np.nan_to_num(tOrig, nan=np.nanmean(tOrig)), r)
 
     # Pre-unfold
     selPat = np.all(np.isfinite(mOrig), axis=1)
@@ -115,16 +124,14 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
     uniqueInfo = [np.unique(np.isfinite(B.T), axis=1, return_inverse=True) for B in unfolded]
 
     R2X = -1.0
-    mFac.factors[0] = tFac.factors[0]
-    mFac.factors[1] = np.linalg.lstsq(mFac.factors[0][selPat, :], mOrig[selPat, :], rcond=None)[0].T
+    tFac.mFactor = np.linalg.lstsq(tFac.factors[0][selPat, :], mOrig[selPat, :], rcond=None)[0].T
 
     for ii in range(8000):
         # Solve for the subject matrix
         kr = khatri_rao(tFac.factors[1], tFac.factors[2])
-        kr2 = np.vstack((kr, mFac.factors[1]))
+        kr2 = np.vstack((kr, tFac.mFactor))
 
         tFac.factors[0] = censored_lstsq(kr2, unfolded[0].T, uniqueInfo[0])
-        mFac.factors[0] = tFac.factors[0]
 
         # PARAFAC on other antigen modes
         for m in [1, 2]:
@@ -132,23 +139,21 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
             tFac.factors[m] = censored_lstsq(kr, unfolded[m].T, uniqueInfo[m])
 
         # Solve for the glycan matrix fit
-        mFac.factors[1] = np.linalg.lstsq(mFac.factors[0][selPat, :], mOrig[selPat, :], rcond=None)[0].T
+        tFac.mFactor = np.linalg.lstsq(tFac.factors[0][selPat, :], mOrig[selPat, :], rcond=None)[0].T
 
         if ii % 20 == 0:
             R2X_last = R2X
-            R2X = calcR2X(tOrig, mOrig, tFac, mFac)
+            R2X = calcR2X(tOrig, mOrig, tFac)
 
         if R2X - R2X_last < 1e-9:
             break
 
     tFac = cp_normalize(tFac)
-    mFac = cp_normalize(mFac)
-
-    # Reorient the later tensor factors
-    tFac.factors, mFac.factors = reorient_factors(tFac.factors, mFac.factors)
+    tFac = reorient_factors(tFac)
+    tFac.R2X = R2X
 
     if pick:
-        with open(filename, 'wb') as p:
-            pickle.dump((tFac, mFac, R2X), p)
+        with open(filename, "wb") as p:
+            pickle.dump(tFac, p)
 
-    return tFac, mFac, R2X
+    return tFac

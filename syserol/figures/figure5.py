@@ -12,7 +12,7 @@ from ..tensor import perform_CMTF
 def makeFigure():
     """ Show Similarity in Prediction of Alter Model and Our Model"""
     # Decompose Cube
-    tFac, _, _ = perform_CMTF()
+    tFac = perform_CMTF()
 
     # Function Prediction DataFrame, Figure 5A
     functions_df = make_regression_df(tFac[1][0])

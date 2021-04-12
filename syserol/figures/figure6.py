@@ -13,7 +13,7 @@ def makeFigure():
     # Get list of axis objects
     ax, f = getSetup((6, 3), (1, 2))
 
-    tFac, _, _ = perform_CMTF()
+    tFac = perform_CMTF()
     X = tFac.factors[0]
     ncomp = X.shape[1]
 
@@ -45,11 +45,11 @@ def makeFigure():
     sns.barplot(x="Component", y="Feature Importance", hue="Class", data=class_df, ax=ax[1])
 
     # Formatting
-    shades = np.arange(-.5, ncomp - 1, step=2.0)
+    shades = np.arange(-0.5, ncomp - 1, step=2.0)
     for axx in ax:
         for i in shades:
             axx.axvspan(i, i + 1, alpha=0.1, color="grey")
-        axx.set_xlim(-.5, ncomp - .5)
+        axx.set_xlim(-0.5, ncomp - 0.5)
 
     # Add subplot labels
     subplotLabel(ax)
