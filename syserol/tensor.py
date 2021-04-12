@@ -7,18 +7,18 @@ import pickle
 import numpy as np
 from scipy.linalg import khatri_rao
 import tensorly as tl
-from tensorly.decomposition._cp import initialize_cp
+from tensorly.decomposition._nn_cp import initialize_nn_cp
 from .dataImport import createCube
 
 tl.set_backend("numpy")
 path_here = dirname(dirname(__file__))
 
 
-def calcR2X(tensorIn, matrixIn, tensorFac, matrixFac):
+def calcR2X(tIn, mIn, tFac, mFac):
     """ Calculate R2X. """
-    tErr = np.nanvar(tl.cp_to_tensor(tensorFac) - tensorIn)
-    mErr = np.nanvar(tl.cp_to_tensor(matrixFac) - matrixIn)
-    return 1.0 - (tErr + mErr) / (np.nanvar(tensorIn) + np.nanvar(matrixIn))
+    tErr = np.nanvar(tl.cp_to_tensor(tFac) - tIn)
+    mErr = np.nanvar(tl.cp_to_tensor(mFac) - mIn)
+    return 1.0 - (tErr + mErr) / (np.nanvar(tIn) + np.nanvar(mIn))
 
 
 def reorient_factors(tensorFac, matrixFac):
@@ -66,7 +66,7 @@ def censored_lstsq(A: np.ndarray, B: np.ndarray, uniqueInfo) -> np.ndarray:
     unique, uIDX = uniqueInfo
 
     for i in range(unique.shape[1]):
-        uI = (uIDX == i)
+        uI = uIDX == i
         uu = np.squeeze(unique[:, i])
 
         Bx = B[uu, :]
@@ -93,7 +93,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
     if (tOrig is None) and (r > 2):
         pick = True
         if os.path.exists(filename):
-            with open(filename, 'rb') as p:
+            with open(filename, "rb") as p:
                 return pickle.load(p)
     else:
         pick = False
@@ -101,10 +101,10 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
     if tOrig is None:
         tOrig, mOrig = createCube()
 
-    tFac = initialize_cp(np.nan_to_num(tOrig), r)
+    tFac = initialize_nn_cp(np.nan_to_num(tOrig, nan=np.nanmean(tOrig)), r)
 
     # Everything from the original mFac will be overwritten
-    mFac = initialize_cp(np.nan_to_num(mOrig), r)
+    mFac = initialize_nn_cp(np.nan_to_num(mOrig), r)
 
     # Pre-unfold
     selPat = np.all(np.isfinite(mOrig), axis=1)
@@ -148,7 +148,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
     tFac.factors, mFac.factors = reorient_factors(tFac.factors, mFac.factors)
 
     if pick:
-        with open(filename, 'wb') as p:
+        with open(filename, "wb") as p:
             pickle.dump((tFac, mFac, R2X), p)
 
     return tFac, mFac, R2X
