@@ -14,11 +14,11 @@ tl.set_backend("numpy")
 path_here = dirname(dirname(__file__))
 
 
-def calcR2X(tensorIn, matrixIn, tensorFac, matrixFac):
+def calcR2X(tIn, mIn, tFac, mFac):
     """ Calculate R2X. """
-    tErr = np.nanvar(tl.cp_to_tensor(tensorFac) - tensorIn)
-    mErr = np.nanvar(tl.cp_to_tensor(matrixFac) - matrixIn)
-    return 1.0 - (tErr + mErr) / (np.nanvar(tensorIn) + np.nanvar(matrixIn))
+    tErr = np.nanvar(tl.cp_to_tensor(tFac) - tIn)
+    mErr = np.nanvar(tl.cp_to_tensor(mFac) - mIn)
+    return 1.0 - (tErr + mErr) / (np.nanvar(tIn) + np.nanvar(mIn))
 
 
 def reorient_factors(tensorFac, matrixFac):
