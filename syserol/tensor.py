@@ -8,6 +8,7 @@ import numpy as np
 from scipy.linalg import khatri_rao
 import tensorly as tl
 from tensorly.decomposition._cp import initialize_cp
+from copy import deepcopy
 from .dataImport import createCube
 
 tl.set_backend("numpy")
@@ -35,16 +36,36 @@ def reorient_factors(tensorFac, matrixFac):
     return tensorFac, matrixFac
 
 
-def delete_component(cp_tensor, compNum):
+def delete_component(tensor, compNum):
     """ Delete the indicated component. """
-    assert compNum < cp_tensor.rank
+    cp_tensor = deepcopy(tensor)
+    if isinstance(compNum, int):
+        assert compNum < cp_tensor.rank
+        cp_tensor.rank -= 1
+    elif isinstance(compNum, list) or isinstance(compNum, np.ndarray):
+        assert all(i < cp_tensor.rank for i in compNum)
+        cp_tensor.rank -= len(compNum)
+    else:
+        raise TypeError
 
     cp_tensor.weights = np.delete(cp_tensor.weights, compNum)
-    cp_tensor.rank -= 1
+
     for i, fac in enumerate(cp_tensor.factors):
-        cp_tensor.factors[i] = np.delete(fac, compNum, axis=0)
+        cp_tensor.factors[i] = np.delete(fac, compNum, axis=1)
+        assert cp_tensor.factors[i].shape[1] == cp_tensor.rank
 
     return cp_tensor
+
+def comp_var_explained(tFac, mFac):
+    ncomp = tFac.rank
+    cube, glyCube = createCube()
+    for i in range(ncomp):
+        del_comps = np.delete(np.arange(0,ncomp), i)
+        ntFac = delete_component(tFac, del_comps)
+        nmFac = delete_component(mFac, del_comps)
+
+        print(calcR2X(cube, glyCube, ntFac, nmFac))
+    pass
 
 
 def censored_lstsq(A: np.ndarray, B: np.ndarray, uniqueInfo) -> np.ndarray:
