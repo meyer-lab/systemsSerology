@@ -109,7 +109,7 @@ def selectAlter(Y, Y_pred, subset=None):
     df = importAlterDF().dropna()
     subjects = getAxes()[0]
 
-    idx = np.zeros(181, dtype=np.bool)
+    idx = np.zeros(181, dtype=bool)
     for subject in df["subject"]:
         idx[subjects.index(subject)] = 1
 
@@ -120,7 +120,7 @@ def selectAlter(Y, Y_pred, subset=None):
     return Y, Y_pred
 
 
-def createCube():
+def createCube(zscore=True):
     """ Import the data and assemble the antigen cube. """
     subjects, detections, antigen = getAxes()
     cube = np.full([len(subjects), len(detections), len(antigen)], np.nan)
@@ -152,8 +152,12 @@ def createCube():
     # IIa.H/R were offset to negative, so correct that
     cube[:, 1:11, :] = np.clip(cube[:, 1:11, :], 0, None)
 
-    # gp140.HXBc2,gp140/SOSIP is consistently much larger
-    cube[:, :, 25] /= 100000.0
+    # z-score across subjects
+    if zscore:
+        cube -= np.nanmean(cube, axis=(1, 2), keepdims=True)
+        cube /= np.nanstd(cube, axis=(1, 2), keepdims=True)
+        glyCube -= np.nanmean(glyCube, axis=1, keepdims=True)
+        glyCube /= np.nanstd(glyCube, axis=1, keepdims=True)
 
     # Check that there are no slices with completely missing data
     assert ~np.any(np.all(np.isnan(cube), axis=(0, 1)))
