@@ -5,7 +5,6 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from string import ascii_lowercase
-from .common import subplotLabel, getSetup
 from ..tensor import perform_CMTF
 from ..dataImport import getAxes, load_file
 from matplotlib import gridspec, pyplot as plt
@@ -13,13 +12,7 @@ from matplotlib import gridspec, pyplot as plt
 
 def makeFigure():
     """ Generate Figure 3 for Paper, Showing Interpretation of All Data from Decomposed Tensor"""
-    tensorFac, matrixFac, _ = perform_CMTF()
-
-    # Gather tensor data matrices
-    subjects = np.squeeze(tensorFac.factors[0])
-    receptors = np.squeeze(tensorFac.factors[1])
-    antigens = np.squeeze(tensorFac.factors[2])
-    glyc = np.squeeze(matrixFac.factors[1])
+    tensorFac = perform_CMTF()
 
     # Gather grouping info
     glycaninf = load_file("meta-glycans")
@@ -49,10 +42,10 @@ def makeFigure():
     colors = ["blue", "orange", "green", "red"]
     cmap = sns.color_palette(colors)
 
-    subs = pd.DataFrame(subjects, columns=[f"Cmp. {i}" for i in np.arange(1, subjects.shape[1] + 1)], index=subjinfo["class.etuv"])
-    rec = pd.DataFrame(receptors, columns=[f"Cmp. {i}" for i in np.arange(1, subjects.shape[1] + 1)], index=detections)
-    ant = pd.DataFrame(antigens, columns=[f"Cmp. {i}" for i in np.arange(1, subjects.shape[1] + 1)], index=antigen)
-    glycans = pd.DataFrame(glyc, columns=[f"Cmp. {i}" for i in np.arange(1, subjects.shape[1] + 1)], index=glycaninf["glycan"])
+    subs = pd.DataFrame(tensorFac.factors[0], columns=[f"Cmp. {i}" for i in np.arange(1, tensorFac.rank + 1)], index=subjinfo["class.etuv"])
+    rec = pd.DataFrame(tensorFac.factors[1], columns=[f"Cmp. {i}" for i in np.arange(1, tensorFac.rank + 1)], index=detections)
+    ant = pd.DataFrame(tensorFac.factors[2], columns=[f"Cmp. {i}" for i in np.arange(1, tensorFac.rank + 1)], index=antigen)
+    glycans = pd.DataFrame(tensorFac.mFactor, columns=[f"Cmp. {i}" for i in np.arange(1, tensorFac.rank + 1)], index=glycaninf["glycan"])
 
     sns.heatmap(subs, cmap="PRGn", center=0, xticklabels=True, yticklabels=False, cbar_ax=ax4, vmin=-1.0, vmax=1.0, ax=ax2)
     sns.heatmap(rec, cmap="PRGn", center=0, yticklabels=True, cbar=False, vmin=-1.0, vmax=1.0, ax=ax6)
