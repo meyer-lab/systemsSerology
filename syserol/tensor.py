@@ -66,7 +66,7 @@ def censored_lstsq(A: np.ndarray, B: np.ndarray, uniqueInfo) -> np.ndarray:
     unique, uIDX = uniqueInfo
 
     for i in range(unique.shape[1]):
-        uI = (uIDX == i)
+        uI = uIDX == i
         uu = np.squeeze(unique[:, i])
 
         Bx = B[uu, :]
@@ -93,7 +93,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
     if (tOrig is None) and (r > 2):
         pick = True
         if os.path.exists(filename):
-            with open(filename, 'rb') as p:
+            with open(filename, "rb") as p:
                 return pickle.load(p)
     else:
         pick = False
@@ -101,7 +101,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
     if tOrig is None:
         tOrig, mOrig = createCube()
 
-    tFac = initialize_cp(np.nan_to_num(tOrig), r)
+    tFac = initialize_cp(np.nan_to_num(tOrig, nan=np.nanmean(tOrig)), r, non_negative=True)
 
     # Everything from the original mFac will be overwritten
     mFac = initialize_cp(np.nan_to_num(mOrig), r)
@@ -148,7 +148,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
     tFac.factors, mFac.factors = reorient_factors(tFac.factors, mFac.factors)
 
     if pick:
-        with open(filename, 'wb') as p:
+        with open(filename, "wb") as p:
             pickle.dump((tFac, mFac, R2X), p)
 
     return tFac, mFac, R2X
