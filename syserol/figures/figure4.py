@@ -70,12 +70,13 @@ def makeFigure():
     test[test.index == "UP"] = 2
     test[test.index == "VC"] = 3
 
-    sns.heatmap(
-        test, ax=ax1, cbar_kws=dict(use_gridspec=False, location="left", fraction=0.4, pad=0.3), yticklabels=False, xticklabels=True, cmap=cmap
+    axx = sns.heatmap(
+        test, ax=ax1, yticklabels=True, xticklabels=True, cmap=cmap, cbar=False
     )
-    colorbar = ax1.collections[0].colorbar
-    colorbar.set_ticks([0.4, 1.2, 1.9, 2.6])
-    colorbar.set_ticklabels(["EC", "UP", "TP", "VC"])
+
+    axx.set_yticks([180//8, 180*3//8, 180*5//8, 180*7//8])
+    axx.set_yticklabels(["EC", "UP", "TP", "VC"])
+    
     ax1.set_ylabel("")
     ax2.set_ylabel("")
     ax10.set_ylabel("")
