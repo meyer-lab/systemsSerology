@@ -33,7 +33,7 @@ def makeFigure():
         recon = outt.scores @ outt.loadings.T
         PCAR2X[i] = np.nanvar(tMat - recon) / np.nanvar(tMat)
 
-        _, _, CMTFR2X[i] = perform_CMTF(r=cc)
+        CMTFR2X[i] = perform_CMTF(r=cc).R2X
 
     ax[0].scatter(comps, CMTFR2X, s=10)
     ax[0].set_ylabel("CMTF R2X")
