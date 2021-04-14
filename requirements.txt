@@ -3,7 +3,7 @@ scipy==1.6.2
 pytest==6.2.3
 pytest-cov==2.11.1
 manubot==0.5.0
-pandas==1.2.3
+pandas==1.2.4
 pandoc-fignos==2.4.0
 pandoc-eqnos==2.5.0
 pandoc-tablenos==2.3.0
