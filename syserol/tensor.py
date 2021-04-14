@@ -38,32 +38,26 @@ def reorient_factors(tFac):
 
 
 def delete_component(tFac, compNum):
-def delete_component(tensor, compNum):
     """ Delete the indicated component. """
-    assert compNum < tFac.rank
-    cp_tensor = deepcopy(tensor)
+    tensor = deepcopy(tFac)
     if isinstance(compNum, int):
-        assert compNum < cp_tensor.rank
-        cp_tensor.rank -= 1
+        assert compNum < tensor.rank
+        tensor.rank -= 1
     elif isinstance(compNum, list) or isinstance(compNum, np.ndarray):
-        assert all(i < cp_tensor.rank for i in compNum)
-        cp_tensor.rank -= len(compNum)
+        compNum = np.unique(compNum)
+        assert all(i < tensor.rank for i in compNum)
+        tensor.rank -= len(compNum)
     else:
         raise TypeError
 
-    tFac.weights = np.delete(tFac.weights, compNum)
-    tFac.rank -= 1
-    cp_tensor.weights = np.delete(cp_tensor.weights, compNum)
+    tensor.weights = np.delete(tensor.weights, compNum)
+    tensor.mWeights = np.delete(tensor.mWeights, compNum)
+    tensor.mFactor = np.delete(tensor.mFactor, compNum, axis=1)
+    for i, fac in enumerate(tensor.factors):
+        tensor.factors[i] = np.delete(fac, compNum, axis=1)
+        assert tensor.factors[i].shape[1] == tensor.rank
 
-    for i, fac in enumerate(cp_tensor.factors):
-        cp_tensor.factors[i] = np.delete(fac, compNum, axis=1)
-        assert cp_tensor.factors[i].shape[1] == cp_tensor.rank
-
-    tFac.mFactor = np.delete(tFac.mFactor, compNum, axis=0)
-    for i, fac in enumerate(tFac.factors):
-        tFac.factors[i] = np.delete(fac, compNum, axis=0)
-
-    return tFac
+    return tensor
 
 
 def censored_lstsq(A: np.ndarray, B: np.ndarray, uniqueInfo) -> np.ndarray:
