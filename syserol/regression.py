@@ -2,12 +2,9 @@
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import cross_val_predict
-from sklearn.metrics import accuracy_score
 from sklearn.utils import resample as resampleSK
 from sklearn.preprocessing import scale
 from sklearn.linear_model import ElasticNetCV, LogisticRegressionCV, LogisticRegression, ElasticNet
-from sklearn.gaussian_process import GaussianProcessClassifier, GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import ConstantKernel, RBF, WhiteKernel
 from sklearn.model_selection import KFold, StratifiedKFold
 from scipy.stats import pearsonr
 from .dataImport import (
@@ -70,8 +67,6 @@ def RegressionHelper(X, Y, randomize=False, resample=False):
     """ Function with the regression cross-validation strategy. """
     X = np.copy(X)
     Y = np.copy(Y)
-    kern = ConstantKernel() * RBF(np.ones(X.shape[1]), (1e-2, 1e14))
-    kern += WhiteKernel(noise_level_bounds=(0.001, 0.8))
 
     if randomize:
         np.random.shuffle(X)
@@ -84,34 +79,16 @@ def RegressionHelper(X, Y, randomize=False, resample=False):
         estCV = LogisticRegressionCV(penalty="elasticnet", solver="saga", cv=10, l1_ratios=[0.8], n_jobs=-1, max_iter=1000000)
         estCV.fit(X, Y)
         est = LogisticRegression(C=estCV.C_[0], penalty="elasticnet", solver="saga", l1_ratio=0.8, max_iter=1000000)
-        estG = GaussianProcessClassifier(kern, n_restarts_optimizer=5)
         cv = StratifiedKFold(n_splits=10, shuffle=True)
     else:
         assert Y.dtype == float
         estCV = ElasticNetCV(normalize=True, l1_ratio=0.8, cv=10, n_jobs=-1, max_iter=1000000)
         estCV.fit(X, Y)
         est = ElasticNet(normalize=True, alpha=estCV.alpha_, l1_ratio=0.8, max_iter=1000000)
-        estG = GaussianProcessRegressor(kern, normalize_y=True, n_restarts_optimizer=5)
         cv = KFold(n_splits=10, shuffle=True)
 
     est = est.fit(X, Y)
     coef = np.squeeze(est.coef_)
     Y_pred = cross_val_predict(est, X, Y, cv=cv, n_jobs=-1)
-
-    # TODO: Get Gaussian process model working for multinomial case
-    if (X.shape[1] < 20) and (np.unique(Y).size != 4):
-        estG.fit(X, Y)
-        coef = np.sign(coef) / estG.kernel_.get_params()["k1__k2__length_scale"]
-        estG.optimizer = None
-        estG.kernel = estG.kernel_
-        Y_pred_G = cross_val_predict(estG, X, Y, cv=cv, n_jobs=-1)
-
-        if Y.dtype == int:
-            better = accuracy_score(Y, Y_pred_G) > accuracy_score(Y, Y_pred)
-        else:
-            better = pearsonr(Y, Y_pred_G)[0] > pearsonr(Y, Y_pred)[0]
-
-        if better:
-            return Y_pred_G, coef, X, Y
 
     return Y_pred, coef, X, Y
