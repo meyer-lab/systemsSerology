@@ -6,7 +6,7 @@ from .dataImport import createCube
 from .tensor import perform_CMTF
 
 
-def evaluate_missing(comps, numSample, chords=True):
+def evaluate_missing(comps, numSample, chords):
     """ check differences between original and recon values for different number of components.
     chords: whether to leave out tensor chords or individual values """
     cube, glyCube = createCube()
