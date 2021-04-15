@@ -12,10 +12,10 @@ def makeFigure():
     # Get list of axis objects
     ax, f = getSetup((9, 3), (1, 3))
 
-    comps = np.arange(1, 12)
+    comps = np.arange(1, 11)
 
-    Q2X = evaluate_missing(comps)
-    ax[0].scatter(comps, Q2X)
+    Q2Xchord = evaluate_missing(comps, 15, chords=True)
+    ax[0].scatter(comps, Q2Xchord)
     ax[0].set_ylabel("Q2X of Imputation")
     ax[0].set_xlabel("Number of Components")
     ax[0].set_xticks([x for x in comps])
