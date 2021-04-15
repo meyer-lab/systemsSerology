@@ -14,7 +14,7 @@ def makeFigure():
 
     comps = np.arange(1, 11)
 
-    Q2Xchord = evaluate_missing(comps, 15, chords=True)
+    Q2Xchord, _ = evaluate_missing(comps, 15, chords=True)
     ax[0].scatter(comps, Q2Xchord)
     ax[0].set_ylabel("Q2X of Imputation")
     ax[0].set_xlabel("Number of Components")
@@ -22,9 +22,9 @@ def makeFigure():
     ax[0].set_xticklabels([x for x in comps])
     ax[0].set_ylim(0, 1)
 
-    CMTFR2X, PCAR2X = evaluate_missing_meas(comps)
+    CMTFR2X, PCAR2X = evaluate_missing(comps, 15, chords=False, PCAcompare=True)
     ax[1].plot(comps, CMTFR2X, ".", label="CMTF")
-    ax[1].plot(comps, 1.0 - PCAR2X, ".", label="PCA")
+    ax[1].plot(comps, PCAR2X, ".", label="PCA")
     ax[1].set_ylabel("Q2X of Imputation")
     ax[1].set_xlabel("Number of Components")
     ax[1].set_xticks([x for x in comps])
