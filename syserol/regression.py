@@ -62,8 +62,7 @@ def make_regression_df(X, resample=False):
     model = ["CMTF"] * 6 + ["Alter et al"] * 6 + ["Randomized"] * 6
     function = functions + functions + functions
     data = {"Accuracy": accuracies, "Model": model, "Function": function}
-    functions_df = pd.DataFrame(data)  # Function Prediction DataFrame, Figure 5A
-    return functions_df
+    return pd.DataFrame(data)
 
 
 def RegressionHelper(X, Y, randomize=False, resample=False):

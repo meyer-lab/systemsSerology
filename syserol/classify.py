@@ -28,33 +28,29 @@ def class_predictions(X, **kwargs):
 
 
 def class_predictions_df(X, resample=False):
+    """ Make a pd.DataFrame( of the class predictions. """
+    df = pd.DataFrame(columns=['Accuracies', 'Class', 'Model'])
+    classes = ["Controller/Progressor", "Viremic/Non-Viremic", "Four-Class"]
+
     # Alter accuracies
-    alterAcc = two_way_classifications(resample=resample)
+    accuracy = two_way_classifications(resample=resample)
+    df.append([[accuracy["cp"], accuracy["nv"], accuracy["all"]],
+               classes,
+               ["Alter et al"] * 3])
 
     # Our accuracies
     accuracy = class_predictions(X, resample=resample)[0]
+    df.append([[accuracy["cp"], accuracy["nv"], accuracy["all"]],
+               classes,
+               ["CMTF"] * 3])
 
     # Our accuracies baseline
-    shuffled = class_predictions(X, randomize=True)[0]
+    accuracy = class_predictions(X, randomize=True)[0]
+    df.append([[accuracy["cp"], accuracy["nv"], accuracy["all"]],
+               classes,
+               ["Randomized"] * 3])
 
-    # Create DataFrame
-    accuracies = np.array(
-        [
-            alterAcc["cp"],
-            accuracy["cp"],
-            shuffled["cp"],
-            alterAcc["nv"],
-            accuracy["nv"],
-            shuffled["nv"],
-            alterAcc["all"],
-            accuracy["all"],
-            shuffled["all"],
-        ]
-    )
-    category = ["Controller/Progressor"] * 3 + ["Viremic/Non-Viremic"] * 3 + ["Four-Class"] * 3
-    model = ["CMTF", "Alter et al", "Randomized"] * 3
-    data = {"Accuracies": accuracies, "Class": category, "Model": model}
-    return pd.DataFrame(data)
+    return df
 
 
 def two_way_classifications(resample=False):
