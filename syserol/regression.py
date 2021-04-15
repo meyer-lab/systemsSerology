@@ -18,7 +18,7 @@ from .dataImport import (
 )
 
 
-def function_elastic_net(function="ADCC", resample=False):
+def function_elastic_net(function="ADCC", n_resample=0):
     """ Predict functions using elastic net according to Alter methods"""
     # Import Luminex, Luminex-IGG, Function, and Glycan into DF
     df = importAlterDF(function=True, subjects=False).dropna()
@@ -28,8 +28,14 @@ def function_elastic_net(function="ADCC", resample=False):
     X = df.drop(["subject"] + functions, axis=1)
 
     # perform regression
-    Y_pred, coef, X, Y = RegressionHelper(X, Y, resample=resample)
-    return Y, Y_pred, pearsonr(Y, Y_pred)[0], coef
+    Y_pred, coef, _, Y_out = RegressionHelper(X, Y)
+
+    if n_resample > 0:
+        for _ in range(n_resample):
+            coef_samp = RegressionHelper(X, Y, resample=True)[1]
+            coef = np.vstack((coef, coef_samp))
+
+    return Y_out, Y_pred, pearsonr(Y, Y_pred)[0], coef
 
 
 def function_prediction(Xin, function="ADCC", **kwargs):
@@ -54,7 +60,7 @@ def make_regression_df(X, resample=False):
     # Gather Function Prediction Accuracies
     accuracies = []
     accuracies += [function_prediction(X, resample=resample, function=f)[2] for f in functions]
-    accuracies += [function_elastic_net(f, resample=resample)[2] for f in functions]
+    accuracies += [function_elastic_net(f)[2] for f in functions]
     accuracies += [function_prediction(X, function=f, randomize=True)[2] for f in functions]
 
     # Create DataFrame
@@ -66,12 +72,11 @@ def make_regression_df(X, resample=False):
 
 def RegressionHelper(X, Y, randomize=False, resample=False):
     """ Function with the regression cross-validation strategy. """
-    X = np.copy(X)
-    Y = np.copy(Y)
     kern = ConstantKernel() * RBF(np.ones(X.shape[1]), (1e-2, 1e14))
     kern += WhiteKernel(noise_level_bounds=(0.001, 0.8))
 
     if randomize:
+        X = np.copy(X)
         np.random.shuffle(X)
 
     if resample:
