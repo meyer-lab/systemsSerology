@@ -10,13 +10,9 @@ def getClassPred(X, df, **kwargs):
     """ Extract Ys for classification. """
     Y1 = (df["class.cp"] == "controller").astype(int)  # control 1, progress 0
     Y2 = (df["class.nv"] == "viremic").astype(int)  # viremic 1, nonviremic 0
-    Y3 = 2*Y2 + Y1  # Split to all four classes
+    Y3 = 2 * Y2 + Y1  # Split to all four classes
 
-    returnList = []
-    returnList.append(RegressionHelper(X, Y1, **kwargs))
-    returnList.append(RegressionHelper(X, Y2, **kwargs))
-    returnList.append(RegressionHelper(X, Y3, **kwargs))
-    return returnList
+    return [RegressionHelper(X, YY, **kwargs) for YY in [Y1, Y2, Y3]]
 
 
 def class_predictions(X, **kwargs):
@@ -42,7 +38,19 @@ def class_predictions_df(X, resample=False):
     shuffled = class_predictions(X, randomize=True)[0]
 
     # Create DataFrame
-    accuracies = np.array([alterAcc["cp"], accuracy["cp"], shuffled["cp"], alterAcc["nv"], accuracy["nv"], shuffled["nv"], alterAcc["all"], accuracy["all"], shuffled["all"]])
+    accuracies = np.array(
+        [
+            alterAcc["cp"],
+            accuracy["cp"],
+            shuffled["cp"],
+            alterAcc["nv"],
+            accuracy["nv"],
+            shuffled["nv"],
+            alterAcc["all"],
+            accuracy["all"],
+            shuffled["all"],
+        ]
+    )
     category = ["Controller/Progressor"] * 3 + ["Viremic/Non-Viremic"] * 3 + ["Four-Class"] * 3
     model = ["CMTF", "Alter et al", "Randomized"] * 3
     data = {"Accuracies": accuracies, "Class": category, "Model": model}
