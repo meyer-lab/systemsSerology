@@ -10,6 +10,7 @@ def evaluate_missing(comps, numSample, chords=True):
     """ check differences between original and recon values for different number of components.
     chords: whether to leave out tensor chords or individual values """
     cube, glyCube = createCube()
+    np.random.seed(1)  # Avoid random variation in this output
 
     R2X = np.zeros(comps.shape)
     missingCube = np.copy(cube)
