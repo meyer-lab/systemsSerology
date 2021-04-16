@@ -4,7 +4,7 @@ This creates Figure 3.
 
 import numpy as np
 from .common import subplotLabel, getSetup
-from ..impute import evaluate_missing, evaluate_missing_meas
+from ..impute import evaluate_missing
 
 
 def makeFigure():

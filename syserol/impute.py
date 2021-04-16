@@ -15,7 +15,7 @@ def flatten_to_mat(tensor, matrix):
     return tMat
 
 
-def evaluate_missing(comps, numSample=15, chords, PCAcompare=False):
+def evaluate_missing(comps, numSample=15, chords=True, PCAcompare=False):
     """ check differences between original and recon values for different number of components.
     chords: whether to leave out tensor chords or individual values """
     cube, glyCube = createCube()
