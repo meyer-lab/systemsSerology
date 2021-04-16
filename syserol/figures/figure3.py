@@ -10,11 +10,11 @@ from ..impute import evaluate_missing
 def makeFigure():
     """Get a list of the axis objects and create a figure"""
     # Get list of axis objects
-    ax, f = getSetup((7, 2), (1, 3))
+    ax, f = getSetup((9, 3), (1, 3))
 
     comps = np.arange(1, 11)
 
-    Q2Xchord = evaluate_missing(comps, 15, chords=True)
+    Q2Xchord, _ = evaluate_missing(comps, 15, chords=True)
     ax[0].scatter(comps, Q2Xchord)
     ax[0].set_ylabel("Q2X of Imputation")
     ax[0].set_xlabel("Number of Components")
@@ -22,13 +22,15 @@ def makeFigure():
     ax[0].set_xticklabels([x for x in comps])
     ax[0].set_ylim(0, 1)
 
-    Q2X = evaluate_missing(comps, 250, chords=False)
-    ax[1].scatter(comps, Q2X)
+    CMTFR2X, PCAR2X = evaluate_missing(comps, 15, chords=False, PCAcompare=True)
+    ax[1].plot(comps, CMTFR2X, ".", label="CMTF")
+    ax[1].plot(comps, PCAR2X, ".", label="PCA")
     ax[1].set_ylabel("Q2X of Imputation")
     ax[1].set_xlabel("Number of Components")
     ax[1].set_xticks([x for x in comps])
     ax[1].set_xticklabels([x for x in comps])
     ax[1].set_ylim(0, 1)
+    ax[1].legend()
 
     ax[2].scatter([], [])
     ax[2].set_ylabel("Q2X of Imputation")
