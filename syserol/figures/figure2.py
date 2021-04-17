@@ -4,8 +4,9 @@ This creates Figure 2.
 
 import numpy as np
 from statsmodels.multivariate.pca import PCA
+from tensorly.cp_tensor import _validate_cp_tensor
 from .common import subplotLabel, getSetup
-from ..tensor import perform_CMTF
+from ..tensor import calcR2X, delete_component, perform_CMTF
 from ..dataImport import functions, createCube
 from matplotlib.ticker import ScalarFormatter
 
@@ -13,7 +14,7 @@ from matplotlib.ticker import ScalarFormatter
 def makeFigure():
     """Get a list of the axis objects and create a figure"""
     # Get list of axis objects
-    ax, f = getSetup((6, 3), (1, 2))
+    ax, f = getSetup((9, 3), (1, 3))
 
     comps = np.arange(1, 12)
     CMTFR2X = np.zeros(comps.shape)
@@ -41,7 +42,7 @@ def makeFigure():
     ax[0].set_xticks([x for x in comps])
     ax[0].set_xticklabels([x for x in comps])
     ax[0].set_ylim(0, 1)
-    ax[0].set_xlim(0.0, np.amax(comps) + 0.5)
+    ax[0].set_xlim(0.5, np.amax(comps) + 0.5)
 
     ax[1].set_xscale("log", base=2)
     ax[1].plot(sizeTfac, 1.0 - CMTFR2X, ".", label="CMTF")
@@ -52,6 +53,30 @@ def makeFigure():
     ax[1].set_xlim(2 ** 8, 2 ** 12)
     ax[1].xaxis.set_major_formatter(ScalarFormatter())
     ax[1].legend()
+
+    ## Variance explained by each component
+    rr = 10
+    facT = perform_CMTF(r=rr)
+    fullR2X = CMTFR2X[rr-1]
+    var_exp = np.zeros(rr)
+
+    for ii in range(rr):
+        facTdel = delete_component(facT, np.delete(np.arange(0, rr), ii))
+        assert facTdel.rank == 1
+        _validate_cp_tensor(facTdel)
+        var_exp[ii] = calcR2X(tOrig, mOrig, facTdel)
+
+        assert var_exp[ii] < fullR2X
+        assert var_exp[ii] > -1.0
+
+    comps_idx = np.arange(1, 11)
+    ax[2].scatter(comps_idx, var_exp, s=10)
+    ax[2].set_ylabel("Single component R2X")
+    ax[2].set_xlabel("Component index")
+    ax[2].set_xticks([x for x in comps_idx])
+    ax[2].set_xticklabels([x for x in comps_idx])
+    ax[2].set_ylim(-1, 1)
+    ax[2].set_xlim(0.5, np.amax(comps_idx) + 0.5)
 
     # Add subplot labels
     subplotLabel(ax)
