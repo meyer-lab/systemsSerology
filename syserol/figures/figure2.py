@@ -61,17 +61,13 @@ def makeFigure():
     var_exp = np.zeros(rr)
 
     for ii in range(rr):
-        facTdel = delete_component(facT, np.delete(np.arange(0, rr), ii))
-        assert facTdel.rank == 1
+        facTdel = delete_component(facT, ii)
         _validate_cp_tensor(facTdel)
-        var_exp[ii] = calcR2X(tOrig, mOrig, facTdel)
-
-        assert var_exp[ii] < fullR2X
-        assert var_exp[ii] > -1.0
+        var_exp[ii] = fullR2X - calcR2X(tOrig, mOrig, facTdel)
 
     comps_idx = np.arange(1, 11)
     ax[2].scatter(comps_idx, var_exp, s=10)
-    ax[2].set_ylabel("Single component R2X")
+    ax[2].set_ylabel("Variance explained")
     ax[2].set_xlabel("Component index")
     ax[2].set_xticks([x for x in comps_idx])
     ax[2].set_xticklabels([x for x in comps_idx])
