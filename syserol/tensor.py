@@ -133,7 +133,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
         pick = True
         if os.path.exists(filename):
             with open(filename, "rb") as p:
-                return pickle.load(p)
+                return sort_factors(pickle.load(p))
     else:
         pick = False
 
