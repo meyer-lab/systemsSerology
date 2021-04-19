@@ -21,36 +21,33 @@ def class_predictions(X, **kwargs):
     cp, nv, all = getClassPred(X, load_file("meta-subjects"), **kwargs)
 
     accuracies = {}
-    accuracies["cp"] = accuracy_score(*selectAlter(cp[3], cp[0]))
-    accuracies["nv"] = accuracy_score(*selectAlter(nv[3], nv[0]))
-    accuracies["all"] = accuracy_score(*selectAlter(all[3], all[0]))
+    accuracies["Controller/Progressor"] = accuracy_score(*selectAlter(cp[3], cp[0]))
+    accuracies["Viremic/Non-Viremic"] = accuracy_score(*selectAlter(nv[3], nv[0]))
+    accuracies["Four-Class"] = accuracy_score(*selectAlter(all[3], all[0]))
     return accuracies, cp[1], nv[1]
 
 
 def class_predictions_df(X, resample=False):
     """ Make a pd.DataFrame( of the class predictions. """
-    df = pd.DataFrame(columns=['Accuracies', 'Class', 'Model'])
-    classes = ["Controller/Progressor", "Viremic/Non-Viremic", "Four-Class"]
-
     # Alter accuracies
     accuracy = two_way_classifications(resample=resample)
-    df.append([[accuracy["cp"], accuracy["nv"], accuracy["all"]],
-               classes,
-               ["Alter et al"] * 3])
+    df1 = pd.DataFrame.from_dict({"Class": accuracy.keys(),
+                                  "Accuracies": accuracy.values(),
+                                  "Model": ["Alter et al"] * 3})
 
     # Our accuracies
     accuracy = class_predictions(X, resample=resample)[0]
-    df.append([[accuracy["cp"], accuracy["nv"], accuracy["all"]],
-               classes,
-               ["CMTF"] * 3])
+    df2 = pd.DataFrame.from_dict({"Class": accuracy.keys(),
+                                  "Accuracies": accuracy.values(),
+                                  "Model": ["CMTF"] * 3})
 
     # Our accuracies baseline
     accuracy = class_predictions(X, randomize=True)[0]
-    df.append([[accuracy["cp"], accuracy["nv"], accuracy["all"]],
-               classes,
-               ["Randomized"] * 3])
+    df3 = pd.DataFrame.from_dict({"Class": accuracy.keys(),
+                                  "Accuracies": accuracy.values(),
+                                  "Model": ["Randomized"] * 3})
 
-    return df
+    return pd.concat([df1, df2, df3])
 
 
 def two_way_classifications(resample=False):
@@ -62,7 +59,7 @@ def two_way_classifications(resample=False):
     cp, nv, all = getClassPred(X, df, resample=resample)
 
     accuracies = {}
-    accuracies["cp"] = accuracy_score(cp[3], cp[0])
-    accuracies["nv"] = accuracy_score(nv[3], nv[0])
-    accuracies["all"] = accuracy_score(all[3], all[0])
+    accuracies["Controller/Progressor"] = accuracy_score(cp[3], cp[0])
+    accuracies["Viremic/Non-Viremic"] = accuracy_score(nv[3], nv[0])
+    accuracies["Four-Class"] = accuracy_score(all[3], all[0])
     return accuracies
