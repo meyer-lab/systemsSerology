@@ -18,8 +18,6 @@ def makeFigure():
 
     # Function Prediction DataFrame, Figure 5A
     functions_df = concat([make_regression_df(tFac[1][0]) for _ in range(rep)])
-    #functions_df = functions_df.groupby(['Model', 'Function'], as_index=False).agg({'Accuracy': ['mean', 'std']})
-    #functions_df.columns = ['Model', 'Function', 'Accuracy', 'std']
 
     # Class Predictions DataFrame, Figure 5B
     classes = concat([class_predictions_df(tFac[1][0]) for _ in range(rep)])
@@ -28,7 +26,6 @@ def makeFigure():
     ax, f = getSetup((6, 3), (1, 2))
     sns.set()
     # Function Plot
-    #a = sns.pointplot(y="Accuracy", x="Function", style="Model", hue="Model", data=functions_df, ax=ax[0], join=False)
     a = sns.pointplot(x="Function", y="Accuracy", data=functions_df, ci="sd", style="Model", hue="Model",
                       ax=ax[0], join=False, dodge=True)
     # Formatting
@@ -48,7 +45,6 @@ def makeFigure():
     # Class Plot
     b = sns.pointplot(x="Class", y="Accuracies", data=classes, ci="sd", style="Model", hue="Model",
                       ax=ax[1], join=False, dodge=True)
-    b = sns.scatterplot(y="Accuracies", x="Class", style="Model", hue="Model", data=classes, ax=ax[1])
     # Formatting
     b.axvspan(-0.5, 0.5, alpha=0.1, color="grey")
     b.axvspan(1.5, 2.5, alpha=0.1, color="grey")
