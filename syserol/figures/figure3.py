@@ -33,8 +33,8 @@ def makeFigure():
     ax[1].legend()
 
     CMTFR2X, PCAR2X, missing = increase_missing(comps, PCAcompare=False)
-    ax[2].scatter(missing, CMTFR2X, ".", label="CMTF")
-    ax[2].scatter(missing, PCAR2X, ".", label="PCA")
+    ax[2].plot(missing, CMTFR2X, ".", label="CMTF")
+    ax[2].plot(missing, PCAR2X, ".", label="PCA")
     ax[2].set_ylabel("Q2X of Imputation")
     ax[2].set_xlabel("Fraction Missing")
     ax[2].set_xlim(0, 1)
