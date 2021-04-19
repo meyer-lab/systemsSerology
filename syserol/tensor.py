@@ -50,8 +50,8 @@ def sort_factors(tFac):
     for i, fac in enumerate(tensor.factors):
         tensor.factors[i] = fac[:, order]
 
-    assert np.all(tl.cp_to_tensor(tFac) - tl.cp_to_tensor(tensor) < 0.01)
-    assert np.all(tFac.factors[0] @ tFac.mFactor.T - tensor.factors[0] @ tensor.mFactor.T < 0.01)
+    assert np.all(tl.cp_to_tensor(tFac) - tl.cp_to_tensor(tensor) < 0.1)
+    assert np.all(tFac.factors[0] @ tFac.mFactor.T - tensor.factors[0] @ tensor.mFactor.T < 0.1)
     return tensor
 
 def delete_component(tFac, compNum):
