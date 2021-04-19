@@ -49,18 +49,16 @@ def function_prediction(Xin, function="ADCC", **kwargs):
 def make_regression_df(X, resample=False):
     """ Make the dataframe of prediction accuracies. """
     # Gather Function Prediction Accuracies
-    preds = [function_prediction(X, resample=resample, function=f)[2] for f in functions]
-
-    accuracies = [function_elastic_net(f, resample=resample)[2] for f in functions]
-    baselines = [function_prediction(X, function=f, randomize=True)[2] for f in functions]
-    accuracies = accuracies + preds + baselines
+    accuracies = []
+    accuracies += [function_prediction(X, resample=resample, function=f)[2] for f in functions]
+    accuracies += [function_elastic_net(f, resample=resample)[2] for f in functions]
+    accuracies += [function_prediction(X, function=f, randomize=True)[2] for f in functions]
 
     # Create DataFrame
     model = ["CMTF"] * 6 + ["Alter et al"] * 6 + ["Randomized"] * 6
     function = functions + functions + functions
     data = {"Accuracy": accuracies, "Model": model, "Function": function}
-    functions_df = pd.DataFrame(data)  # Function Prediction DataFrame, Figure 5A
-    return functions_df
+    return pd.DataFrame(data)
 
 
 def RegressionHelper(X, Y, randomize=False, resample=False):
