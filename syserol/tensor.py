@@ -36,6 +36,22 @@ def reorient_factors(tFac):
     tFac.factors[2] *= rMeans[np.newaxis, :]
     return tFac
 
+def totalVar(tFac):
+    return np.nanvar(tl.cp_to_tensor(tFac)) + np.nanvar(tFac.factors[0] @ tFac.mFactor.T)
+
+def sort_factors(tFac):
+    rr = tFac.rank
+    tensor = deepcopy(tFac)
+    vars = np.array([totalVar(delete_component(tFac, np.delete(np.arange(rr), i))) for i in np.arange(rr)])
+    order = np.flip(np.argsort(vars))
+
+    tensor.weights = tensor.weights[order]
+    tensor.mWeights = tensor.mWeights[order]
+    tensor.mFactor = tensor.mFactor[:, order]
+    for i, fac in enumerate(tensor.factors):
+        tensor.factors[i] = fac[:, order]
+    assert np.all(tl.cp_to_tensor(tFac) - tl.cp_to_tensor(tensor) < 0.01)
+    return tensor
 
 def delete_component(tFac, compNum):
     """ Delete the indicated component. """
