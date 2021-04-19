@@ -32,7 +32,7 @@ def makeFigure():
     ax[1].set_ylim(0, 1)
     ax[1].legend()
 
-    CMTFR2X, PCAR2X, missing = increase_missing(comps, PCAcompare=False)
+    CMTFR2X, PCAR2X, missing = increase_missing(comps, PCAcompare=True)
     ax[2].plot(missing, CMTFR2X, ".", label="CMTF")
     ax[2].plot(missing, PCAR2X, ".", label="PCA")
     ax[2].set_ylabel("Q2X of Imputation")

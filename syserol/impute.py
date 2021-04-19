@@ -15,7 +15,7 @@ def flatten_to_mat(tensor, matrix):
     return tMat
 
 def increase_missing(comps, PCAcompare=False):
-    samples = np.array([15, 200, 1000, 5000, 12000, 20000, 28000, 36000, 44000, 52000, 60000, 68000, 76000, 82000, 93000])
+    samples = np.array([15, 200, 1000, 5000, 12000, 20000, 28000, 36000, 44000, 52000, 60000, 68000, 76000, 82000, 90000])
     CMTFR2Xs = np.zeros(samples.shape)
     PCAR2Xs = np.zeros(samples.shape)
     missing = np.zeros(samples.shape)
@@ -43,6 +43,8 @@ def evaluate_missing(comps, numSample=15, chords=True, PCAcompare=False):
         if chords:
             missingCube[:, j, k] = np.nan
         else:
+            while sum(np.isnan(missingCube[:, j, k])) > len(missingCube[:, j, k]) - 2:
+                i, j, k = idxs[np.random.choice(idxs.shape[0], 1)][0]
             missingCube[i, j, k] = np.nan
 
     missingFrac = np.isnan(missingCube).sum()/np.prod(cube.shape)
