@@ -182,4 +182,4 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
         with open(filename, "wb") as p:
             pickle.dump(tFac, p)
 
-    return tFac
+    return sort_factors(tFac)
