@@ -36,6 +36,23 @@ def reorient_factors(tFac):
     tFac.factors[2] *= rMeans[np.newaxis, :]
     return tFac
 
+def sort_factors(tFac):
+    """ Sort the components from the largest variance to the smallest. """
+    rr = tFac.rank
+    tensor = deepcopy(tFac)
+    totalVar = lambda tFac: np.nanvar(tl.cp_to_tensor(tFac)) + np.nanvar(tFac.factors[0] @ tFac.mFactor.T)
+    vars = np.array([totalVar(delete_component(tFac, np.delete(np.arange(rr), i))) for i in np.arange(rr)])
+    order = np.flip(np.argsort(vars))
+
+    tensor.weights = tensor.weights[order]
+    tensor.mWeights = tensor.mWeights[order]
+    tensor.mFactor = tensor.mFactor[:, order]
+    for i, fac in enumerate(tensor.factors):
+        tensor.factors[i] = fac[:, order]
+
+    assert np.all(tl.cp_to_tensor(tFac) - tl.cp_to_tensor(tensor) < 0.1)
+    assert np.all(tFac.factors[0] @ tFac.mFactor.T - tensor.factors[0] @ tensor.mFactor.T < 0.1)
+    return tensor
 
 def delete_component(tFac, compNum):
     """ Delete the indicated component. """
@@ -116,7 +133,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
         pick = True
         if os.path.exists(filename):
             with open(filename, "rb") as p:
-                return pickle.load(p)
+                return sort_factors(pickle.load(p))
     else:
         pick = False
 
@@ -166,4 +183,4 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
         with open(filename, "wb") as p:
             pickle.dump(tFac, p)
 
-    return tFac
+    return sort_factors(tFac)
