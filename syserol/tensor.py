@@ -50,8 +50,8 @@ def sort_factors(tFac):
     for i, fac in enumerate(tensor.factors):
         tensor.factors[i] = fac[:, order]
 
-    assert np.all(tl.cp_to_tensor(tFac) - tl.cp_to_tensor(tensor) < 0.1)
-    assert np.all(tFac.factors[0] @ tFac.mFactor.T - tensor.factors[0] @ tensor.mFactor.T < 0.1)
+    np.testing.assert_allclose(tl.cp_to_tensor(tFac), tl.cp_to_tensor(tensor))
+    np.testing.assert_allclose(tFac.factors[0] @ tFac.mFactor.T, tensor.factors[0] @ tensor.mFactor.T)
     return tensor
 
 def delete_component(tFac, compNum):
@@ -105,6 +105,7 @@ def censored_lstsq(A: np.ndarray, B: np.ndarray, uniqueInfo) -> np.ndarray:
 
 
 def cp_normalize(tFac):
+    """ Normalize the factors using the inf norm. """
     tFac.factors[0] *= tFac.weights
     tFac.weights = np.ones(tFac.rank)
     tFac.mWeights = np.ones(tFac.rank)
