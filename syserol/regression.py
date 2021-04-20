@@ -28,12 +28,11 @@ def function_elastic_net(function="ADCC", n_resample=0):
     X = df.drop(["subject"] + functions, axis=1)
 
     # perform regression
-    Y_pred, coef, _, Y_out = RegressionHelper(X, Y)
+    Y_pred, coef, _, Y_out = RegressionHelper(X, Y, resample=(n_resample > 0))
 
-    if n_resample > 0:
-        for _ in range(n_resample):
-            coef_samp = RegressionHelper(X, Y, resample=True)[1]
-            coef = np.vstack((coef, coef_samp))
+    for _ in range(1, n_resample):
+        coef_samp = RegressionHelper(X, Y, resample=True)[1]
+        coef = np.vstack((coef, coef_samp))
 
     return Y_out, Y_pred, pearsonr(Y, Y_pred)[0], coef
 
