@@ -83,12 +83,9 @@ def RegressionHelper(X, Y, randomize=False, resample=False):
         X = scale(X)
         cv = StratifiedKFold(n_splits=10, shuffle=True)
 
-        if factoredData:
-            est = GaussianProcessClassifier(kern)
-        else:
-            estCV = LogisticRegressionCV(penalty="elasticnet", solver="saga", cv=cv, l1_ratios=[0.8], n_jobs=-1, max_iter=10000)
-            estCV.fit(X, Y)
-            est = LogisticRegression(C=estCV.C_[0], penalty="elasticnet", solver="saga", l1_ratio=0.8, max_iter=10000)
+        estCV = LogisticRegressionCV(penalty="elasticnet", solver="saga", cv=cv, l1_ratios=[0.8], n_jobs=-1, max_iter=10000)
+        estCV.fit(X, Y)
+        est = LogisticRegression(C=estCV.C_[0], penalty="elasticnet", solver="saga", l1_ratio=0.8, max_iter=10000)
     else:
         assert Y.dtype == float
         cv = KFold(n_splits=10, shuffle=True)
@@ -100,21 +97,18 @@ def RegressionHelper(X, Y, randomize=False, resample=False):
             estCV.fit(X, Y)
             est = ElasticNet(normalize=True, alpha=estCV.alpha_, l1_ratio=0.8, max_iter=10000)
 
-    if factoredData:
+    if factoredData and (Y.dtype == float):
         SFS = SequentialFeatureSelector(est, n_features_to_select=2, cv=cv)
         est = make_pipeline(SFS, est)
 
-        if np.unique(Y).size != 4:
-            est.fit(X, Y)
-            coef = est.steps[0][1].support_
+        est.fit(X, Y)
+        coef = est.steps[0][1].support_
 
-            # Set hyperparameters
-            est.steps[0][1].estimator.optimizer = None
-            est.steps[0][1].estimator.kernel = est.steps[1][1].kernel_
-            est.steps[1][1].optimizer = None
-            est.steps[1][1].kernel = est.steps[1][1].kernel_
-        else:
-            coef = None
+        # Set hyperparameters
+        est.steps[0][1].estimator.optimizer = None
+        est.steps[0][1].estimator.kernel = est.steps[1][1].kernel_
+        est.steps[1][1].optimizer = None
+        est.steps[1][1].kernel = est.steps[1][1].kernel_
     else:
         est = est.fit(X, Y)
         coef = np.squeeze(est.coef_)
