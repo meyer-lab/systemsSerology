@@ -8,6 +8,7 @@ import numpy as np
 from scipy.linalg import khatri_rao
 import tensorly as tl
 from tensorly.decomposition._nn_cp import initialize_nn_cp
+from copy import deepcopy
 from .dataImport import createCube
 
 tl.set_backend("numpy")
@@ -35,19 +36,45 @@ def reorient_factors(tFac):
     tFac.factors[2] *= rMeans[np.newaxis, :]
     return tFac
 
+def sort_factors(tFac):
+    """ Sort the components from the largest variance to the smallest. """
+    rr = tFac.rank
+    tensor = deepcopy(tFac)
+    totalVar = lambda tFac: np.nanvar(tl.cp_to_tensor(tFac)) + np.nanvar(tFac.factors[0] @ tFac.mFactor.T)
+    vars = np.array([totalVar(delete_component(tFac, np.delete(np.arange(rr), i))) for i in np.arange(rr)])
+    order = np.flip(np.argsort(vars))
+
+    tensor.weights = tensor.weights[order]
+    tensor.mWeights = tensor.mWeights[order]
+    tensor.mFactor = tensor.mFactor[:, order]
+    for i, fac in enumerate(tensor.factors):
+        tensor.factors[i] = fac[:, order]
+
+    np.testing.assert_allclose(tl.cp_to_tensor(tFac), tl.cp_to_tensor(tensor))
+    np.testing.assert_allclose(tFac.factors[0] @ tFac.mFactor.T, tensor.factors[0] @ tensor.mFactor.T)
+    return tensor
 
 def delete_component(tFac, compNum):
     """ Delete the indicated component. """
-    assert compNum < tFac.rank
+    tensor = deepcopy(tFac)
+    if isinstance(compNum, int):
+        assert compNum < tensor.rank
+        tensor.rank -= 1
+    elif isinstance(compNum, list) or isinstance(compNum, np.ndarray):
+        compNum = np.unique(compNum)
+        assert all(i < tensor.rank for i in compNum)
+        tensor.rank -= len(compNum)
+    else:
+        raise TypeError
 
-    tFac.weights = np.delete(tFac.weights, compNum)
-    tFac.rank -= 1
+    tensor.weights = np.delete(tensor.weights, compNum)
+    tensor.mWeights = np.delete(tensor.mWeights, compNum)
+    tensor.mFactor = np.delete(tensor.mFactor, compNum, axis=1)
+    for i, fac in enumerate(tensor.factors):
+        tensor.factors[i] = np.delete(fac, compNum, axis=1)
+        assert tensor.factors[i].shape[1] == tensor.rank
 
-    tFac.mFactor = np.delete(tFac.mFactor, compNum, axis=0)
-    for i, fac in enumerate(tFac.factors):
-        tFac.factors[i] = np.delete(fac, compNum, axis=0)
-
-    return tFac
+    return tensor
 
 
 def censored_lstsq(A: np.ndarray, B: np.ndarray, uniqueInfo) -> np.ndarray:
@@ -78,6 +105,7 @@ def censored_lstsq(A: np.ndarray, B: np.ndarray, uniqueInfo) -> np.ndarray:
 
 
 def cp_normalize(tFac):
+    """ Normalize the factors using the inf norm. """
     tFac.factors[0] *= tFac.weights
     tFac.weights = np.ones(tFac.rank)
     tFac.mWeights = np.ones(tFac.rank)
@@ -106,7 +134,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
         pick = True
         if os.path.exists(filename):
             with open(filename, "rb") as p:
-                return pickle.load(p)
+                return sort_factors(pickle.load(p))
     else:
         pick = False
 
@@ -156,4 +184,4 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
         with open(filename, "wb") as p:
             pickle.dump(tFac, p)
 
-    return tFac
+    return sort_factors(tFac)
