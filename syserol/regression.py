@@ -7,7 +7,7 @@ from sklearn.utils import resample as resampleSK
 from sklearn.preprocessing import scale
 from sklearn.linear_model import ElasticNetCV, LogisticRegressionCV, LogisticRegression, ElasticNet
 from sklearn.gaussian_process import GaussianProcessClassifier, GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import ConstantKernel, RBF, WhiteKernel
+from sklearn.gaussian_process.kernels import RBF, WhiteKernel
 from sklearn.feature_selection import SequentialFeatureSelector
 from sklearn.model_selection import KFold, StratifiedKFold
 from scipy.stats import pearsonr
@@ -103,15 +103,18 @@ def RegressionHelper(X, Y, randomize=False, resample=False):
     if factoredData:
         SFS = SequentialFeatureSelector(est, n_features_to_select=2, cv=cv)
         est = make_pipeline(SFS, est)
-        est.fit(X, Y)
-        coef = est.steps[0][1].support_
 
-        # Set hyperparameters
-        est.steps[0][1].estimator.optimizer = None
-        est.steps[0][1].estimator.kernel = est.steps[1][1].kernel_
-        est.steps[1][1].optimizer = None
-        est.steps[1][1].kernel = est.steps[1][1].kernel_
-        print("Done with another.")
+        if np.unique(Y).size != 4:
+            est.fit(X, Y)
+            coef = est.steps[0][1].support_
+
+            # Set hyperparameters
+            est.steps[0][1].estimator.optimizer = None
+            est.steps[0][1].estimator.kernel = est.steps[1][1].kernel_
+            est.steps[1][1].optimizer = None
+            est.steps[1][1].kernel = est.steps[1][1].kernel_
+        else:
+            coef = None
     else:
         est = est.fit(X, Y)
         coef = np.squeeze(est.coef_)

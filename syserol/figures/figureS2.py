@@ -2,7 +2,6 @@
 This creates Figure S2.
 """
 import numpy as np
-import seaborn as sns
 import tensorly as tl
 from scipy.optimize import least_squares
 from .common import subplotLabel, getSetup

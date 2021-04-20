@@ -7,7 +7,7 @@ from statsmodels.multivariate.pca import PCA
 from tensorly.cp_tensor import _validate_cp_tensor
 from .common import subplotLabel, getSetup
 from ..tensor import calcR2X, delete_component, perform_CMTF
-from ..dataImport import functions, createCube
+from ..dataImport import createCube
 from matplotlib.ticker import ScalarFormatter
 
 
