@@ -126,7 +126,7 @@ def cp_normalize(tFac):
     return tFac
 
 
-def perform_CMTF(tOrig=None, mOrig=None, r=10):
+def perform_CMTF(tOrig=None, mOrig=None, r=7):
     """ Perform CMTF decomposition. """
     filename = join(path_here, "syserol/data/" + str(r) + ".pkl")
 
