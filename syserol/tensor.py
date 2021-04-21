@@ -126,9 +126,9 @@ def cp_normalize(tFac):
     return tFac
 
 
-def perform_CMTF(tOrig=None, mOrig=None, r=10):
+def perform_CMTF(tOrig=None, mOrig=None, r=10, mScaleLog=0):
     """ Perform CMTF decomposition. """
-    filename = join(path_here, "syserol/data/" + str(r) + ".pkl")
+    filename = join(path_here, "syserol/data/" + str(r) + ("" if mScaleLog==0 else "_" + str(mScaleLog)) + ".pkl")
 
     if (tOrig is None) and (r > 2):
         pick = True
@@ -141,6 +141,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
     if tOrig is None:
         tOrig, mOrig = createCube()
 
+    mOrig *= 2**mScaleLog
     tFac = initialize_nn_cp(np.nan_to_num(tOrig, nan=np.nanmean(tOrig)), r)
 
     # Pre-unfold
@@ -182,6 +183,6 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
 
     if pick:
         with open(filename, "wb") as p:
-            pickle.dump(tFac, p)
+            pickle.dump(sort_factors(tFac), p)
 
     return sort_factors(tFac)
