@@ -5,9 +5,10 @@ import numpy as np
 import pandas as pd
 import pytest
 from tensorly.cp_tensor import _validate_cp_tensor
-from ..tensor import perform_CMTF, delete_component
+from ..tensor import perform_CMTF, delete_component, calcR2X
 from ..regression import make_regression_df
 from ..classify import class_predictions_df
+from ..dataImport import createCube
 
 
 def test_R2X():
@@ -29,10 +30,19 @@ def test_R2X():
 
 def test_delete():
     """ Test deleting a component results in a valid tensor. """
-    facT = perform_CMTF(r=5)
-    facT = delete_component(facT, 2)
+    tOrig, mOrig = createCube()
+    facT = perform_CMTF(r=10)
 
-    _validate_cp_tensor(facT)
+    fullR2X = calcR2X(tOrig, mOrig, facT)
+
+    for ii in range(facT.rank):
+        facTdel = delete_component(facT, ii)
+        _validate_cp_tensor(facTdel)
+
+        delR2X = calcR2X(tOrig, mOrig, facTdel)
+
+        assert delR2X < fullR2X
+        assert delR2X > -1.0
 
 
 @pytest.mark.parametrize("resample", [False, True])
