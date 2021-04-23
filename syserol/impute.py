@@ -15,7 +15,7 @@ def flatten_to_mat(tensor, matrix):
     return tMat
 
 def increase_missing(comps, PCAcompare=False):
-    samples = np.array([15, 200, 1000, 5000, 12000, 20000, 28000, 36000, 44000, 52000, 60000, 68000, 76000, 82000, 90000])
+    samples = np.array([15, 1000, 5000, 12000, 20000, 28000, 36000, 44000, 52000, 60000, 68000, 76000, 82000, 90000])
     CMTFR2Xs = np.zeros(samples.shape)
     PCAR2Xs = np.zeros(samples.shape)
     missing = np.zeros(samples.shape)
@@ -31,7 +31,6 @@ def evaluate_missing(comps, numSample=15, chords=True, PCAcompare=False):
     """ check differences between original and recon values for different number of components.
     chords: whether to leave out tensor chords or individual values """
     cube, glyCube = createCube()
-    np.random.seed(1)  # Avoid random variation in this output
 
     CMTFR2X = np.zeros(comps.shape)
     PCAR2X = np.zeros(comps.shape)
