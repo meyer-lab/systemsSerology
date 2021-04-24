@@ -18,8 +18,18 @@ path_here = dirname(dirname(__file__))
 def calcR2X(tIn, mIn, tFac):
     """ Calculate R2X. """
     tErr = np.nanvar(tl.cp_to_tensor(tFac) - tIn)
-    mErr = np.nanvar(tFac.factors[0] @ tFac.mFactor.T - mIn)
+    mErr = np.nanvar(tFac.factors[0] @ (tFac.mWeights.reshape(-1, 1) * tFac.mFactor.T) - mIn)
     return 1.0 - (tErr + mErr) / (np.nanvar(tIn) + np.nanvar(mIn))
+
+def calcR2Xt(tIn, tFac):
+    """ Calculate R2X of the tensor part. """
+    tErr = np.nanvar(tl.cp_to_tensor(tFac) - tIn)
+    return 1.0 - tErr / np.nanvar(tIn)
+
+def calcR2Xm(mIn, tFac):
+    """ Calculate R2X of the matrix part. """
+    mErr = np.nanvar(tFac.factors[0] @ (tFac.mWeights.reshape(-1, 1) * tFac.mFactor.T) - mIn)
+    return 1.0 - mErr / np.nanvar(mIn)
 
 
 def reorient_factors(tFac):
@@ -141,7 +151,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10, mScaleLog=0):
     if tOrig is None:
         tOrig, mOrig = createCube()
 
-    mOrig *= 2**mScaleLog
+    mOrig *= 2 ** mScaleLog
     tFac = initialize_nn_cp(np.nan_to_num(tOrig, nan=np.nanmean(tOrig)), r)
 
     # Pre-unfold
@@ -154,6 +164,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10, mScaleLog=0):
 
     R2X = -1.0
     tFac.mFactor = np.linalg.lstsq(tFac.factors[0][selPat, :], mOrig[selPat, :], rcond=None)[0].T
+    tFac.mWeights = np.ones(r)
 
     for ii in range(8000):
         # Solve for the subject matrix
@@ -173,6 +184,9 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10, mScaleLog=0):
         if ii % 20 == 0:
             R2X_last = R2X
             R2X = calcR2X(tOrig, mOrig, tFac)
+
+        if ii % 100 == 0:
+            print(R2X, calcR2Xt(tOrig, tFac), calcR2Xm(mOrig, tFac))
 
         if R2X - R2X_last < 1e-9:
             break

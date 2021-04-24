@@ -120,7 +120,7 @@ def selectAlter(Y, Y_pred, subset=None):
     return Y, Y_pred
 
 
-def createCube():
+def createCube(mScaleLog=0):
     """ Import the data and assemble the antigen cube. """
     subjects, detections, antigen = getAxes()
     cube = np.full([len(subjects), len(detections), len(antigen)], np.nan)
@@ -157,4 +157,5 @@ def createCube():
     assert ~np.any(np.all(np.isnan(cube), axis=(0, 2)))
     assert ~np.any(np.all(np.isnan(cube), axis=(1, 2)))
 
+    glyCube *= 2 ** mScaleLog
     return cube, glyCube
