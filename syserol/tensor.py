@@ -136,9 +136,9 @@ def cp_normalize(tFac):
     return tFac
 
 
-def perform_CMTF(tOrig=None, mOrig=None, r=10, mScaleLog=0):
+def perform_CMTF(tOrig=None, mOrig=None, r=10):
     """ Perform CMTF decomposition. """
-    filename = join(path_here, "syserol/data/" + str(r) + ("" if mScaleLog==0 else "_" + str(mScaleLog)) + ".pkl")
+    filename = join(path_here, "syserol/data/" + str(r) + ".pkl")
 
     if (tOrig is None) and (r > 2):
         pick = True
@@ -151,7 +151,6 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10, mScaleLog=0):
     if tOrig is None:
         tOrig, mOrig = createCube()
 
-    mOrig *= 2 ** mScaleLog
     tFac = initialize_nn_cp(np.nan_to_num(tOrig, nan=np.nanmean(tOrig)), r)
 
     # Pre-unfold
@@ -184,9 +183,6 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10, mScaleLog=0):
         if ii % 20 == 0:
             R2X_last = R2X
             R2X = calcR2X(tOrig, mOrig, tFac)
-
-        if ii % 100 == 0:
-            print(R2X, calcR2Xt(tOrig, tFac), calcR2Xm(mOrig, tFac))
 
         if R2X - R2X_last < 1e-9:
             break
