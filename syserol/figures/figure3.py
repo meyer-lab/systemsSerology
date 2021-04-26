@@ -27,10 +27,10 @@ def makeFigure():
 
     df = pd.concat([pd.DataFrame(evaluate_missing(comps, 15, chords=False, PCAcompare=True)[0:2]) for _ in range(rep)], axis=0) # PCA will be on odd rows, Tfac on even, each row is a rep, column is a comp
     # CMTFR2X, PCAR2X, _ = evaluate_missing(comps, 15, chords=False, PCAcompare=True)
-    CMTFR2X = df.iloc[::2].mean(axis=1)
-    CMTFErr = df.iloc[::2].std(axis=1)
-    PCAR2X = df.iloc[1::2].mean(axis=1)
-    PCAErr = df.iloc[1::2].std(axis=1)
+    CMTFR2X = df.iloc[::2].mean(axis=0)
+    CMTFErr = df.iloc[::2].std(axis=0)
+    PCAR2X = df.iloc[1::2].mean(axis=0)
+    PCAErr = df.iloc[1::2].std(axis=0)
     ax[1].plot(comps, CMTFR2X, ".", label="CMTF")
     ax[1].errorbar(comps, CMTFR2X, yerr = CMTFErr)
     ax[1].plot(comps, PCAR2X, ".", label="PCA")
