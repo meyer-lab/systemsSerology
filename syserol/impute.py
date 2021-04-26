@@ -21,8 +21,8 @@ def increase_missing(comps, PCAcompare=False):
     missing = np.zeros(samples.shape)
     for ii, sample in enumerate(samples):
         CMTFR2X, PCAR2X, missingFrac = evaluate_missing(comps, numSample=sample, chords=False, PCAcompare=PCAcompare)
-        CMTFR2Xs[ii] = CMTFR2X
-        PCAR2Xs[ii] = PCAR2X
+        CMTFR2Xs[ii] = CMTFR2X[-1]
+        PCAR2Xs[ii] = PCAR2X[-1]
         missing[ii] = missingFrac
     
     return CMTFR2Xs, PCAR2Xs, missing
