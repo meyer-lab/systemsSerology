@@ -21,6 +21,20 @@ def makeFigure():
 
     ax, f = getSetup((8, 10), (3, 1))
 
+    colorDict = {
+        "FcgRI": "#9BBF98",
+        "FcgRIIa": "#758F4A",
+        "FcgRIIb": "#C8C94E",
+        "FcgRIII": "#556637",
+        "IgG1": "#CBDEF1",
+        "IgG2": "#EDA640",
+        "IgG3": "#6192C5",
+        "IgG4": "#B84632",
+        "C1q": "#704F9D",
+        "Lectin": "#C098BE",
+        "Glycan": "#DE74A6"
+    }
+
     c = function_elastic_net("ADCD", n_resample=3)[3]
 
     coef1 = c[0, :]
