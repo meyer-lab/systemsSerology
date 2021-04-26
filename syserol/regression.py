@@ -16,6 +16,7 @@ from .dataImport import (
     importAlterDF,
     selectAlter,
 )
+from sklearn.preprocessing import StandardScaler
 
 
 def function_elastic_net(function="ADCC", n_resample=0):
@@ -23,9 +24,14 @@ def function_elastic_net(function="ADCC", n_resample=0):
     # Import Luminex, Luminex-IGG, Function, and Glycan into DF
     df = importAlterDF(function=True, subjects=False).dropna()
 
+    # use standard scaler on the data before passing it in
+
     # separate dataframes
     Y = df[function]
     X = df.drop(["subject"] + functions, axis=1)
+
+    scaler = StandardScaler()
+    X = scaler.fit_transform(X)
 
     # perform regression
     Y_pred, coef, _, Y_out = RegressionHelper(X, Y, resample=(n_resample > 0))
@@ -58,9 +64,11 @@ def make_regression_df(X, resample=False):
     """ Make the dataframe of prediction accuracies. """
     # Gather Function Prediction Accuracies
     accuracies = []
-    accuracies += [function_prediction(X, resample=resample, function=f)[2] for f in functions]
+    accuracies += [function_prediction(X, resample=resample, function=f)[2]
+                   for f in functions]
     accuracies += [function_elastic_net(f)[2] for f in functions]
-    accuracies += [function_prediction(X, function=f, randomize=True)[2] for f in functions]
+    accuracies += [function_prediction(X, function=f, randomize=True)[2]
+                   for f in functions]
 
     # Create DataFrame
     model = ["CMTF"] * 6 + ["Alter et al"] * 6 + ["Randomized"] * 6
@@ -83,17 +91,22 @@ def RegressionHelper(X, Y, randomize=False, resample=False):
 
     if Y.dtype == int:
         X = scale(X)
-        estCV = LogisticRegressionCV(penalty="elasticnet", solver="saga", cv=10, l1_ratios=[0.8], n_jobs=-1, max_iter=1000000)
+        estCV = LogisticRegressionCV(penalty="elasticnet", solver="saga", cv=10, l1_ratios=[
+                                     0.8], n_jobs=-1, max_iter=1000000)
         estCV.fit(X, Y)
-        est = LogisticRegression(C=estCV.C_[0], penalty="elasticnet", solver="saga", l1_ratio=0.8, max_iter=1000000)
+        est = LogisticRegression(
+            C=estCV.C_[0], penalty="elasticnet", solver="saga", l1_ratio=0.8, max_iter=1000000)
         estG = GaussianProcessClassifier(kern, n_restarts_optimizer=5)
         cv = StratifiedKFold(n_splits=10, shuffle=True)
     else:
         assert Y.dtype == float
-        estCV = ElasticNetCV(normalize=True, l1_ratio=0.8, cv=10, n_jobs=-1, max_iter=1000000)
+        estCV = ElasticNetCV(normalize=True, l1_ratio=0.8,
+                             cv=10, n_jobs=-1, max_iter=1000000)
         estCV.fit(X, Y)
-        est = ElasticNet(normalize=True, alpha=estCV.alpha_, l1_ratio=0.8, max_iter=1000000)
-        estG = GaussianProcessRegressor(kern, normalize_y=True, n_restarts_optimizer=5)
+        est = ElasticNet(normalize=True, alpha=estCV.alpha_,
+                         l1_ratio=0.8, max_iter=1000000)
+        estG = GaussianProcessRegressor(
+            kern, normalize_y=True, n_restarts_optimizer=5)
         cv = KFold(n_splits=10, shuffle=True)
 
     est = est.fit(X, Y)
@@ -103,7 +116,8 @@ def RegressionHelper(X, Y, randomize=False, resample=False):
     # TODO: Get Gaussian process model working for multinomial case
     if (X.shape[1] < 20) and (np.unique(Y).size != 4):
         estG.fit(X, Y)
-        coef = np.sign(coef) / estG.kernel_.get_params()["k1__k2__length_scale"]
+        coef = np.sign(coef) / \
+            estG.kernel_.get_params()["k1__k2__length_scale"]
         estG.optimizer = None
         estG.kernel = estG.kernel_
         Y_pred_G = cross_val_predict(estG, X, Y, cv=cv, n_jobs=-1)
