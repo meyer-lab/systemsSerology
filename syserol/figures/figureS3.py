@@ -19,25 +19,27 @@ def makeFigure():
 
     alter = importAlterDF()
 
-    axs, f = getSetup((8, 6), (3, 2))
+    ax, f = getSetup((8, 10), (3, 1))
 
-    for ii, ax in enumerate(axs):
-        function = functions[ii]
+    c = function_elastic_net("ADCD", n_resample=3)[3]
 
-        coef = function_elastic_net(function, n_resample=10)[3]
+    coef1 = c[0, :]
+    coef2 = c[1, :]
+    coef3 = c[2, :]
 
-        df = pd.DataFrame(coef,  columns=alter.columns.values[1:-6])
+    for i, coef in enumerate([coef1, coef2, coef3]):
 
-        varianceSorted = df.var().sort_values(ascending=False)
+        df = pd.DataFrame(np.reshape(coef, (1, coef.size)),
+                          columns=alter.columns.values[1:-6])
 
-        df = df.reindex(varianceSorted.index, axis=1)
+        df = df.loc[:, (df != 0).any(axis=0)]
 
-        a = sns.lineplot(data=df.iloc[:, :10].T,
-                         ax=ax, markers=True, legend=False)
-        a.set_xticklabels(df.iloc[:, :10].columns.values,
-                          rotation=60, horizontalalignment='right')
-        a.set_title(function)
+        sns.barplot(data=df, ax=ax[i])
 
-    subplotLabel(axs)
+        ax[i].set_xticklabels(df.columns.values,
+                              rotation=90, horizontalalignment='right')
+        ax[i].set_title("ADCD")
+
+    subplotLabel(ax)
 
     return f
