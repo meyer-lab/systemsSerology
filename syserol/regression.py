@@ -15,7 +15,7 @@ from .dataImport import (
 )
 
 
-def function_elastic_net(function="ADCC", resample=False):
+def function_elastic_net(function="ADCC", n_resample=0):
     """ Predict functions using elastic net according to Alter methods"""
     # Import Luminex, Luminex-IGG, Function, and Glycan into DF
     df = importAlterDF(function=True, subjects=False).dropna()
@@ -25,8 +25,13 @@ def function_elastic_net(function="ADCC", resample=False):
     X = df.drop(["subject"] + functions, axis=1)
 
     # perform regression
-    Y_pred, coef, X, Y = RegressionHelper(X, Y, resample=resample)
-    return Y, Y_pred, pearsonr(Y, Y_pred)[0], coef
+    Y_pred, coef, _, Y_out = RegressionHelper(X, Y, resample=(n_resample > 0))
+
+    for _ in range(1, n_resample):
+        coef_samp = RegressionHelper(X, Y, resample=True)[1]
+        coef = np.vstack((coef, coef_samp))
+
+    return Y_out, Y_pred, pearsonr(Y, Y_pred)[0], coef
 
 
 def function_prediction(Xin, function="ADCC", **kwargs):
@@ -51,7 +56,7 @@ def make_regression_df(X, resample=False):
     # Gather Function Prediction Accuracies
     accuracies = []
     accuracies += [function_prediction(X, resample=resample, function=f)[2] for f in functions]
-    accuracies += [function_elastic_net(f, resample=resample)[2] for f in functions]
+    accuracies += [function_elastic_net(f)[2] for f in functions]
     accuracies += [function_prediction(X, function=f, randomize=True)[2] for f in functions]
 
     # Create DataFrame
