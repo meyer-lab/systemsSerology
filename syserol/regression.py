@@ -63,27 +63,25 @@ def make_regression_df(X, resample=False):
 
 def RegressionHelper(X, Y, randomize=False, resample=False):
     """ Function with the regression cross-validation strategy. """
-    X = np.copy(X)
-    Y = np.copy(Y)
-
     if randomize:
+        X = np.copy(X)
         np.random.shuffle(X)
 
     if resample:
         X, Y = resampleSK(X, Y)
 
+    X = scale(X)
+    cv = KFold(n_splits=10, shuffle=True)
+
     if Y.dtype == int:
-        X = scale(X)
-        estCV = LogisticRegressionCV(penalty="elasticnet", solver="saga", cv=10, l1_ratios=[0.8], n_jobs=-1, max_iter=1000000)
+        estCV = LogisticRegressionCV(Cs=20, penalty="elasticnet", solver="saga", cv=cv, l1_ratios=[0.8], n_jobs=-1, max_iter=1000000)
         estCV.fit(X, Y)
         est = LogisticRegression(C=estCV.C_[0], penalty="elasticnet", solver="saga", l1_ratio=0.8, max_iter=1000000)
-        cv = StratifiedKFold(n_splits=10, shuffle=True)
     else:
         assert Y.dtype == float
-        estCV = ElasticNetCV(normalize=True, l1_ratio=0.8, cv=10, n_jobs=-1, max_iter=1000000)
+        estCV = ElasticNetCV(normalize=True, l1_ratio=0.8, cv=cv, n_jobs=-1, max_iter=1000000)
         estCV.fit(X, Y)
         est = ElasticNet(normalize=True, alpha=estCV.alpha_, l1_ratio=0.8, max_iter=1000000)
-        cv = KFold(n_splits=10, shuffle=True)
 
     est = est.fit(X, Y)
     coef = np.squeeze(est.coef_)
