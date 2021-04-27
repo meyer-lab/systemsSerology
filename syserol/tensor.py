@@ -180,7 +180,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=8):
         # Solve for the glycan matrix fit
         tFac.mFactor = np.linalg.lstsq(tFac.factors[0][selPat, :], mOrig[selPat, :], rcond=None)[0].T
 
-        if ii % 20 == 0:
+        if ii % 2 == 0:
             R2X_last = R2X
             R2X = calcR2X(tFac, tOrig, mOrig)
 
