@@ -15,11 +15,21 @@ tl.set_backend("numpy")
 path_here = dirname(dirname(__file__))
 
 
-def calcR2X(tIn, mIn, tFac):
-    """ Calculate R2X. """
-    tErr = np.nanvar(tl.cp_to_tensor(tFac) - tIn)
-    mErr = np.nanvar(tFac.factors[0] @ tFac.mFactor.T - mIn)
-    return 1.0 - (tErr + mErr) / (np.nanvar(tIn) + np.nanvar(mIn))
+def calcR2X(tFac, tIn=None, mIn=None):
+    """ Calculate R2X. Optionally it can be calculated for only the tensor or matrix. """
+    assert (tIn is not None) or (mIn is not None)
+
+    vTop = 0.0
+    vBottom = 0.0
+
+    if tIn is not None:
+        vTop += np.nanvar(tl.cp_to_tensor(tFac) - tIn)
+        vBottom += np.nanvar(tIn)
+    if mIn is not None:
+        vTop += np.nanvar((tFac.mWeights * tFac.factors[0]) @ tFac.mFactor.T - mIn)
+        vBottom += np.nanvar(mIn)
+
+    return 1.0 - vTop / vBottom
 
 
 def reorient_factors(tFac):
@@ -126,7 +136,7 @@ def cp_normalize(tFac):
     return tFac
 
 
-def perform_CMTF(tOrig=None, mOrig=None, r=10):
+def perform_CMTF(tOrig=None, mOrig=None, r=8):
     """ Perform CMTF decomposition. """
     filename = join(path_here, "syserol/data/" + str(r) + ".pkl")
 
@@ -141,7 +151,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
     if tOrig is None:
         tOrig, mOrig = createCube()
 
-    tFac = initialize_nn_cp(np.nan_to_num(tOrig, nan=np.nanmean(tOrig)), r)
+    tFac = initialize_nn_cp(np.nan_to_num(tOrig), r, nntype="nndsvd")
 
     # Pre-unfold
     selPat = np.all(np.isfinite(mOrig), axis=1)
@@ -153,6 +163,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
 
     R2X = -1.0
     tFac.mFactor = np.linalg.lstsq(tFac.factors[0][selPat, :], mOrig[selPat, :], rcond=None)[0].T
+    tFac.mWeights = np.ones(r)
 
     for ii in range(40):
         # Solve for the subject matrix
@@ -169,9 +180,9 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
         # Solve for the glycan matrix fit
         tFac.mFactor = np.linalg.lstsq(tFac.factors[0][selPat, :], mOrig[selPat, :], rcond=None)[0].T
 
-        if ii % 20 == 0:
+        if ii % 2 == 0:
             R2X_last = R2X
-            R2X = calcR2X(tOrig, mOrig, tFac)
+            R2X = calcR2X(tFac, tOrig, mOrig)
 
         if R2X - R2X_last < 1e-9:
             break
@@ -182,6 +193,6 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
 
     if pick:
         with open(filename, "wb") as p:
-            pickle.dump(tFac, p)
+            pickle.dump(sort_factors(tFac), p)
 
     return sort_factors(tFac)
