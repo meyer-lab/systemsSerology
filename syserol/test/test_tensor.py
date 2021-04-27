@@ -33,13 +33,13 @@ def test_delete():
     tOrig, mOrig = createCube()
     facT = perform_CMTF(r=10)
 
-    fullR2X = calcR2X(tOrig, mOrig, facT)
+    fullR2X = calcR2X(facT, tOrig, mOrig)
 
     for ii in range(facT.rank):
         facTdel = delete_component(facT, ii)
         _validate_cp_tensor(facTdel)
 
-        delR2X = calcR2X(tOrig, mOrig, facTdel)
+        delR2X = calcR2X(facTdel, tOrig, mOrig)
 
         assert delR2X < fullR2X
         assert delR2X > -1.0

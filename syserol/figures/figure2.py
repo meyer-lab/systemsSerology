@@ -62,7 +62,7 @@ def makeFigure():
     for ii in range(rr):
         facTdel = delete_component(facT, ii)
         _validate_cp_tensor(facTdel)
-        var_exp[ii] = fullR2X - calcR2X(tOrig, mOrig, facTdel)
+        var_exp[ii] = fullR2X - calcR2X(facTdel, tOrig, mOrig)
 
     comps_idx = np.arange(1, 11)
     ax[2].scatter(comps_idx, var_exp, s=10)
@@ -82,9 +82,9 @@ def makeFigure():
     for ii, rat in enumerate(rats):
         mScaled = mOrig * (2.0 ** rat)
         tFac = perform_CMTF(tOrig=tOrig, mOrig=mScaled, r=10)
-        totalR2X[ii] = calcR2X(tOrig, mScaled, tFac)
-        CMTFR2X[ii] = calcR2Xt(tOrig, tFac)
-        PCAR2X[ii] = calcR2Xm(mScaled, tFac)
+        totalR2X[ii] = calcR2X(tFac, tOrig, mScaled)
+        CMTFR2X[ii] = calcR2X(tFac, tIn=tOrig)
+        PCAR2X[ii] = calcR2X(tFac, mIn=mScaled)
 
     ax[3].plot(rats, totalR2X, ".", label="Total")
     ax[3].plot(rats, CMTFR2X, ".", label="Tensor")
