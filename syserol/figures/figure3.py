@@ -27,10 +27,10 @@ def makeFigure():
 
     df = pd.concat([pd.DataFrame(evaluate_missing(comps, 15, chords=False, PCAcompare=True)[0:2]) for _ in range(rep)], axis=0) # PCA will be on odd rows, Tfac on even, each row is a rep, column is a comp
     # CMTFR2X, PCAR2X, _ = evaluate_missing(comps, 15, chords=False, PCAcompare=True)
-    CMTFR2X = df.iloc[::2].mean()
-    CMTFErr = df.iloc[::2].std()
-    PCAR2X = df.iloc[1::2].mean()
-    PCAErr = df.iloc[1::2].std()
+    CMTFR2X = df.iloc[::2].mean(axis=0)
+    CMTFErr = df.iloc[::2].std(axis=0)
+    PCAR2X = df.iloc[1::2].mean(axis=0)
+    PCAErr = df.iloc[1::2].std(axis=0)
     ax[1].plot(comps, CMTFR2X, ".", label="CMTF")
     ax[1].plot(comps, PCAR2X, ".", label="PCA")
     ax[1].errorbar(comps, CMTFR2X, yerr = CMTFErr)
@@ -44,10 +44,11 @@ def makeFigure():
 
     df = pd.concat([pd.DataFrame(increase_missing(comps,PCAcompare=True)[0:3]) for _ in range(rep)])
     # Rows index 0 are the CMTF Q2Xs across increasing missing values, indexed 1 are PCA. Indexed 2 are the missing fractions. 
-    CMTFR2X = df.loc[0].mean()
-    CMTFErr = df.loc[0].std()
-    PCAR2X  = df.loc[1].mean()
-    PCAErr = df.loc[1].std()
+    CMTFR2X = df.loc[0].mean(axis=0)
+    CMTFErr = df.loc[0].std(axis=0)
+    PCAR2X  = df.loc[1].mean(axis=0)
+    PCAErr = df.loc[1].std(axis=0)
+    print(CMTFErr, PCAErr)
     missing = df.iloc[2]
     ax[2].plot(missing, CMTFR2X, ".", label="CMTF")
     ax[2].plot(missing, PCAR2X, ".", label="PCA")

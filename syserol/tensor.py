@@ -154,7 +154,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=10):
     R2X = -1.0
     tFac.mFactor = np.linalg.lstsq(tFac.factors[0][selPat, :], mOrig[selPat, :], rcond=None)[0].T
 
-    for ii in range(8000):
+    for ii in range(40):
         # Solve for the subject matrix
         kr = khatri_rao(tFac.factors[1], tFac.factors[2])
         kr2 = np.vstack((kr, tFac.mFactor))
