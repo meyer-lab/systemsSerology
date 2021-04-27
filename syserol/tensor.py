@@ -18,8 +18,18 @@ path_here = dirname(dirname(__file__))
 def calcR2X(tIn, mIn, tFac):
     """ Calculate R2X. """
     tErr = np.nanvar(tl.cp_to_tensor(tFac) - tIn)
-    mErr = np.nanvar(tFac.factors[0] @ tFac.mFactor.T - mIn)
+    mErr = np.nanvar(tFac.factors[0] @ (tFac.mWeights.reshape(-1, 1) * tFac.mFactor.T) - mIn)
     return 1.0 - (tErr + mErr) / (np.nanvar(tIn) + np.nanvar(mIn))
+
+def calcR2Xt(tIn, tFac):
+    """ Calculate R2X of the tensor part. """
+    tErr = np.nanvar(tl.cp_to_tensor(tFac) - tIn)
+    return 1.0 - tErr / np.nanvar(tIn)
+
+def calcR2Xm(mIn, tFac):
+    """ Calculate R2X of the matrix part. """
+    mErr = np.nanvar(tFac.factors[0] @ (tFac.mWeights.reshape(-1, 1) * tFac.mFactor.T) - mIn)
+    return 1.0 - mErr / np.nanvar(mIn)
 
 
 def reorient_factors(tFac):
@@ -153,6 +163,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=8):
 
     R2X = -1.0
     tFac.mFactor = np.linalg.lstsq(tFac.factors[0][selPat, :], mOrig[selPat, :], rcond=None)[0].T
+    tFac.mWeights = np.ones(r)
 
     for ii in range(8000):
         # Solve for the subject matrix
@@ -182,6 +193,6 @@ def perform_CMTF(tOrig=None, mOrig=None, r=8):
 
     if pick:
         with open(filename, "wb") as p:
-            pickle.dump(tFac, p)
+            pickle.dump(sort_factors(tFac), p)
 
     return sort_factors(tFac)
