@@ -3,7 +3,6 @@ This creates Figure 3.
 """
 import pandas as pd
 import numpy as np
-import seaborn as sns
 from .common import subplotLabel, getSetup
 from ..impute import evaluate_missing, increase_missing
 
