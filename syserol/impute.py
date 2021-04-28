@@ -34,7 +34,6 @@ def evaluate_missing(comps, numSample=15, chords=True, PCAcompare=False):
 
     CMTFR2X = np.zeros(comps.shape)
     PCAR2X = np.zeros(comps.shape)
-    missingFrac = np.nan
     missingCube = np.copy(cube)
     for _ in range(numSample):
         idxs = np.argwhere(np.isfinite(missingCube))
