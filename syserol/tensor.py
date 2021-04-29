@@ -165,7 +165,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=8):
     tFac.mFactor = np.linalg.lstsq(tFac.factors[0][selPat, :], mOrig[selPat, :], rcond=None)[0].T
     tFac.mWeights = np.ones(r)
 
-    for ii in range(8000):
+    for ii in range(1000):
         # Solve for the subject matrix
         kr = khatri_rao(tFac.factors[1], tFac.factors[2])
         kr2 = np.vstack((kr, tFac.mFactor))
