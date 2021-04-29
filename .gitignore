@@ -141,7 +141,6 @@ cython_debug/
 venv
 .idea/
 
-output
 .vscode/settings.json
 
 *.afdesign
