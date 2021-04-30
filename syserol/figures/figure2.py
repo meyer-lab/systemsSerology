@@ -2,11 +2,10 @@
 This creates Figure 2.
 """
 
-import numpy as np
 from statsmodels.multivariate.pca import PCA
 from tensorly.cp_tensor import _validate_cp_tensor
 from .common import subplotLabel, getSetup
-from ..tensor import calcR2X, delete_component, perform_CMTF
+from ..tensor import *
 from ..dataImport import functions, createCube
 from matplotlib.ticker import ScalarFormatter
 
@@ -14,7 +13,7 @@ from matplotlib.ticker import ScalarFormatter
 def makeFigure():
     """Get a list of the axis objects and create a figure"""
     # Get list of axis objects
-    ax, f = getSetup((9, 3), (1, 3))
+    ax, f = getSetup((12, 3), (1, 4))
 
     comps = np.arange(1, 12)
     CMTFR2X = np.zeros(comps.shape)
@@ -63,7 +62,7 @@ def makeFigure():
     for ii in range(rr):
         facTdel = delete_component(facT, ii)
         _validate_cp_tensor(facTdel)
-        var_exp[ii] = fullR2X - calcR2X(tOrig, mOrig, facTdel)
+        var_exp[ii] = fullR2X - calcR2X(facTdel, tOrig, mOrig)
 
     comps_idx = np.arange(1, 11)
     ax[2].scatter(comps_idx, var_exp, s=10)
@@ -73,6 +72,30 @@ def makeFigure():
     ax[2].set_xticklabels([x for x in comps_idx])
     ax[2].set_ylim(-1, 1)
     ax[2].set_xlim(0.5, np.amax(comps_idx) + 0.5)
+
+    ## Scaling matrix
+    rats = np.arange(-2, 3)
+    tOrig, mOrig = createCube()
+    totalR2X = np.zeros(rats.shape)
+    CMTFR2X = np.zeros(rats.shape)
+    PCAR2X = np.zeros(rats.shape)
+    for ii, rat in enumerate(rats):
+        mScaled = mOrig * (2.0 ** rat)
+        tFac = perform_CMTF(tOrig=tOrig, mOrig=mScaled, r=10)
+        totalR2X[ii] = calcR2X(tFac, tOrig, mScaled)
+        CMTFR2X[ii] = calcR2X(tFac, tIn=tOrig)
+        PCAR2X[ii] = calcR2X(tFac, mIn=mScaled)
+
+    ax[3].plot(rats, totalR2X, ".", label="Total")
+    ax[3].plot(rats, CMTFR2X, ".", label="Tensor")
+    ax[3].plot(rats, PCAR2X, ".", label="Matrix")
+    ax[3].set_ylabel("R2X")
+    ax[3].set_xlabel("Matrix scaled")
+    ax[3].set_xticklabels([0] + [2.0 ** x for x in rats])
+    ax[3].set_xlim(rats[0] - 0.5, rats[-1] + 0.5)
+
+    ax[3].legend()
+
 
     # Add subplot labels
     subplotLabel(ax)
