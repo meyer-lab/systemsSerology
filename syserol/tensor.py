@@ -5,18 +5,16 @@ import os
 from os.path import join, dirname
 import pickle
 import numpy as np
-import jax.numpy as jnp
-from jax import grad
-from jax.config import config
+from scipy.optimize import approx_fprime
 from scipy.optimize import minimize
 from scipy.linalg import khatri_rao
 import tensorly as tl
+from tensorly.cp_tensor import unfolding_dot_khatri_rao
 from tensorly.decomposition._nn_cp import initialize_nn_cp
 from copy import deepcopy
 from .dataImport import createCube
 
 tl.set_backend('numpy')
-config.update("jax_enable_x64", True)
 path_here = dirname(dirname(__file__))
 
 
@@ -142,7 +140,7 @@ def cp_normalize(tFac):
     return tFac
 
 
-def perform_CMTF(tOrig=None, mOrig=None, r=8):
+def perform_CMTF(tOrig=None, mOrig=None, r=5):
     """ Perform CMTF decomposition. """
     filename = join(path_here, "syserol/data/" + str(r) + ".pkl")
 
@@ -171,7 +169,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=8):
     tFac.mFactor = np.linalg.lstsq(tFac.factors[0][selPat, :], mOrig[selPat, :], rcond=None)[0].T
     tFac.mWeights = np.ones(r)
 
-    for ii in range(8000):
+    for ii in range(100):
         # Solve for the subject matrix
         kr = khatri_rao(tFac.factors[1], tFac.factors[2])
         kr2 = np.vstack((kr, tFac.mFactor))
@@ -195,7 +193,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=8):
             break
 
     # Refine with direct optimization
-    tFac = jax_refine(tFac, tOrig, mOrig)
+    tFac = fit_refine(tFac, tOrig, mOrig)
 
     tFac = cp_normalize(tFac)
     tFac = reorient_factors(tFac)
@@ -219,42 +217,41 @@ def buildTensors(pIn, tensor, matrix, r):
     nA = tensor.shape[0]*r
     nB = tensor.shape[1]*r
     nC = tensor.shape[2]*r
-    A = jnp.reshape(pIn[:nA], (tensor.shape[0], r))
-    B = jnp.reshape(pIn[nA:nA+nB], (tensor.shape[1], r))
-    C = jnp.reshape(pIn[nA+nB:nA+nB+nC], (tensor.shape[2], r))
+    A = np.reshape(pIn[:nA], (tensor.shape[0], r))
+    B = np.reshape(pIn[nA:nA+nB], (tensor.shape[1], r))
+    C = np.reshape(pIn[nA+nB:nA+nB+nC], (tensor.shape[2], r))
     tFac = tl.cp_tensor.CPTensor((None, [A, B, C]))
-    tFac.mFactor = jnp.reshape(pIn[nA+nB+nC:], (matrix.shape[1], r))
-    tFac.mWeights = jnp.ones(r)
+    tFac.mFactor = np.reshape(pIn[nA+nB+nC:], (matrix.shape[1], r))
+    tFac.mWeights = np.ones(r)
     return tFac
 
 
 def cost(pIn, tOrig, mOrig, r):
-    tensor = np.nan_to_num(tOrig)
-    matrix = np.nan_to_num(mOrig)
-    tmask = np.isfinite(tOrig)
-    mmask = np.isfinite(mOrig)
     tFac = buildTensors(pIn, tOrig, mOrig, r)
-    cost = jnp.linalg.norm(tl.kruskal_to_tensor(tFac)*tmask - tensor) # Tensor cost
-    cost += jnp.linalg.norm(buildGlycan(tFac)*mmask - matrix) # Matrix cost
-    return cost
+    tDiff = np.nan_to_num(tOrig - tl.kruskal_to_tensor(tFac))
+    mDiff = np.nan_to_num(mOrig - buildGlycan(tFac))
+
+    # Overall cost
+    cost = 0.5 * (np.linalg.norm(tDiff) + np.linalg.norm(mDiff))
+
+    gtFac = deepcopy(tFac)
+    gtFac.factors = [-unfolding_dot_khatri_rao(tDiff, tFac, ii) for ii in range(3)]
+
+    mCP = (None, [tFac.factors[0], tFac.mFactor])
+    gtFac.factors[0] += -unfolding_dot_khatri_rao(mDiff, mCP, 0)
+    gtFac.mFactor = -unfolding_dot_khatri_rao(mDiff, mCP, 1)
+
+    return cost, cp_to_vec(gtFac)
 
 
-def jax_refine(tFac, tOrig, mOrig):
+def fit_refine(tFac, tOrig, mOrig):
     """ Refine the factorization with direct optimization. """
     r = tFac.rank
 
-    print(calcR2X(tFac, tOrig, mOrig))
-
-    tl.set_backend('jax')
-
     x0 = cp_to_vec(tFac)
-    res = minimize(cost, x0, jac=grad(cost, 0), args=(tOrig, mOrig, r), options={"disp": True, "maxiter": 3000})
-
-    tl.set_backend('numpy')
+    res = minimize(cost, x0, jac=True, args=(tOrig, mOrig, r), options={"disp": True, "maxiter": 3000})
 
     tFac = buildTensors(res.x, tOrig, mOrig, r)
     tFac.R2X = calcR2X(tFac, tOrig, mOrig)
-
-    print(tFac.R2X)
 
     return tFac
