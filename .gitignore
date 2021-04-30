@@ -141,5 +141,8 @@ cython_debug/
 venv
 .idea/
 
-output
 .vscode/settings.json
+
+*.afdesign
+
+manuscript/images/thumbnail.svg
