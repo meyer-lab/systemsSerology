@@ -5,14 +5,24 @@ import os
 from os.path import join, dirname
 import pickle
 import numpy as np
+import jax.numpy as jnp
+from jax import grad
+from jax.config import config
+from scipy.optimize import minimize
 from scipy.linalg import khatri_rao
 import tensorly as tl
 from tensorly.decomposition._nn_cp import initialize_nn_cp
 from copy import deepcopy
 from .dataImport import createCube
 
-tl.set_backend("numpy")
+tl.set_backend('numpy')
+config.update("jax_enable_x64", True)
 path_here = dirname(dirname(__file__))
+
+
+def buildGlycan(tFac):
+    """ Build the glycan matrix from the factors. """
+    return (tFac.mWeights * tFac.factors[0]) @ tFac.mFactor.T
 
 
 def calcR2X(tFac, tIn=None, mIn=None):
@@ -26,7 +36,7 @@ def calcR2X(tFac, tIn=None, mIn=None):
         vTop += np.nanvar(tl.cp_to_tensor(tFac) - tIn)
         vBottom += np.nanvar(tIn)
     if mIn is not None:
-        vTop += np.nanvar((tFac.mWeights * tFac.factors[0]) @ tFac.mFactor.T - mIn)
+        vTop += np.nanvar(buildGlycan(tFac) - mIn)
         vBottom += np.nanvar(mIn)
 
     return 1.0 - vTop / vBottom
@@ -61,7 +71,7 @@ def sort_factors(tFac):
         tensor.factors[i] = fac[:, order]
 
     np.testing.assert_allclose(tl.cp_to_tensor(tFac), tl.cp_to_tensor(tensor))
-    np.testing.assert_allclose(tFac.factors[0] @ tFac.mFactor.T, tensor.factors[0] @ tensor.mFactor.T)
+    np.testing.assert_allclose(buildGlycan(tFac), buildGlycan(tensor))
     return tensor
 
 def delete_component(tFac, compNum):
@@ -116,10 +126,6 @@ def censored_lstsq(A: np.ndarray, B: np.ndarray, uniqueInfo) -> np.ndarray:
 
 def cp_normalize(tFac):
     """ Normalize the factors using the inf norm. """
-    tFac.factors[0] *= tFac.weights
-    tFac.weights = np.ones(tFac.rank)
-    tFac.mWeights = np.ones(tFac.rank)
-
     for i, factor in enumerate(tFac.factors):
         scales = np.linalg.norm(factor, ord=np.inf, axis=0)
         tFac.weights *= scales
@@ -144,7 +150,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=8):
         pick = True
         if os.path.exists(filename):
             with open(filename, "rb") as p:
-                return sort_factors(pickle.load(p))
+                return pickle.load(p)
     else:
         pick = False
 
@@ -161,11 +167,11 @@ def perform_CMTF(tOrig=None, mOrig=None, r=8):
     # Precalculate the missingness patterns
     uniqueInfo = [np.unique(np.isfinite(B.T), axis=1, return_inverse=True) for B in unfolded]
 
-    R2X = -1.0
+    tFac.R2X = -1.0
     tFac.mFactor = np.linalg.lstsq(tFac.factors[0][selPat, :], mOrig[selPat, :], rcond=None)[0].T
     tFac.mWeights = np.ones(r)
 
-    for ii in range(1000):
+    for ii in range(8000):
         # Solve for the subject matrix
         kr = khatri_rao(tFac.factors[1], tFac.factors[2])
         kr2 = np.vstack((kr, tFac.mFactor))
@@ -181,18 +187,74 @@ def perform_CMTF(tOrig=None, mOrig=None, r=8):
         tFac.mFactor = np.linalg.lstsq(tFac.factors[0][selPat, :], mOrig[selPat, :], rcond=None)[0].T
 
         if ii % 2 == 0:
-            R2X_last = R2X
-            R2X = calcR2X(tFac, tOrig, mOrig)
+            R2X_last = tFac.R2X
+            tFac.R2X = calcR2X(tFac, tOrig, mOrig)
+            assert tFac.R2X > 0.0
 
-        if R2X - R2X_last < 1e-9:
+        if tFac.R2X - R2X_last < 1e-9:
             break
+
+    # Refine with direct optimization
+    tFac = jax_refine(tFac, tOrig, mOrig)
 
     tFac = cp_normalize(tFac)
     tFac = reorient_factors(tFac)
-    tFac.R2X = R2X
+    tFac = sort_factors(tFac)
 
     if pick:
         with open(filename, "wb") as p:
-            pickle.dump(sort_factors(tFac), p)
+            pickle.dump(tFac, p)
 
-    return sort_factors(tFac)
+    return tFac
+
+
+def cp_to_vec(tFac):
+    vec = np.concatenate([tFac.factors[i].flatten() for i in range(3)])
+    return np.concatenate((vec, tFac.mFactor.flatten()))
+
+
+def buildTensors(pIn, tensor, matrix, r):
+    """ Use parameter vector to build kruskal tensors. """
+    assert tensor.shape[0] == matrix.shape[0]
+    nA = tensor.shape[0]*r
+    nB = tensor.shape[1]*r
+    nC = tensor.shape[2]*r
+    A = jnp.reshape(pIn[:nA], (tensor.shape[0], r))
+    B = jnp.reshape(pIn[nA:nA+nB], (tensor.shape[1], r))
+    C = jnp.reshape(pIn[nA+nB:nA+nB+nC], (tensor.shape[2], r))
+    tFac = tl.cp_tensor.CPTensor((None, [A, B, C]))
+    tFac.mFactor = jnp.reshape(pIn[nA+nB+nC:], (matrix.shape[1], r))
+    tFac.mWeights = jnp.ones(r)
+    return tFac
+
+
+def cost(pIn, tOrig, mOrig, r):
+    tensor = np.nan_to_num(tOrig)
+    matrix = np.nan_to_num(mOrig)
+    tmask = np.isfinite(tOrig)
+    mmask = np.isfinite(mOrig)
+    tFac = buildTensors(pIn, tOrig, mOrig, r)
+    cost = jnp.linalg.norm(tl.kruskal_to_tensor(tFac)*tmask - tensor) # Tensor cost
+    cost += jnp.linalg.norm(buildGlycan(tFac)*mmask - matrix) # Matrix cost
+    return cost
+
+
+def jax_refine(tFac, tOrig, mOrig):
+    """ Refine the factorization with direct optimization. """
+    r = tFac.rank
+
+    print(calcR2X(tFac, tOrig, mOrig))
+
+    tl.set_backend('jax')
+
+    x0 = cp_to_vec(tFac)
+    res = minimize(cost, x0, jac=grad(cost, 0), args=(tOrig, mOrig, r), options={"disp": True, "maxiter": 3000})
+
+    tl.set_backend('numpy')
+
+    tFac = buildTensors(res.x, tOrig, mOrig, r)
+    tFac.R2X = calcR2X(tFac, tOrig, mOrig)
+
+    print(tFac.R2X)
+
+    return tFac
