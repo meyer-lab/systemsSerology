@@ -15,7 +15,7 @@ def flatten_to_mat(tensor, matrix):
     return tMat
 
 def increase_missing(comps, PCAcompare=False):
-    samples = np.array([15, 1000, 5000, 12000, 20000, 28000, 36000, 44000, 52000, 60000, 68000, 76000, 82000, 90000])
+    samples = np.array([1000, 5000, 12000, 20000, 28000, 36000, 44000, 52000, 60000, 68000, 76000, 80000, 82000, 84000, 86000, 89000, 90000])
     CMTFR2Xs = np.zeros(samples.shape)
     PCAR2Xs = np.zeros(samples.shape)
     missing = np.zeros(samples.shape)

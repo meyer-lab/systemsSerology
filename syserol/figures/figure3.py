@@ -47,7 +47,7 @@ def makeFigure():
     ax[1].set_ylim(0, 1)
     ax[1].legend(loc = 4)
 
-    comps = np.arange(1, 2)
+    comps = np.arange(10, 11)
     df = pd.concat([pd.DataFrame(np.vstack(increase_missing(comps,PCAcompare=True)[0:3]).T,
                                  columns=['CMTF', 'PCA', 'missing']) for _ in range(rep)])
     df = df.groupby(['missing']).agg(['mean', 'std']).reset_index()
@@ -62,6 +62,7 @@ def makeFigure():
     ax[2].plot(missing, PCAR2X, ".", label="PCA")
     ax[2].errorbar(missing, CMTFR2X, yerr=CMTFErr, fmt='none', ecolor='b')
     ax[2].errorbar(missing, PCAR2X, yerr=PCAErr, fmt='none', ecolor='darkorange')
+    ax[2].set_yscale("log")
     ax[2].set_ylabel("Q2X of Imputation")
     ax[2].set_xlabel("Fraction Missing")
     ax[2].set_xlim(0.4, 1)
