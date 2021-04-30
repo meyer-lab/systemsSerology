@@ -13,7 +13,6 @@ from .dataImport import (
     importAlterDF,
     selectAlter,
 )
-from sklearn.preprocessing import StandardScaler
 
 
 def function_elastic_net(function="ADCC", n_resample=0):
@@ -21,14 +20,9 @@ def function_elastic_net(function="ADCC", n_resample=0):
     # Import Luminex, Luminex-IGG, Function, and Glycan into DF
     df = importAlterDF(function=True, subjects=False).dropna()
 
-    # use standard scaler on the data before passing it in
-
     # separate dataframes
     Y = df[function]
     X = df.drop(["subject"] + functions, axis=1)
-
-    scaler = StandardScaler()
-    X = scaler.fit_transform(X)
 
     # perform regression
     Y_pred, coef, _, Y_out = RegressionHelper(X, Y, resample=(n_resample > 0))
