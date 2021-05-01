@@ -41,7 +41,7 @@ def evaluate_missing(comps, numSample=15, chords=True, PCAcompare=False):
         if chords:
             missingCube[:, j, k] = np.nan
         else:
-            while sum(np.isnan(missingCube[:, j, k])) > len(missingCube[:, j, k]) - 2:
+            while sum(np.isnan(missingCube[:, j, k])) > len(missingCube[:, j, k]) - 10:
                 i, j, k = idxs[np.random.choice(idxs.shape[0], 1)][0]
             missingCube[i, j, k] = np.nan
 
