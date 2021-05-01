@@ -1,23 +1,19 @@
 """
 Tensor decomposition methods
 """
-import os
-from os.path import join, dirname
-import pickle
 import numpy as np
 import jax.numpy as jnp
-from jax import jit, grad
+from jax import grad
 from jax.config import config
 from scipy.optimize import minimize
 from scipy.linalg import khatri_rao
 import tensorly as tl
-from tensorly.cp_tensor import unfolding_dot_khatri_rao
 from tensorly.decomposition._nn_cp import initialize_nn_cp
 from copy import deepcopy
 from .dataImport import createCube
 
+
 tl.set_backend('numpy')
-path_here = dirname(dirname(__file__))
 config.update("jax_enable_x64", True)
 
 
@@ -35,12 +31,12 @@ def calcR2X(tFac, tIn=None, mIn=None):
 
     if tIn is not None:
         tMask = np.isfinite(tIn)
-        vTop += jnp.var(tl.cp_to_tensor(tFac)*tMask - np.nan_to_num(tIn))
-        vBottom += np.nanvar(tIn)
+        vTop += jnp.sum(jnp.square(tl.cp_to_tensor(tFac)*tMask - np.nan_to_num(tIn)))
+        vBottom += np.sum(np.square(np.nan_to_num(tIn)))
     if mIn is not None:
         mMask = np.isfinite(mIn)
-        vTop += jnp.var(buildGlycan(tFac)*mMask - np.nan_to_num(mIn))
-        vBottom += np.nanvar(mIn)
+        vTop += jnp.sum(jnp.square(buildGlycan(tFac)*mMask - np.nan_to_num(mIn)))
+        vBottom += np.sum(np.square(np.nan_to_num(mIn)))
 
     return 1.0 - vTop / vBottom
 
@@ -145,18 +141,8 @@ def cp_normalize(tFac):
     return tFac
 
 
-def perform_CMTF(tOrig=None, mOrig=None, r=4):
+def perform_CMTF(tOrig=None, mOrig=None, r=6):
     """ Perform CMTF decomposition. """
-    filename = join(path_here, "syserol/data/" + str(r) + ".pkl")
-
-    if (tOrig is None) and (r > 2):
-        pick = True
-        if os.path.exists(filename):
-            with open(filename, "rb") as p:
-                return pickle.load(p)
-    else:
-        pick = False
-
     if tOrig is None:
         tOrig, mOrig = createCube()
 
@@ -174,7 +160,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=4):
     tFac.mFactor = np.linalg.lstsq(tFac.factors[0][selPat, :], mOrig[selPat, :], rcond=None)[0].T
     tFac.mWeights = np.ones(r)
 
-    for ii in range(20):
+    for ii in range(100):
         # Solve for the subject matrix
         kr = khatri_rao(tFac.factors[1], tFac.factors[2])
         kr2 = np.vstack((kr, tFac.mFactor))
@@ -194,7 +180,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=4):
             tFac.R2X = calcR2X(tFac, tOrig, mOrig)
             assert tFac.R2X > 0.0
 
-        if tFac.R2X - R2X_last < 1e-9:
+        if tFac.R2X - R2X_last < 1e-6:
             break
 
     # Refine with direct optimization
@@ -203,10 +189,6 @@ def perform_CMTF(tOrig=None, mOrig=None, r=4):
     tFac = cp_normalize(tFac)
     tFac = reorient_factors(tFac)
     tFac = sort_factors(tFac)
-
-    if pick:
-        with open(filename, "wb") as p:
-            pickle.dump(tFac, p)
 
     return tFac
 
@@ -233,22 +215,25 @@ def buildTensors(pIn, tensor, matrix, r):
 
 def cost(pIn, tOrig, mOrig, r):
     tFac = buildTensors(pIn, tOrig, mOrig, r)
-    return -calcR2X(tFac, tOrig, mOrig)
+    cost = -calcR2X(tFac, tOrig, mOrig)
+    return cost
 
 
 def fit_refine(tFac, tOrig, mOrig):
     """ Refine the factorization with direct optimization. """
     r = tFac.rank
-
     x0 = cp_to_vec(tFac)
-    print(tFac.R2X)
+
+    gF = grad(cost, 0)
+
+    def gradF(*args):
+        out = gF(*args)
+        return np.array(out)
 
     tl.set_backend('jax')
-    res = minimize(cost, x0, jac=grad(cost, 0), args=(tOrig, mOrig, r), options={"disp": True, "maxiter": 3000})
+    res = minimize(cost, x0, method="L-BFGS-B", jac=gradF, args=(tOrig, mOrig, r), options={"gtol": 1e-9, "ftol": 1e-9})
     tl.set_backend('numpy')
 
     tFac = buildTensors(res.x, tOrig, mOrig, r)
     tFac.R2X = calcR2X(tFac, tOrig, mOrig)
-    print(tFac.R2X)
-
     return tFac
