@@ -33,7 +33,7 @@ def test_R2X():
 def test_delete():
     """ Test deleting a component results in a valid tensor. """
     tOrig, mOrig = createCube()
-    facT = perform_CMTF(r=6)
+    facT = perform_CMTF(r=4)
 
     fullR2X = calcR2X(facT, tOrig, mOrig)
 

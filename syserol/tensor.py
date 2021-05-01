@@ -94,7 +94,7 @@ def delete_component(tFac, compNum):
     return tensor
 
 
-def censored_lstsq(A: np.ndarray, B: np.ndarray, uniqueInfo) -> np.ndarray:
+def censored_lstsq(A: np.ndarray, B: np.ndarray) -> np.ndarray:
     """Solves least squares problem subject to missing data.
 
     Note: uses a for loop over the columns of B, leading to a
@@ -110,7 +110,8 @@ def censored_lstsq(A: np.ndarray, B: np.ndarray, uniqueInfo) -> np.ndarray:
     X (ndarray) : r x n matrix that minimizes norm(M*(AX - B))
     """
     X = np.empty((A.shape[1], B.shape[1]))
-    unique, uIDX = uniqueInfo
+    # Calculate the missingness patterns
+    unique, uIDX = np.unique(np.isfinite(B), axis=1, return_inverse=True)
 
     for i in range(unique.shape[1]):
         uI = uIDX == i
@@ -146,9 +147,6 @@ def perform_CMTF(tOrig=None, mOrig=None, r=5):
     unfolded = [tl.unfold(tOrig, i) for i in range(3)]
     unfolded[0] = np.hstack((unfolded[0], mOrig))
 
-    # Precalculate the missingness patterns
-    uniqueInfo = [np.unique(np.isfinite(B.T), axis=1, return_inverse=True) for B in unfolded]
-
     tFac.R2X = -1.0
     tFac.mFactor = np.linalg.lstsq(tFac.factors[0][selPat, :], mOrig[selPat, :], rcond=None)[0].T
 
@@ -157,12 +155,12 @@ def perform_CMTF(tOrig=None, mOrig=None, r=5):
         kr = khatri_rao(tFac.factors[1], tFac.factors[2])
         kr2 = np.vstack((kr, tFac.mFactor))
 
-        tFac.factors[0] = censored_lstsq(kr2, unfolded[0].T, uniqueInfo[0])
+        tFac.factors[0] = censored_lstsq(kr2, unfolded[0].T)
 
         # PARAFAC on other antigen modes
         for m in [1, 2]:
             kr = khatri_rao(tFac.factors[0], tFac.factors[3 - m])
-            tFac.factors[m] = censored_lstsq(kr, unfolded[m].T, uniqueInfo[m])
+            tFac.factors[m] = censored_lstsq(kr, unfolded[m].T)
 
         # Solve for the glycan matrix fit
         tFac.mFactor = np.linalg.lstsq(tFac.factors[0][selPat, :], mOrig[selPat, :], rcond=None)[0].T
@@ -217,7 +215,8 @@ def fit_refine(tFac, tOrig, mOrig):
         return np.array(gF(*args))
 
     tl.set_backend('jax')
-    res = minimize(cost, x0, method="L-BFGS-B", jac=gradF, args=(tOrig, mOrig, r), options={"disp": 2, "gtol": 1e-10, "ftol": 1e-10})
+    # TODO: Setup constraint to avoid opposing components
+    res = minimize(cost, x0, method="L-BFGS-B", jac=gradF, args=(tOrig, mOrig, r), options={"gtol": 1e-10, "ftol": 1e-10})
     tl.set_backend('numpy')
 
     tFac = buildTensors(res.x, tOrig, mOrig, r)
