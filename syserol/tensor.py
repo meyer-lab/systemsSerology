@@ -5,6 +5,9 @@ import os
 from os.path import join, dirname
 import pickle
 import numpy as np
+import jax.numpy as jnp
+from jax import jit, grad
+from jax.config import config
 from scipy.optimize import minimize
 from scipy.linalg import khatri_rao
 import tensorly as tl
@@ -15,6 +18,7 @@ from .dataImport import createCube
 
 tl.set_backend('numpy')
 path_here = dirname(dirname(__file__))
+config.update("jax_enable_x64", True)
 
 
 def buildGlycan(tFac):
@@ -30,10 +34,12 @@ def calcR2X(tFac, tIn=None, mIn=None):
     vBottom = 0.0
 
     if tIn is not None:
-        vTop += np.nanvar(tl.cp_to_tensor(tFac) - tIn)
+        tMask = np.isfinite(tIn)
+        vTop += jnp.var(tl.cp_to_tensor(tFac)*tMask - np.nan_to_num(tIn))
         vBottom += np.nanvar(tIn)
     if mIn is not None:
-        vTop += np.nanvar(buildGlycan(tFac) - mIn)
+        mMask = np.isfinite(mIn)
+        vTop += jnp.var(buildGlycan(tFac)*mMask - np.nan_to_num(mIn))
         vBottom += np.nanvar(mIn)
 
     return 1.0 - vTop / vBottom
@@ -139,7 +145,7 @@ def cp_normalize(tFac):
     return tFac
 
 
-def perform_CMTF(tOrig=None, mOrig=None, r=5):
+def perform_CMTF(tOrig=None, mOrig=None, r=4):
     """ Perform CMTF decomposition. """
     filename = join(path_here, "syserol/data/" + str(r) + ".pkl")
 
@@ -216,41 +222,18 @@ def buildTensors(pIn, tensor, matrix, r):
     nA = tensor.shape[0]*r
     nB = tensor.shape[1]*r
     nC = tensor.shape[2]*r
-    A = np.reshape(pIn[:nA], (tensor.shape[0], r))
-    B = np.reshape(pIn[nA:nA+nB], (tensor.shape[1], r))
-    C = np.reshape(pIn[nA+nB:nA+nB+nC], (tensor.shape[2], r))
+    A = jnp.reshape(pIn[:nA], (tensor.shape[0], r))
+    B = jnp.reshape(pIn[nA:nA+nB], (tensor.shape[1], r))
+    C = jnp.reshape(pIn[nA+nB:nA+nB+nC], (tensor.shape[2], r))
     tFac = tl.cp_tensor.CPTensor((None, [A, B, C]))
-    tFac.mFactor = np.reshape(pIn[nA+nB+nC:], (matrix.shape[1], r))
-    tFac.mWeights = np.ones(r)
+    tFac.mFactor = jnp.reshape(pIn[nA+nB+nC:], (matrix.shape[1], r))
+    tFac.mWeights = jnp.ones(r)
     return tFac
 
 
 def cost(pIn, tOrig, mOrig, r):
     tFac = buildTensors(pIn, tOrig, mOrig, r)
     return -calcR2X(tFac, tOrig, mOrig)
-
-
-def grad(pIn, tOrig, mOrig, r):
-    tFac = buildTensors(pIn, tOrig, mOrig, r)
-    tDiff = np.nan_to_num(tOrig - tl.cp_to_tensor(tFac))
-    mDiff = np.nan_to_num(mOrig - buildGlycan(tFac))
-    totalVar = np.nanvar(tOrig) + np.nanvar(mOrig)
-
-    nT = np.sqrt(tOrig.size)
-    nM = np.sqrt(mOrig.size)
-
-    gtFac = deepcopy(tFac)
-    gtFac.factors = [-unfolding_dot_khatri_rao(tDiff, tFac, ii) / nT for ii in range(3)]
-
-    mCP = (None, [tFac.factors[0], tFac.mFactor])
-    gtFac.factors[0] += -unfolding_dot_khatri_rao(mDiff, mCP, 0) / nM
-    gtFac.mFactor = -unfolding_dot_khatri_rao(mDiff, mCP, 1) / nM
-
-    # Not sure why this is consistently 16-fold off from numerical diff
-    return cp_to_vec(gtFac) / totalVar / 16.0
-
-
-#from statsmodels.tools.numdiff import approx_fprime
 
 
 def fit_refine(tFac, tOrig, mOrig):
@@ -260,10 +243,9 @@ def fit_refine(tFac, tOrig, mOrig):
     x0 = cp_to_vec(tFac)
     print(tFac.R2X)
 
-    #ndx = approx_fprime(x0, lambda x: cost(x, tOrig, mOrig, r), centered=True)
-    #fdx = grad(x0, tOrig, mOrig, r)
-
-    res = minimize(cost, x0, jac=grad, args=(tOrig, mOrig, r), options={"disp": True, "maxiter": 300})
+    tl.set_backend('jax')
+    res = minimize(cost, x0, jac=grad(cost, 0), args=(tOrig, mOrig, r), options={"disp": True, "maxiter": 3000})
+    tl.set_backend('numpy')
 
     tFac = buildTensors(res.x, tOrig, mOrig, r)
     tFac.R2X = calcR2X(tFac, tOrig, mOrig)
