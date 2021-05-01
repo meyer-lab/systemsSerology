@@ -1,63 +1,57 @@
-"""
-This creates Paper Figure 5.
-"""
-
+import numpy as np
+import pandas as pd
 import seaborn as sns
-from pandas import concat
-from ..regression import make_regression_df
-from ..classify import class_predictions_df
-from .common import subplotLabel, getSetup
 from ..tensor import perform_CMTF
+from ..regression import function_prediction
+from ..classify import class_predictions
+from ..dataImport import functions
+from .common import getSetup, subplotLabel
 
 
 def makeFigure():
-    """ Show Similarity in Prediction of Alter Model and Our Model"""
-    # Decompose Cube
-    tFac = perform_CMTF()
-    rep = 10
-
-    # Function Prediction DataFrame, Figure 5A
-    functions_df = concat([make_regression_df(tFac[1][0]) for _ in range(rep)])
-
-    # Class Predictions DataFrame, Figure 5B
-    classes = concat([class_predictions_df(tFac[1][0]) for _ in range(rep)])
-
-    # PLOT DataFrames
+    """Get a list of the axis objects and create a figure"""
+    # Get list of axis objects
     ax, f = getSetup((6, 3), (1, 2))
-    sns.set()
-    # Function Plot
-    a = sns.pointplot(x="Function", y="Accuracy", data=functions_df, ci="sd", style="Model", hue="Model",
-                      ax=ax[0], join=False, dodge=True)
-    # Formatting
-    shades = [-0.5, 1.5, 3.5]
-    for i in shades:
-        a.axvspan(i, i + 1, alpha=0.1, color="grey")
-    a.set_xlim(-0.5, 5.5)
-    a.set_ylim(-0.3, 1)
-    a.grid(False)
-    a.xaxis.tick_top()
-    a.xaxis.set_label_position("top")
-    a.tick_params(axis="x")
-    a.set_ylabel("Accuracy")
-    a.set_xlabel("Function")
-    a.get_legend().remove()
 
-    # Class Plot
-    b = sns.pointplot(x="Class", y="Accuracies", data=classes, ci="sd", style="Model", hue="Model",
-                      ax=ax[1], join=False, dodge=True)
-    # Formatting
-    b.axvspan(-0.5, 0.5, alpha=0.1, color="grey")
-    b.axvspan(1.5, 2.5, alpha=0.1, color="grey")
-    b.set_xlim(-0.5, 2.5)
-    b.set_ylim(0.2, 1)
-    b.grid(False)
-    b.xaxis.tick_top()
-    b.xaxis.set_label_position("top")
-    b.set_ylabel("Accuracy")
-    b.set_xlabel("Class Prediction")
-    b.tick_params(axis="x")
-    b.legend(fontsize=8.5, title="Model", title_fontsize=10)
+    tFac = perform_CMTF()
+    X = tFac.factors[0]
+    ncomp = X.shape[1]
 
+    classes = []
+    outt = class_predictions(X)
+    classes.extend(outt[1] / np.max(np.absolute(outt[1])))
+    classes.extend(outt[2] / np.max(np.absolute(outt[2])))
+
+    data = {
+        "Feature Importance": classes,
+        "Component": [str(x) for x in np.arange(1, ncomp + 1).tolist()] * 2,
+        "Class": [x for i in [[j] * ncomp for j in ["Controller/Progressor", "Viremic/Non-Viremic"]] for x in i],
+    }
+    class_df = pd.DataFrame(data)
+
+    funcs = []
+    for function in functions:
+        coef = function_prediction(X, function=function)[3]
+        coef /= np.max(np.absolute(coef))
+        funcs.extend(coef)
+    data = {
+        "Feature Importance": funcs,
+        "Component": [str(x) for x in np.arange(1, ncomp + 1).tolist()] * 6,
+        "Function": [x for i in [[j] * ncomp for j in functions] for x in i],
+    }
+    funcs_df = pd.DataFrame(data)
+
+    sns.barplot(x="Component", y="Feature Importance", hue="Function", data=funcs_df, ax=ax[0])
+    sns.barplot(x="Component", y="Feature Importance", hue="Class", data=class_df, ax=ax[1])
+
+    # Formatting
+    shades = np.arange(-0.5, ncomp - 1, step=2.0)
+    for axx in ax:
+        for i in shades:
+            axx.axvspan(i, i + 1, alpha=0.1, color="grey")
+        axx.set_xlim(-0.5, ncomp - 0.5)
+
+    # Add subplot labels
     subplotLabel(ax)
 
     return f
