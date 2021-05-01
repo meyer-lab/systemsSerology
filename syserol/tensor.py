@@ -246,10 +246,11 @@ def grad(pIn, tOrig, mOrig, r):
     gtFac.factors[0] += -unfolding_dot_khatri_rao(mDiff, mCP, 0) / nM
     gtFac.mFactor = -unfolding_dot_khatri_rao(mDiff, mCP, 1) / nM
 
-    return cp_to_vec(gtFac) / totalVar
+    # Not sure why this is consistently 16-fold off from numerical diff
+    return cp_to_vec(gtFac) / totalVar / 16.0
 
 
-from statsmodels.tools.numdiff import approx_fprime
+#from statsmodels.tools.numdiff import approx_fprime
 
 
 def fit_refine(tFac, tOrig, mOrig):
@@ -259,10 +260,8 @@ def fit_refine(tFac, tOrig, mOrig):
     x0 = cp_to_vec(tFac)
     print(tFac.R2X)
 
-    ndx = approx_fprime(x0, lambda x: cost(x, tOrig, mOrig, r), centered=True)
-    fdx = grad(x0, tOrig, mOrig, r)
-
-    print(fdx / ndx)
+    #ndx = approx_fprime(x0, lambda x: cost(x, tOrig, mOrig, r), centered=True)
+    #fdx = grad(x0, tOrig, mOrig, r)
 
     res = minimize(cost, x0, jac=grad, args=(tOrig, mOrig, r), options={"disp": True, "maxiter": 300})
 
