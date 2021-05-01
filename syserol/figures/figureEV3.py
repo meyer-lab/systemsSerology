@@ -1,5 +1,5 @@
 """
-This creates Figure S3.
+This creates Figure EV3.
 """
 import numpy as np
 import seaborn as sns
