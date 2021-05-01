@@ -1,84 +1,106 @@
 """
-This creates Figure 4 for the Paper.
+This creates Paper Figure 4.
 """
+
 import numpy as np
 import pandas as pd
 import seaborn as sns
-from string import ascii_lowercase
+from pandas import concat
+from ..regression import function_prediction, make_regression_df
+from ..classify import class_predictions, class_predictions_df
+from .common import subplotLabel, getSetup
 from ..tensor import perform_CMTF
-from ..dataImport import getAxes, load_file
-from matplotlib import gridspec, pyplot as plt
+from ..dataImport import functions
 
 
 def makeFigure():
-    """ Generate Figure 3 for Paper, Showing Interpretation of All Data from Decomposed Tensor"""
-    tensorFac = perform_CMTF()
+    """ Compare prediction accuracies """
+    ax, f = getSetup((12, 3), (1, 4))
+    sns.set()
+    rep = 3
 
-    # Gather grouping info
-    glycaninf = load_file("meta-glycans")
-    glycaninf = glycaninf.replace(to_replace=["false", "b", "f", "g1", "g2", "g0", "s"], value=["", "B", "F", "G1", "G2", "G0", "S"],)
-    for i in np.arange(0, len(glycaninf)):
-        if "S1" in glycaninf.iloc[i, 0]:
-            glycaninf.iloc[i, 2] = "S1"
-        if "S2" in glycaninf.iloc[i, 0]:
-            glycaninf.iloc[i, 2] = "S2"
-    glycaninf["FB"] = glycaninf["f"] + glycaninf["b"]
-    glycaninf["GS"] = glycaninf["g"] + glycaninf["s"]
-    glycaninf["FB"] = glycaninf["FB"].replace(to_replace=[np.nan, ""], value=["Total", "No F or B"])
-    glycaninf.loc[19:24, "GS"] = glycaninf.loc[19:24, "glycan"]
-    _, detections, antigen = getAxes()
-    detections = [x[:2] + "γ" + x[3:] if x[:2] == "Fc" else x for x in detections]
-    subjinfo = load_file("meta-subjects")
+    ## Accuracy with difference component numbers
+    df_function = []
+    df_class = []
+    resample = False
+    for _ in range(rep):
+        for r in np.arange(1, 11):
+            tFac = perform_CMTF(r=r)[1][0]
 
-    f = plt.figure(figsize=(21, 7))
-    gs = gridspec.GridSpec(1, 10, width_ratios=[3, 25, 3, 2, 16, 25, 18, 25, 10, 25], wspace=0)
-    ax1 = plt.subplot(gs[0])
-    ax2 = plt.subplot(gs[1])
-    ax4 = plt.subplot(gs[3])
-    ax6 = plt.subplot(gs[5])
-    ax8 = plt.subplot(gs[7])
-    ax10 = plt.subplot(gs[9])
+            # Functional prediction
+            accuracies = [function_prediction(tFac, resample=resample, function=f)[2] for f in functions]
+            data = {"Accuracy": accuracies, "Components": r, "Function": functions}
+            df_function.append(pd.DataFrame(data))
 
-    colors = ["blue", "orange", "green", "red"]
-    cmap = sns.color_palette(colors)
+            ## Classification
+            accuracy = class_predictions(tFac, resample=resample)[0]
+            df_class.append(pd.DataFrame.from_dict({"Class": accuracy.keys(),
+                                                    "Accuracy": accuracy.values(),
+                                                    "Components": r}))
+    df_function = pd.concat(df_function)
+    df_class = pd.concat(df_class)
 
-    subs = pd.DataFrame(tensorFac.factors[0], columns=[f"Cmp. {i}" for i in np.arange(1, tensorFac.rank + 1)], index=subjinfo["class.etuv"])
-    rec = pd.DataFrame(tensorFac.factors[1], columns=[f"Cmp. {i}" for i in np.arange(1, tensorFac.rank + 1)], index=detections)
-    ant = pd.DataFrame(tensorFac.factors[2], columns=[f"Cmp. {i}" for i in np.arange(1, tensorFac.rank + 1)], index=antigen)
-    glycans = pd.DataFrame(tensorFac.mFactor, columns=[f"Cmp. {i}" for i in np.arange(1, tensorFac.rank + 1)], index=glycaninf["glycan"])
+    aa = sns.pointplot(x="Components", y="Accuracy", data=df_function, ci="sd", style="Function", hue="Function",
+                       ax=ax[0], join=False, dodge=True)
 
-    sns.heatmap(subs, cmap="PRGn", center=0, xticklabels=True, yticklabels=False, cbar_ax=ax4, vmin=-1.0, vmax=1.0, ax=ax2)
-    sns.heatmap(rec, cmap="PRGn", center=0, yticklabels=True, cbar=False, vmin=-1.0, vmax=1.0, ax=ax6)
-    sns.heatmap(ant, cmap="PRGn", center=0, yticklabels=True, cbar=False, vmin=-1.0, vmax=1.0, ax=ax8)
-    sns.heatmap(glycans, cmap="PRGn", center=0, yticklabels=True, cbar=False, vmin=-1.0, vmax=1.0, ax=ax10)
+    for i in np.arange(-0.5, 9.5, 2):
+        aa.axvspan(i, i + 1, alpha=0.1, color="grey")
+    aa.set_ylim(-0.3, 1)
+    aa.grid(False)
+    aa.legend(fontsize=8, title="Function", title_fontsize=9)
 
-    test = pd.DataFrame(subs.index)
-    test = test.set_index(["class.etuv"])
-    test["Class"] = 0
-    test[test.index == "EC"] = 0
-    test[test.index == "TP"] = 1
-    test[test.index == "UP"] = 2
-    test[test.index == "VC"] = 3
+    ## Classification plot
+    bb = sns.pointplot(x="Components", y="Accuracy", data=df_class, ci="sd", style="Class", hue="Class",
+                       ax=ax[1], join=False, dodge=True)
+    for i in np.arange(-0.5, 9.5, 2):
+        bb.axvspan(i, i + 1, alpha=0.1, color="grey")
+    bb.set_ylim(0.2, 1)
+    bb.grid(False)
+    bb.legend(fontsize=8, title="Class", title_fontsize=9)
 
-    axx = sns.heatmap(
-        test, ax=ax1, yticklabels=True, xticklabels=True, cmap=cmap, cbar=False
-    )
+    ## Show Similarity in Prediction of Alter Model and Our Model
+    # Decompose Cube
+    tFac = perform_CMTF()
 
-    axx.set_yticks([180//8, 180*3//8, 180*5//8, 180*7//8])
-    axx.set_yticklabels(["EC", "UP", "TP", "VC"])
-    
-    ax1.set_ylabel("")
-    ax2.set_ylabel("")
-    ax10.set_ylabel("")
-    ax1.set_xticklabels(test.columns, rotation=90)
-    ax = [ax2, ax6, ax8, ax10]
+    # Function Prediction DataFrame
+    functions_df = concat([make_regression_df(tFac[1][0]) for _ in range(rep)])
 
-    ax[0].set_title("Subjects", fontsize=15)
-    ax[1].set_title("Receptors", fontsize=15)
-    ax[2].set_title("Antigens", fontsize=15)
-    ax[3].set_title("Glycans", fontsize=15)
+    # Class Predictions DataFrame
+    classes = concat([class_predictions_df(tFac[1][0]) for _ in range(rep)])
 
-    for ii, ax in enumerate(ax):
-        ax.text(-0.2, 1.1, ascii_lowercase[ii], transform=ax.transAxes, fontsize=25, fontweight="bold", va="top")
+    # Function Plot
+    cc = sns.pointplot(x="Function", y="Accuracy", data=functions_df, ci="sd", style="Model", hue="Model",
+                      ax=ax[2], join=False, dodge=True)
+    # Formatting
+    shades = [-0.5, 1.5, 3.5]
+    for i in shades:
+        cc.axvspan(i, i + 1, alpha=0.1, color="grey")
+    cc.set_xlim(-0.5, 5.5)
+    cc.set_ylim(-0.3, 1)
+    cc.grid(False)
+    cc.xaxis.tick_top()
+    cc.xaxis.set_label_position("top")
+    cc.tick_params(axis="x")
+    cc.set_ylabel("Accuracy")
+    cc.set_xlabel("Function")
+    cc.get_legend().remove()
+
+    # Class Plot
+    dd = sns.pointplot(x="Class", y="Accuracies", data=classes, ci="sd", style="Model", hue="Model",
+                      ax=ax[3], join=False, dodge=True)
+    # Formatting
+    dd.axvspan(-0.5, 0.5, alpha=0.1, color="grey")
+    dd.axvspan(1.5, 2.5, alpha=0.1, color="grey")
+    dd.set_xlim(-0.5, 2.5)
+    dd.set_ylim(0.2, 1)
+    dd.grid(False)
+    dd.xaxis.tick_top()
+    dd.xaxis.set_label_position("top")
+    dd.set_ylabel("Accuracy")
+    dd.set_xlabel("Class Prediction")
+    dd.tick_params(axis="x")
+    dd.legend(fontsize=8.5, title="Model", title_fontsize=10)
+
+    subplotLabel(ax)
 
     return f
