@@ -17,7 +17,7 @@ def makeFigure():
     """ Compare prediction accuracies """
     ax, f = getSetup((12, 3), (1, 4))
     sns.set()
-    rep = 3
+    rep = 10
 
     ## Accuracy with difference component numbers
     df_function = []
