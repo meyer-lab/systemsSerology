@@ -3,20 +3,14 @@ This creates Figure EV3.
 """
 import numpy as np
 import seaborn as sns
-import tensorly as tl
-from scipy.optimize import least_squares
 from .common import subplotLabel, getSetup
-from ..dataImport import createCube, getAxes
 from ..regression import function_elastic_net
 from ..dataImport import importAlterDF
 import pandas as pd
 import matplotlib
-import sys
 
 
 def makeFigure():
-    functions = ["ADCD", "ADCC", "ADNP", "CD107a", "IFNγ", "MIP1β"]
-
     alter = importAlterDF()
 
     ax, f = getSetup((8, 10), (3, 1))
