@@ -19,7 +19,7 @@ config.update("jax_enable_x64", True)
 
 def buildGlycan(tFac):
     """ Build the glycan matrix from the factors. """
-    return (tFac.mWeights * tFac.factors[0]) @ tFac.mFactor.T
+    return tFac.factors[0] @ tFac.mFactor.T
 
 
 def calcR2X(tFac, tIn=None, mIn=None):
@@ -64,7 +64,6 @@ def sort_factors(tFac):
     order = np.flip(np.argsort(vars))
 
     tensor.weights = tensor.weights[order]
-    tensor.mWeights = tensor.mWeights[order]
     tensor.mFactor = tensor.mFactor[:, order]
     for i, fac in enumerate(tensor.factors):
         tensor.factors[i] = fac[:, order]
@@ -87,7 +86,6 @@ def delete_component(tFac, compNum):
         raise TypeError
 
     tensor.weights = np.delete(tensor.weights, compNum)
-    tensor.mWeights = np.delete(tensor.mWeights, compNum)
     tensor.mFactor = np.delete(tensor.mFactor, compNum, axis=1)
     for i, fac in enumerate(tensor.factors):
         tensor.factors[i] = np.delete(fac, compNum, axis=1)
@@ -129,19 +127,14 @@ def cp_normalize(tFac):
         scales = np.linalg.norm(factor, ord=np.inf, axis=0)
         tFac.weights *= scales
         if i == 0:
-            tFac.mWeights *= scales
+            tFac.mFactor *= scales
 
         tFac.factors[i] /= scales
-
-    # Handle matrix
-    scales = np.linalg.norm(tFac.mFactor, ord=np.inf, axis=0)
-    tFac.mWeights *= scales
-    tFac.mFactor /= scales
 
     return tFac
 
 
-def perform_CMTF(tOrig=None, mOrig=None, r=6):
+def perform_CMTF(tOrig=None, mOrig=None, r=5):
     """ Perform CMTF decomposition. """
     if tOrig is None:
         tOrig, mOrig = createCube()
@@ -158,7 +151,6 @@ def perform_CMTF(tOrig=None, mOrig=None, r=6):
 
     tFac.R2X = -1.0
     tFac.mFactor = np.linalg.lstsq(tFac.factors[0][selPat, :], mOrig[selPat, :], rcond=None)[0].T
-    tFac.mWeights = np.ones(r)
 
     for ii in range(100):
         # Solve for the subject matrix
@@ -189,7 +181,6 @@ def perform_CMTF(tOrig=None, mOrig=None, r=6):
     tFac = cp_normalize(tFac)
     tFac = reorient_factors(tFac)
     tFac = sort_factors(tFac)
-
     return tFac
 
 
@@ -201,22 +192,18 @@ def cp_to_vec(tFac):
 def buildTensors(pIn, tensor, matrix, r):
     """ Use parameter vector to build kruskal tensors. """
     assert tensor.shape[0] == matrix.shape[0]
-    nA = tensor.shape[0]*r
-    nB = tensor.shape[1]*r
-    nC = tensor.shape[2]*r
-    A = jnp.reshape(pIn[:nA], (tensor.shape[0], r))
-    B = jnp.reshape(pIn[nA:nA+nB], (tensor.shape[1], r))
-    C = jnp.reshape(pIn[nA+nB:nA+nB+nC], (tensor.shape[2], r))
+    nN = np.cumsum(np.array(tensor.shape)*r)
+    A = jnp.reshape(pIn[:nN[0]], (tensor.shape[0], r))
+    B = jnp.reshape(pIn[nN[0]:nN[1]], (tensor.shape[1], r))
+    C = jnp.reshape(pIn[nN[1]:nN[2]], (tensor.shape[2], r))
     tFac = tl.cp_tensor.CPTensor((None, [A, B, C]))
-    tFac.mFactor = jnp.reshape(pIn[nA+nB+nC:], (matrix.shape[1], r))
-    tFac.mWeights = jnp.ones(r)
+    tFac.mFactor = jnp.reshape(pIn[nN[2]:], (matrix.shape[1], r))
     return tFac
 
 
 def cost(pIn, tOrig, mOrig, r):
     tFac = buildTensors(pIn, tOrig, mOrig, r)
-    cost = -calcR2X(tFac, tOrig, mOrig)
-    return cost
+    return -calcR2X(tFac, tOrig, mOrig)
 
 
 def fit_refine(tFac, tOrig, mOrig):
@@ -227,11 +214,10 @@ def fit_refine(tFac, tOrig, mOrig):
     gF = grad(cost, 0)
 
     def gradF(*args):
-        out = gF(*args)
-        return np.array(out)
+        return np.array(gF(*args))
 
     tl.set_backend('jax')
-    res = minimize(cost, x0, method="L-BFGS-B", jac=gradF, args=(tOrig, mOrig, r), options={"gtol": 1e-9, "ftol": 1e-9})
+    res = minimize(cost, x0, method="L-BFGS-B", jac=gradF, args=(tOrig, mOrig, r), options={"disp": 2, "gtol": 1e-10, "ftol": 1e-10})
     tl.set_backend('numpy')
 
     tFac = buildTensors(res.x, tOrig, mOrig, r)

@@ -42,10 +42,13 @@ def makeFigure():
     colors = ["blue", "orange", "green", "red"]
     cmap = sns.color_palette(colors)
 
+    mFactors = tensorFac.mFactor
+    mFactors /= np.amax(np.absolute(mFactors))
+
     subs = pd.DataFrame(tensorFac.factors[0], columns=[f"Cmp. {i}" for i in np.arange(1, tensorFac.rank + 1)], index=subjinfo["class.etuv"])
     rec = pd.DataFrame(tensorFac.factors[1], columns=[f"Cmp. {i}" for i in np.arange(1, tensorFac.rank + 1)], index=detections)
     ant = pd.DataFrame(tensorFac.factors[2], columns=[f"Cmp. {i}" for i in np.arange(1, tensorFac.rank + 1)], index=antigen)
-    glycans = pd.DataFrame(tensorFac.mFactor, columns=[f"Cmp. {i}" for i in np.arange(1, tensorFac.rank + 1)], index=glycaninf["glycan"])
+    glycans = pd.DataFrame(mFactors, columns=[f"Cmp. {i}" for i in np.arange(1, tensorFac.rank + 1)], index=glycaninf["glycan"])
 
     sns.heatmap(subs, cmap="PRGn", center=0, xticklabels=True, yticklabels=False, cbar_ax=ax4, vmin=-1.0, vmax=1.0, ax=ax2)
     sns.heatmap(rec, cmap="PRGn", center=0, yticklabels=True, cbar=False, vmin=-1.0, vmax=1.0, ax=ax6)
