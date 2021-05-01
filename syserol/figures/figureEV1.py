@@ -19,7 +19,7 @@ def makeFigure():
         ax[i].set_xlabel("Actual Values")
         ax[i].set_ylabel("Predicted Values")
         m, b = np.polyfit(x, y, 1)  # line of best fit
-        ax[i].plot(x, m * x + b, "k--", color="red")
+        ax[i].plot(x, m * x + b, "r--")
         ax[i].text(
             0.9,
             0.1,
