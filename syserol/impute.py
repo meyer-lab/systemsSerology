@@ -14,6 +14,7 @@ def flatten_to_mat(tensor, matrix):
     tMat = np.hstack((tMat, matrix))
     return tMat
 
+
 def increase_missing(comps, PCAcompare=False):
     samples = np.array([15, 1000, 5000, 12000, 20000, 28000, 36000, 44000, 52000, 60000, 68000, 76000, 82000, 90000])
     CMTFR2Xs = np.zeros(samples.shape)
@@ -24,8 +25,9 @@ def increase_missing(comps, PCAcompare=False):
         CMTFR2Xs[ii] = CMTFR2X[-1]
         PCAR2Xs[ii] = PCAR2X[-1]
         missing[ii] = missingFrac
-    
+
     return CMTFR2Xs, PCAR2Xs, missing
+
 
 def evaluate_missing(comps, numSample=15, chords=True, PCAcompare=False):
     """ check differences between original and recon values for different number of components.
@@ -45,7 +47,7 @@ def evaluate_missing(comps, numSample=15, chords=True, PCAcompare=False):
                 i, j, k = idxs[np.random.choice(idxs.shape[0], 1)][0]
             missingCube[i, j, k] = np.nan
 
-    missingFrac = np.isnan(missingCube).sum()/np.prod(cube.shape)
+    missingFrac = np.isnan(missingCube).sum() / np.prod(cube.shape)
     imputeVals = np.copy(cube)
     imputeVals[np.isfinite(missingCube)] = np.nan
 
@@ -67,6 +69,4 @@ def evaluate_missing(comps, numSample=15, chords=True, PCAcompare=False):
             recon = outt.scores @ outt.loadings.T
             PCAR2X[ii] = 1.0 - np.nanvar(recon - imputeMat) / np.nanvar(imputeMat)
 
-    
     return CMTFR2X, PCAR2X, missingFrac
-

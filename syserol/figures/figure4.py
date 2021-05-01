@@ -19,7 +19,7 @@ def makeFigure():
     sns.set()
     rep = 10
 
-    ## Accuracy with difference component numbers
+    # Accuracy with difference component numbers
     df_function = []
     df_class = []
     resample = False
@@ -32,7 +32,7 @@ def makeFigure():
             data = {"Accuracy": accuracies, "Components": r, "Function": functions}
             df_function.append(pd.DataFrame(data))
 
-            ## Classification
+            # Classification
             accuracy = class_predictions(tFac, resample=resample)[0]
             df_class.append(pd.DataFrame.from_dict({"Class": accuracy.keys(),
                                                     "Accuracy": accuracy.values(),
@@ -49,7 +49,7 @@ def makeFigure():
     aa.grid(False)
     aa.legend(fontsize=8, title="Function", title_fontsize=9)
 
-    ## Classification plot
+    # Classification plot
     bb = sns.pointplot(x="Components", y="Accuracy", data=df_class, ci="sd", style="Class", hue="Class",
                        ax=ax[1], join=False, dodge=True)
     for i in np.arange(-0.5, 9.5, 2):
@@ -58,7 +58,7 @@ def makeFigure():
     bb.grid(False)
     bb.legend(fontsize=8, title="Class", title_fontsize=9)
 
-    ## Show Similarity in Prediction of Alter Model and Our Model
+    # Show Similarity in Prediction of Alter Model and Our Model
     # Decompose Cube
     tFac = perform_CMTF()
 
@@ -70,7 +70,7 @@ def makeFigure():
 
     # Function Plot
     cc = sns.pointplot(x="Function", y="Accuracy", data=functions_df, ci="sd", style="Model", hue="Model",
-                      ax=ax[2], join=False, dodge=True)
+                       ax=ax[2], join=False, dodge=True)
     # Formatting
     shades = [-0.5, 1.5, 3.5]
     for i in shades:
@@ -87,7 +87,7 @@ def makeFigure():
 
     # Class Plot
     dd = sns.pointplot(x="Class", y="Accuracies", data=classes, ci="sd", style="Model", hue="Model",
-                      ax=ax[3], join=False, dodge=True)
+                       ax=ax[3], join=False, dodge=True)
     # Formatting
     dd.axvspan(-0.5, 0.5, alpha=0.1, color="grey")
     dd.axvspan(1.5, 2.5, alpha=0.1, color="grey")
