@@ -5,7 +5,6 @@ import os
 from os.path import join, dirname
 import pickle
 import numpy as np
-from scipy.optimize import approx_fprime
 from scipy.optimize import minimize
 from scipy.linalg import khatri_rao
 import tensorly as tl
@@ -169,7 +168,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=5):
     tFac.mFactor = np.linalg.lstsq(tFac.factors[0][selPat, :], mOrig[selPat, :], rcond=None)[0].T
     tFac.mWeights = np.ones(r)
 
-    for ii in range(100):
+    for ii in range(20):
         # Solve for the subject matrix
         kr = khatri_rao(tFac.factors[1], tFac.factors[2])
         kr2 = np.vstack((kr, tFac.mFactor))
@@ -228,20 +227,29 @@ def buildTensors(pIn, tensor, matrix, r):
 
 def cost(pIn, tOrig, mOrig, r):
     tFac = buildTensors(pIn, tOrig, mOrig, r)
-    tDiff = np.nan_to_num(tOrig - tl.kruskal_to_tensor(tFac))
-    mDiff = np.nan_to_num(mOrig - buildGlycan(tFac))
+    return -calcR2X(tFac, tOrig, mOrig)
 
-    # Overall cost
-    cost = 0.5 * (np.linalg.norm(tDiff) + np.linalg.norm(mDiff))
+
+def grad(pIn, tOrig, mOrig, r):
+    tFac = buildTensors(pIn, tOrig, mOrig, r)
+    tDiff = np.nan_to_num(tOrig - tl.cp_to_tensor(tFac))
+    mDiff = np.nan_to_num(mOrig - buildGlycan(tFac))
+    totalVar = np.nanvar(tOrig) + np.nanvar(mOrig)
+
+    nT = np.sqrt(tOrig.size)
+    nM = np.sqrt(mOrig.size)
 
     gtFac = deepcopy(tFac)
-    gtFac.factors = [-unfolding_dot_khatri_rao(tDiff, tFac, ii) for ii in range(3)]
+    gtFac.factors = [-unfolding_dot_khatri_rao(tDiff, tFac, ii) / nT for ii in range(3)]
 
     mCP = (None, [tFac.factors[0], tFac.mFactor])
-    gtFac.factors[0] += -unfolding_dot_khatri_rao(mDiff, mCP, 0)
-    gtFac.mFactor = -unfolding_dot_khatri_rao(mDiff, mCP, 1)
+    gtFac.factors[0] += -unfolding_dot_khatri_rao(mDiff, mCP, 0) / nM
+    gtFac.mFactor = -unfolding_dot_khatri_rao(mDiff, mCP, 1) / nM
 
-    return cost, cp_to_vec(gtFac)
+    return cp_to_vec(gtFac) / totalVar
+
+
+from statsmodels.tools.numdiff import approx_fprime
 
 
 def fit_refine(tFac, tOrig, mOrig):
@@ -249,9 +257,17 @@ def fit_refine(tFac, tOrig, mOrig):
     r = tFac.rank
 
     x0 = cp_to_vec(tFac)
-    res = minimize(cost, x0, jac=True, args=(tOrig, mOrig, r), options={"disp": True, "maxiter": 3000})
+    print(tFac.R2X)
+
+    ndx = approx_fprime(x0, lambda x: cost(x, tOrig, mOrig, r), centered=True)
+    fdx = grad(x0, tOrig, mOrig, r)
+
+    print(fdx / ndx)
+
+    res = minimize(cost, x0, jac=grad, args=(tOrig, mOrig, r), options={"disp": True, "maxiter": 300})
 
     tFac = buildTensors(res.x, tOrig, mOrig, r)
     tFac.R2X = calcR2X(tFac, tOrig, mOrig)
+    print(tFac.R2X)
 
     return tFac
