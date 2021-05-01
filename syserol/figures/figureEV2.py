@@ -3,55 +3,98 @@ This creates Figure EV2.
 """
 import numpy as np
 import seaborn as sns
-import tensorly as tl
-from scipy.optimize import least_squares
 from .common import subplotLabel, getSetup
-from ..dataImport import createCube, getAxes
+from ..regression import function_elastic_net
+from ..dataImport import importAlterDF
+import pandas as pd
+import matplotlib
 
 
 def makeFigure():
-    """ Compare genotype vs non-genotype specific readings. """
-    cube, _ = createCube()
-    _, detections, _ = getAxes()
+    alter = importAlterDF()
 
-    cube = tl.unfold(cube[:, 1:11, :], 1)
-    cube = np.delete(cube, 3, axis=1)
-    detections = detections[1:11]
-    detections = [x[:2] + "γ" + x[3:] if x[:2] == "Fc" else x for x in detections]
-    del detections[3]
+    ax, f = getSetup((8, 10), (3, 1))
 
-    # Remove fully missing subjects
-    missing = np.all(np.isnan(cube), axis=0)
-    cube = cube[:, ~missing]
+    legendDict = {
+        "FcgRI": "#9BBF98",
+        "FcgRIIa": "#758F4A",
+        "FcgRIIb": "#C8C94E",
+        "FcgRIII": "#556637",
+        "IgG1": "#CBDEF1",
+        "IgG2": "#EDA640",
+        "IgG3": "#6192C5",
+        "IgG4": "#B84632",
+        "C1q": "#704F9D",
+        "Lectin": "#C098BE",
+        "Glycan": "#DE74A6"
+    }
 
-    axs, fig = getSetup((8, 8), (3, 3))
+    colorDict = {
+        "FcgRI": "#9BBF98",
+        "FcgRIIa": "#758F4A",
+        "FcgRIIb": "#C8C94E",
+        "FcgRIII": "#556637",
+        "IgG1": "#CBDEF1",
+        "IgG2": "#EDA640",
+        "IgG3": "#6192C5",
+        "IgG4": "#B84632",
+        "C1q": "#704F9D",
+        "LCA": "#C098BE",
+        "MBL": "#C098BE",
+        "PNA": "#C098BE",
+        "SNA": "#C098BE",
+        "VVL": "#C098BE",
+        "G0": "#DE74A6",
+        "G1": "#DE74A6",
+        "G2": "#DE74A6",
+        "G2": "#DE74A6",
+        "G2": "#DE74A6",
+        "F": "#DE74A6",
+        "B": "#DE74A6",
+        "S": "#DE74A6",
+    }
 
-    for ii, ax in enumerate(axs):
-        groupi = ii - (ii % 3)
-        xi = groupi + [1, 1, 2][ii % 3]
-        yi = groupi + [0, 2, 0][ii % 3]
+    c = function_elastic_net("ADCD", n_resample=3)[3]
 
-        data = cube[(xi, yi), :]
-        miss = np.all(np.isfinite(data), axis=0)
-        data = data[:, miss]
+    coef1 = c[0, :]
+    coef2 = c[1, :]
+    coef3 = c[2, :]
 
-        ax.scatter(data[0, :], data[1, :], s=0.3)
+    for i, coef in enumerate([coef1, coef2, coef3]):
 
-        def pfunc(x, p):
-            return np.power(x, p[0]) * p[1]
+        columns = alter.columns.values[1:-6]
 
-        popt = least_squares(lambda x: pfunc(data[0, :], x) - data[1, :], x0=[1.0, 1.0], jac="3-point")
-        linx = np.linspace(0.0, np.amax(data[0, :]), num=100)
-        liny = pfunc(linx, popt.x)
-        ax.plot(linx, liny, "r-")
+        df = pd.DataFrame(np.reshape(coef, (1, coef.size)),
+                          columns=columns)
 
-        ax.set_xlabel(detections[xi])
-        ax.set_ylabel(detections[yi])
-        ax.set_xticks(ax.get_xticks().tolist())
-        ax.set_xticklabels(ax.get_xticks().tolist(), rotation=20, ha="right")
-        ax.set_ylim(bottom=-2000, top=180000)
-        ax.set_xlim(left=-2000, right=180000)
+        df = df.loc[:, (df != 0).any(axis=0)]
 
-    subplotLabel(axs)
+        palette = {}
 
-    return fig
+        for key1 in columns:
+            longestPrefix = ""
+
+            for key2 in colorDict:
+                if key1.startswith(key2):
+                    if len(key2) > len(longestPrefix):
+                        longestPrefix = key2
+
+            if len(longestPrefix) > 0:
+                palette[key1] = colorDict[longestPrefix]
+            else:
+                palette[key1] = "#CCCCCC"
+
+        sns.barplot(data=df, ax=ax[i], palette=palette)
+
+        ax[i].set_xticklabels(df.columns.values,
+                              rotation=90, horizontalalignment='right')
+        ax[i].set_title("ADCD")
+
+    patches = [matplotlib.patches.Patch(
+        color=v, label=k) for k, v in legendDict.items()]
+    ax[2].legend(handles=patches, loc='upper center',
+                 bbox_to_anchor=(0, -1.5, 1, 0.1), ncol=11, mode="expand", borderaxespad=0.)
+
+    subplotLabel(ax)
+
+    return f

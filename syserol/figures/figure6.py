@@ -67,9 +67,9 @@ def makeFigure():
         test, ax=ax1, yticklabels=True, xticklabels=True, cmap=cmap, cbar=False
     )
 
-    axx.set_yticks([180//8, 180*3//8, 180*5//8, 180*7//8])
+    axx.set_yticks([180 // 8, 180 * 3 // 8, 180 * 5 // 8, 180 * 7 // 8])
     axx.set_yticklabels(["EC", "UP", "TP", "VC"])
-    
+
     ax1.set_ylabel("")
     ax2.set_ylabel("")
     ax10.set_ylabel("")

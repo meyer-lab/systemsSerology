@@ -31,11 +31,11 @@ def calcR2X(tFac, tIn=None, mIn=None):
 
     if tIn is not None:
         tMask = np.isfinite(tIn)
-        vTop += jnp.sum(jnp.square(tl.cp_to_tensor(tFac)*tMask - np.nan_to_num(tIn)))
+        vTop += jnp.sum(jnp.square(tl.cp_to_tensor(tFac) * tMask - np.nan_to_num(tIn)))
         vBottom += np.sum(np.square(np.nan_to_num(tIn)))
     if mIn is not None:
         mMask = np.isfinite(mIn)
-        vTop += jnp.sum(jnp.square(buildGlycan(tFac)*mMask - np.nan_to_num(mIn)))
+        vTop += jnp.sum(jnp.square(buildGlycan(tFac) * mMask - np.nan_to_num(mIn)))
         vBottom += np.sum(np.square(np.nan_to_num(mIn)))
 
     return 1.0 - vTop / vBottom
@@ -55,11 +55,12 @@ def reorient_factors(tFac):
     tFac.factors[2] *= rMeans[np.newaxis, :]
     return tFac
 
+
 def sort_factors(tFac):
     """ Sort the components from the largest variance to the smallest. """
     rr = tFac.rank
     tensor = deepcopy(tFac)
-    totalVar = lambda tFac: np.nanvar(tl.cp_to_tensor(tFac)) + np.nanvar(tFac.factors[0] @ tFac.mFactor.T)
+    def totalVar(tFac): return np.nanvar(tl.cp_to_tensor(tFac)) + np.nanvar(tFac.factors[0] @ tFac.mFactor.T)
     vars = np.array([totalVar(delete_component(tFac, np.delete(np.arange(rr), i))) for i in np.arange(rr)])
     order = np.flip(np.argsort(vars))
 
@@ -71,6 +72,7 @@ def sort_factors(tFac):
     np.testing.assert_allclose(tl.cp_to_tensor(tFac), tl.cp_to_tensor(tensor))
     np.testing.assert_allclose(buildGlycan(tFac), buildGlycan(tensor))
     return tensor
+
 
 def delete_component(tFac, compNum):
     """ Delete the indicated component. """
@@ -190,7 +192,7 @@ def cp_to_vec(tFac):
 def buildTensors(pIn, tensor, matrix, r):
     """ Use parameter vector to build kruskal tensors. """
     assert tensor.shape[0] == matrix.shape[0]
-    nN = np.cumsum(np.array(tensor.shape)*r)
+    nN = np.cumsum(np.array(tensor.shape) * r)
     A = jnp.reshape(pIn[:nN[0]], (tensor.shape[0], r))
     B = jnp.reshape(pIn[nN[0]:nN[1]], (tensor.shape[1], r))
     C = jnp.reshape(pIn[nN[1]:nN[2]], (tensor.shape[2], r))
