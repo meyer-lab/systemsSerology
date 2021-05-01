@@ -2,11 +2,12 @@
 This creates Figure 2.
 """
 
+import numpy as np
 from statsmodels.multivariate.pca import PCA
 from tensorly.cp_tensor import _validate_cp_tensor
 from .common import subplotLabel, getSetup
-from ..tensor import *
-from ..dataImport import functions, createCube
+from ..tensor import perform_CMTF, delete_component, calcR2X
+from ..dataImport import createCube
 from matplotlib.ticker import ScalarFormatter
 
 
