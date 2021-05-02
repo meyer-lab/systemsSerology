@@ -21,8 +21,8 @@ def makeFigure():
         data = {"Class":df["class.etuv"], "IgG":[ig]*181, "Value": gp_id/p24_id}
         test = pd.concat([test, pd.DataFrame(data)])
     
-    sns.stripplot(x="Class", y="Value", hue="IgG", data=test, palette="colorblind", ax=ax[0])
-    ax[0].set_ylim(-0.5, 2)
+    sns.boxplot(x="IgG", y="Value", hue="Class", data=test, palette="colorblind", ax=ax[0])
+    ax[0].set_ylim(-2, 10)
     
     subplotLabel(ax)
     return f
