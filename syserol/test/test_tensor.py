@@ -4,8 +4,10 @@ Unit test file.
 import numpy as np
 import pandas as pd
 import pytest
+import tensorly as tl
 from tensorly.cp_tensor import _validate_cp_tensor
-from ..tensor import perform_CMTF, delete_component, calcR2X
+from tensorly.random import random_cp
+from ..tensor import perform_CMTF, delete_component, calcR2X, buildGlycan, sort_factors, cp_to_vec, buildTensors
 from ..regression import make_regression_df
 from ..classify import class_predictions_df
 from ..dataImport import createCube
@@ -31,7 +33,7 @@ def test_R2X():
 def test_delete():
     """ Test deleting a component results in a valid tensor. """
     tOrig, mOrig = createCube()
-    facT = perform_CMTF(r=6)
+    facT = perform_CMTF(r=4)
 
     fullR2X = calcR2X(facT, tOrig, mOrig)
 
@@ -43,6 +45,44 @@ def test_delete():
 
         assert delR2X < fullR2X
         assert delR2X > -1.0
+
+
+def test_sort():
+    """ Test that sorting does not affect anything. """
+    tOrig, mOrig = createCube()
+
+    tFac = random_cp(tOrig.shape, 3)
+    tFac.mFactor = np.random.randn(mOrig.shape[1], 3)
+    tFac.mWeights = np.ones(3)
+
+    R2X = calcR2X(tFac, tOrig, mOrig)
+    tRec = tl.cp_to_tensor(tFac)
+    mRec = buildGlycan(tFac)
+
+    tFac = sort_factors(tFac)
+    sR2X = calcR2X(tFac, tOrig, mOrig)
+    stRec = tl.cp_to_tensor(tFac)
+    smRec = buildGlycan(tFac)
+
+    np.testing.assert_allclose(R2X, sR2X)
+    np.testing.assert_allclose(tRec, stRec)
+    np.testing.assert_allclose(mRec, smRec)
+
+
+def test_vec():
+    """ Test that making a vector and then reconstructing works. """
+    tOrig, mOrig = createCube()
+
+    tFac = random_cp(tOrig.shape, 3, normalise_factors=False)
+    tFac.mFactor = np.random.randn(mOrig.shape[1], 3)
+    tFac.mWeights = np.ones(3)
+
+    tFacNew = buildTensors(cp_to_vec(tFac), tOrig, mOrig, tFac.rank)
+
+    for ii in range(3):
+        np.testing.assert_allclose(tFac.factors[ii], tFacNew.factors[ii])
+
+    np.testing.assert_allclose(calcR2X(tFac, tOrig, mOrig), calcR2X(tFacNew, tOrig, mOrig))
 
 
 @pytest.mark.parametrize("resample", [False, True])

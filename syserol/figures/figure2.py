@@ -2,11 +2,12 @@
 This creates Figure 2.
 """
 
+import numpy as np
 from statsmodels.multivariate.pca import PCA
 from tensorly.cp_tensor import _validate_cp_tensor
 from .common import subplotLabel, getSetup
-from ..tensor import *
-from ..dataImport import functions, createCube
+from ..tensor import perform_CMTF, delete_component, calcR2X
+from ..dataImport import createCube
 from matplotlib.ticker import ScalarFormatter
 
 
@@ -53,10 +54,10 @@ def makeFigure():
     ax[1].xaxis.set_major_formatter(ScalarFormatter())
     ax[1].legend()
 
-    ## Variance explained by each component
+    # Variance explained by each component
     rr = 10
     facT = perform_CMTF(r=rr)
-    fullR2X = CMTFR2X[rr-1]
+    fullR2X = CMTFR2X[rr - 1]
     var_exp = np.zeros(rr)
 
     for ii in range(rr):
@@ -73,7 +74,7 @@ def makeFigure():
     ax[2].set_ylim(-1, 1)
     ax[2].set_xlim(0.5, np.amax(comps_idx) + 0.5)
 
-    ## Scaling matrix
+    # Scaling matrix
     rats = np.arange(-2, 3)
     tOrig, mOrig = createCube()
     totalR2X = np.zeros(rats.shape)
@@ -95,7 +96,6 @@ def makeFigure():
     ax[3].set_xlim(rats[0] - 0.5, rats[-1] + 0.5)
 
     ax[3].legend()
-
 
     # Add subplot labels
     subplotLabel(ax)
