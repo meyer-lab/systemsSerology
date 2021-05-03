@@ -5,7 +5,7 @@ from sklearn.model_selection import cross_val_predict
 from sklearn.utils import resample as resampleSK
 from sklearn.preprocessing import scale
 from sklearn.linear_model import ElasticNetCV, LogisticRegressionCV, LogisticRegression, ElasticNet
-from sklearn.model_selection import KFold, StratifiedKFold
+from sklearn.model_selection import KFold
 from scipy.stats import pearsonr
 from .dataImport import (
     importFunction,
@@ -79,7 +79,7 @@ def RegressionHelper(X, Y, randomize=False, resample=False):
     cv = KFold(n_splits=10, shuffle=True)
 
     if Y.dtype == int:
-        estCV = LogisticRegressionCV(Cs=20, penalty="elasticnet", solver="saga", cv=cv, l1_ratios=[0.8], n_jobs=-1, max_iter=1000000)
+        estCV = LogisticRegressionCV(penalty="elasticnet", solver="saga", cv=cv, l1_ratios=[0.8], n_jobs=-1, max_iter=1000000)
         estCV.fit(X, Y)
         est = LogisticRegression(C=estCV.C_[0], penalty="elasticnet", solver="saga", l1_ratio=0.8, max_iter=1000000)
     else:
