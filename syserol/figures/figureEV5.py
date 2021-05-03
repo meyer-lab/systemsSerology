@@ -21,8 +21,12 @@ def makeFigure():
         data = {"Class":df["class.etuv"], "IgG":[ig]*181, "Value": gp_id/p24_id}
         test = pd.concat([test, pd.DataFrame(data)])
     
+    # Clip values < 0 or > 100
+    test["Value"] = test["Value"].clip(0,100)
+
+    # Plot
     sns.boxplot(x="IgG", y="Value", hue="Class", data=test, palette="colorblind", ax=ax[0])
-    ax[0].set_ylim(-2, 10)
+    ax[0].set_ylim(-1, 15)
     
     subplotLabel(ax)
     return f
