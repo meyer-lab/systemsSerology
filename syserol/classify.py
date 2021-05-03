@@ -1,5 +1,4 @@
 """ Regression methods using Factorized Data. """
-import numpy as np
 import pandas as pd
 from sklearn.metrics import accuracy_score
 from .dataImport import load_file, importAlterDF, selectAlter

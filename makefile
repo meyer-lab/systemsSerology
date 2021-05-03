@@ -1,5 +1,5 @@
 
-flist = 3
+flist = 2 3 4 5 6 EV1 EV2
 
 all: $(patsubst %, output/figure%.svg, $(flist))
 
@@ -12,10 +12,10 @@ venv/bin/activate: requirements.txt
 
 output/figure%.svg: venv genFigure.py
 	mkdir -p output
-	. venv/bin/activate && ./genFigure.py $*
+	. venv/bin/activate && JAX_PLATFORM_NAME=cpu ./genFigure.py $*
 
 test: venv
-	. venv/bin/activate && pytest -s -v -x
+	. venv/bin/activate && JAX_PLATFORM_NAME=cpu pytest -s -v -x
 
 output/manuscript.md: venv manuscript/*.md
 	. venv/bin/activate && manubot process --content-directory=manuscript --output-directory=output --cache-directory=cache --skip-citations --log-level=INFO

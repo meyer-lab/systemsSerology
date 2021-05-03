@@ -1,5 +1,5 @@
 """ Data import and processing. """
-from functools import reduce
+from functools import reduce, cache
 from os.path import join, dirname
 import numpy as np
 import pandas as pd
@@ -41,6 +41,7 @@ def importGlycan():
     return glycan, df
 
 
+@cache
 def importIGG():
     """ Import the IgG measurements. """
     df = load_file("data-luminex-igg")
@@ -51,6 +52,7 @@ def importIGG():
     return df
 
 
+@cache
 def getAxes():
     """ Get each of the axes over which the data is measured. """
     subjects = load_file("meta-subjects")
@@ -67,6 +69,7 @@ def getAxes():
 functions = ["ADCD", "ADCC", "ADNP", "CD107a", "IFNγ", "MIP1β"]
 
 
+@cache
 def importFunction():
     """ Import functional data. """
     subjects, _, _ = getAxes()
@@ -82,6 +85,7 @@ def importFunction():
     return df, mapped
 
 
+@cache
 def importAlterDF(function=True, subjects=False):
     """ Recreate Alter DF, Import Luminex, Luminex-IGG, Subject group pairs, and Glycan into DF"""
     df = importLuminex()
@@ -120,6 +124,7 @@ def selectAlter(Y, Y_pred, subset=None):
     return Y, Y_pred
 
 
+@cache
 def createCube():
     """ Import the data and assemble the antigen cube. """
     subjects, detections, antigen = getAxes()
