@@ -13,7 +13,7 @@ def makeFigure():
     ax, f = getSetup((9, 3), (1, 3))
     rep = 10
 
-    comps = np.arange(1, 11)
+    comps = np.arange(1, 6)
     df = pd.concat([pd.DataFrame({'Components': comps, 'R2X': evaluate_missing(comps, 15, chords=True)[0]})
                     for _ in range(rep)], axis=0)
     df = df.groupby('Components').agg({'R2X': ['mean', 'std']})
@@ -47,7 +47,7 @@ def makeFigure():
     ax[1].set_ylim(0, 1)
     ax[1].legend(loc=4)
 
-    comps = np.arange(10, 11)
+    comps = np.arange(5, 6)
     df = pd.concat([pd.DataFrame(np.vstack(increase_missing(comps, PCAcompare=True)[0:3]).T,
                                  columns=['CMTF', 'PCA', 'missing']) for _ in range(rep)])
     df = df.groupby(['missing']).agg(['mean', 'std']).reset_index()
