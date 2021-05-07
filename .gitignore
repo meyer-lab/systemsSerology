@@ -146,6 +146,9 @@ venv
 *.afdesign
 
 manuscript/images/thumbnail.svg
-/output
+
+output/
 !output/figure3.svg
-*ipynb
+
+*.ipynb
+
