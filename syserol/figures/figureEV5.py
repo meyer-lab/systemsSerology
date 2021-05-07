@@ -43,6 +43,7 @@ def makeFigure():
     ax[0].set_ylim(-1, 15)
     
     sns.pointplot(x="IgG", y="Accuracy", data=accuracies, join=False, ax=ax[1])
+    ax[1].set_ylim(0, 1)
 
     subplotLabel(ax)
     return f
