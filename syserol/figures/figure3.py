@@ -14,11 +14,39 @@ def makeFigure():
     rep = 10
 
     comps = np.arange(1, 6)
-    df = pd.concat([pd.DataFrame({'Components': comps, 'R2X': evaluate_missing(comps, 15, chords=True)[0]})
+
+    try:
+        chords_df = pd.read_csv('syserol/data/fig3_chords_df.csv')
+        single_df = pd.read_csv('syserol/data/fig3_single_df.csv')
+        increasing_df = pd.read_csv('syserol/data/fig3_increasing_df.csv')
+        print("Got 3 dataframes from csv's")
+    except:
+        print("could not get dataframes from csv's",
+              "calculating them from scratch....")
+        # Imputing chords dataframe
+        chords_df = pd.concat([pd.DataFrame({'Components': comps, 'R2X': evaluate_missing(comps, 15, chords=True)[0]})
                     for _ in range(rep)], axis=0)
-    df = df.groupby('Components').agg({'R2X': ['mean', 'std']})
-    Q2Xchord = df['R2X']['mean']
-    Q2Xerrors = df['R2X']['std']
+        chords_df = chords_df.groupby('Components').agg({'R2X': ['mean', 'std']})
+        
+        # Single imputations dataframe
+        single_df = pd.concat([pd.DataFrame(np.vstack((evaluate_missing(comps, 15, chords=False, PCAcompare=True)[0:2], comps)).T,
+                                 columns=['CMTF', 'PCA', 'Components']) for _ in range(rep)], axis=0)
+        single_df = single_df.groupby(['Components']).agg(['mean', 'std'])
+
+        # Increasing imputations dataframe
+        comps = np.arange(5, 6)
+        increasing_df = pd.concat([pd.DataFrame(np.vstack(increase_missing(comps, PCAcompare=True)[0:3]).T,
+                                    columns=['CMTF', 'PCA', 'missing']) for _ in range(rep)])
+        increasing_df = increasing_df.groupby(['missing']).agg(['mean', 'std']).reset_index()
+
+        chords_df.to_csv('syserol/data/fig3_chords_df.csv', index=False)
+        single_df.to_csv('syserol/data/fig3_single_df.csv', index=False)
+        increasing_df.to_csv('syserol/data/fig3_increasing_df.csv', index=False)
+        print("done!")
+
+
+    Q2Xchord = chords_df['R2X']['mean']
+    Q2Xerrors = chords_df['R2X']['std']
     ax[0].scatter(comps, Q2Xchord)
     ax[0].errorbar(comps, Q2Xchord, yerr=Q2Xerrors, fmt='none')
     ax[0].set_ylabel("Q2X of Imputation")
@@ -27,15 +55,11 @@ def makeFigure():
     ax[0].set_xticklabels([x for x in comps])
     ax[0].set_ylim(0, 1)
 
-    df = pd.concat([pd.DataFrame(np.vstack((evaluate_missing(comps, 15, chords=False, PCAcompare=True)[0:2], comps)).T,
-                                 columns=['CMTF', 'PCA', 'Components']) for _ in range(rep)], axis=0)
-    df = df.groupby(['Components']).agg(['mean', 'std'])
 
-    CMTFR2X = df['CMTF']['mean']
-    CMTFErr = df['CMTF']['std']
-    PCAR2X = df['PCA']['mean']
-    PCAErr = df['PCA']['std']
-
+    CMTFR2X = single_df['CMTF']['mean']
+    CMTFErr = single_df['CMTF']['std']
+    PCAR2X = single_df['PCA']['mean']
+    PCAErr = single_df['PCA']['std']
     ax[1].plot(comps - 0.1, CMTFR2X, ".", label="CMTF")
     ax[1].plot(comps + 0.1, PCAR2X, ".", label="PCA")
     ax[1].errorbar(comps - 0.1, CMTFR2X, yerr=CMTFErr, fmt='none', ecolor='b')
@@ -47,17 +71,12 @@ def makeFigure():
     ax[1].set_ylim(0, 1)
     ax[1].legend(loc=4)
 
-    comps = np.arange(5, 6)
-    df = pd.concat([pd.DataFrame(np.vstack(increase_missing(comps, PCAcompare=True)[0:3]).T,
-                                 columns=['CMTF', 'PCA', 'missing']) for _ in range(rep)])
-    df = df.groupby(['missing']).agg(['mean', 'std']).reset_index()
-
-    missing = df['missing']
-    CMTFR2X = df['CMTF']['mean']
-    CMTFErr = df['CMTF']['std']
-    PCAR2X = df['PCA']['mean']
-    PCAErr = df['PCA']['std']
-
+   
+    missing = increasing_df['missing']
+    CMTFR2X = increasing_df['CMTF']['mean']
+    CMTFErr = increasing_df['CMTF']['std']
+    PCAR2X = increasing_df['PCA']['mean']
+    PCAErr = increasing_df['PCA']['std']
     ax[2].plot(missing, CMTFR2X, ".", label="CMTF")
     ax[2].plot(missing, PCAR2X, ".", label="PCA")
     ax[2].errorbar(missing, CMTFR2X, yerr=CMTFErr, fmt='none', ecolor='b')
