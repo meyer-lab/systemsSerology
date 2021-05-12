@@ -77,29 +77,23 @@ def sort_factors(tFac):
 def delete_component(tFac, compNum):
     """ Delete the indicated component. """
     tensor = deepcopy(tFac)
-    if isinstance(compNum, int):
-        assert compNum < tensor.rank
-        tensor.rank -= 1
-    elif isinstance(compNum, list) or isinstance(compNum, np.ndarray):
-        compNum = np.unique(compNum)
-        assert all(i < tensor.rank for i in compNum)
-        tensor.rank -= len(compNum)
-    else:
-        raise TypeError
+    compNum = np.array(compNum, dtype=int)
 
+    # Assert that component # don't exceed range, and are unique
+    assert np.amax(compNum) < tensor.rank
+    assert np.unique(compNum).size == compNum.size
+
+    tensor.rank -= compNum.size
     tensor.weights = np.delete(tensor.weights, compNum)
     tensor.mFactor = np.delete(tensor.mFactor, compNum, axis=1)
-    for i, fac in enumerate(tensor.factors):
-        tensor.factors[i] = np.delete(fac, compNum, axis=1)
-        assert tensor.factors[i].shape[1] == tensor.rank
-
+    tensor.factors = [np.delete(fac, compNum, axis=1) for fac in tensor.factors]
     return tensor
 
 
 def censored_lstsq(A: np.ndarray, B: np.ndarray) -> np.ndarray:
     """Solves least squares problem subject to missing data.
 
-    Note: uses a for loop over the columns of B, leading to a
+    Note: uses a for loop over the missing patterns of B, leading to a
     slower but more numerically stable algorithm
 
     Args
@@ -180,7 +174,10 @@ def perform_CMTF(tOrig=None, mOrig=None, r=5):
 
     tFac = cp_normalize(tFac)
     tFac = reorient_factors(tFac)
-    tFac = sort_factors(tFac)
+
+    if r > 1:
+        tFac = sort_factors(tFac)
+
     return tFac
 
 
