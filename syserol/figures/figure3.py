@@ -17,32 +17,40 @@ def makeFigure():
 
     try:
         chords_df = pd.read_csv('syserol/data/fig3_chords_df.csv')
-        single_df = pd.read_csv('syserol/data/fig3_single_df.csv')
-        increasing_df = pd.read_csv('syserol/data/fig3_increasing_df.csv')
-        print("Got 3 dataframes from csv's")
     except:
-        print("could not get dataframes from csv's",
-              "calculating them from scratch....")
+        print("Building chords...")
+
         # Imputing chords dataframe
         chords_df = pd.concat([pd.DataFrame({'Components': comps, 'R2X': evaluate_missing(comps, 15, chords=True)[0]})
                     for _ in range(rep)], axis=0)
         chords_df = chords_df.groupby('Components').agg({'R2X': ['mean', 'std']})
-        
+
+        chords_df.to_csv('syserol/data/fig3_chords_df.csv', index=False)
+
+
+    try:
+        single_df = pd.read_csv('syserol/data/fig3_single_df.csv')
+    except:
+        print("Building singles...")
         # Single imputations dataframe
         single_df = pd.concat([pd.DataFrame(np.vstack((evaluate_missing(comps, 15, chords=False, PCAcompare=True)[0:2], comps)).T,
                                  columns=['CMTF', 'PCA', 'Components']) for _ in range(rep)], axis=0)
         single_df = single_df.groupby(['Components']).agg(['mean', 'std'])
 
+        single_df.to_csv('syserol/data/fig3_single_df.csv', index=False)
+
+
+    try:
+        increasing_df = pd.read_csv('syserol/data/fig3_increasing_df.csv')
+    except:
+        print("Building increasing...")
         # Increasing imputations dataframe
         comps = np.arange(5, 6)
         increasing_df = pd.concat([pd.DataFrame(np.vstack(increase_missing(comps, PCAcompare=True)[0:3]).T,
                                     columns=['CMTF', 'PCA', 'missing']) for _ in range(rep)])
         increasing_df = increasing_df.groupby(['missing']).agg(['mean', 'std']).reset_index()
 
-        chords_df.to_csv('syserol/data/fig3_chords_df.csv', index=False)
-        single_df.to_csv('syserol/data/fig3_single_df.csv', index=False)
         increasing_df.to_csv('syserol/data/fig3_increasing_df.csv', index=False)
-        print("done!")
 
 
     Q2Xchord = chords_df['R2X']['mean']
