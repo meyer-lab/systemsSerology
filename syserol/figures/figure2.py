@@ -7,6 +7,7 @@ from statsmodels.multivariate.pca import PCA
 from .common import subplotLabel, getSetup
 from ..tensor import perform_CMTF, calcR2X
 from ..dataImport import createCube
+from ..impute import flatten_to_mat
 from matplotlib.ticker import ScalarFormatter
 
 
@@ -20,10 +21,7 @@ def makeFigure():
     PCAR2X = np.zeros(comps.shape)
 
     tOrig, mOrig = createCube()
-
-    tMat = np.reshape(tOrig, (181, -1))
-    tMat = tMat[:, ~np.all(np.isnan(tMat), axis=0)]
-    tMat = np.hstack((tMat, mOrig))
+    tMat = flatten_to_mat(tOrig, mOrig)
 
     sizePCA = comps * np.sum(tMat.shape)
     sizeTfac = comps * (np.sum(tOrig.shape) + mOrig.shape[1])
@@ -31,7 +29,7 @@ def makeFigure():
     for i, cc in enumerate(comps):
         outt = PCA(tMat, ncomp=cc, missing="fill-em", standardize=False, demean=False, normalize=False)
         recon = outt.scores @ outt.loadings.T
-        PCAR2X[i] = np.nanvar(tMat - recon) / np.nanvar(tMat)
+        PCAR2X[i] = calcR2X(recon, mIn=tMat)
         CMTFR2X[i] = perform_CMTF(r=cc).R2X
 
     ax[0].scatter(comps, CMTFR2X, s=10)
@@ -44,7 +42,7 @@ def makeFigure():
 
     ax[1].set_xscale("log", base=2)
     ax[1].plot(sizeTfac, 1.0 - CMTFR2X, ".", label="CMTF")
-    ax[1].plot(sizePCA, PCAR2X, ".", label="PCA")
+    ax[1].plot(sizePCA, 1.0 - PCAR2X, ".", label="PCA")
     ax[1].set_ylabel("Normalized Unexplained Variance")
     ax[1].set_xlabel("Size of Factorization")
     ax[1].set_ylim(bottom=0.0)
@@ -65,9 +63,9 @@ def makeFigure():
         CMTFR2X[ii] = calcR2X(tFac, tIn=tOrig)
         PCAR2X[ii] = calcR2X(tFac, mIn=mScaled)
 
-    ax[2].plot(rats, totalR2X, ".", label="Total")
-    ax[2].plot(rats, CMTFR2X, "x", label="Tensor")
-    ax[2].plot(rats, PCAR2X, "^", label="Matrix")
+    ax[2].plot(rats, totalR2X, "o", label="Total")
+    ax[2].plot(rats, PCAR2X, "P", label="Matrix")
+    ax[2].plot(rats, CMTFR2X, "X", label="Tensor")
     ax[2].set_ylabel("R2X")
     ax[2].set_xlabel("Matrix scaled")
 

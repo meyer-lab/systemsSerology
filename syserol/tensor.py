@@ -35,7 +35,8 @@ def calcR2X(tFac, tIn=None, mIn=None):
         vBottom += np.sum(np.square(np.nan_to_num(tIn)))
     if mIn is not None:
         mMask = np.isfinite(mIn)
-        vTop += jnp.sum(jnp.square(buildGlycan(tFac) * mMask - np.nan_to_num(mIn)))
+        recon = tFac if isinstance(tFac, np.ndarray) else buildGlycan(tFac)
+        vTop += jnp.sum(jnp.square(recon * mMask - np.nan_to_num(mIn)))
         vBottom += np.sum(np.square(np.nan_to_num(mIn)))
 
     return 1.0 - vTop / vBottom
