@@ -35,7 +35,8 @@ def calcR2X(tFac, tIn=None, mIn=None):
         vBottom += np.sum(np.square(np.nan_to_num(tIn)))
     if mIn is not None:
         mMask = np.isfinite(mIn)
-        vTop += jnp.sum(jnp.square(buildGlycan(tFac) * mMask - np.nan_to_num(mIn)))
+        recon = tFac if isinstance(tFac, np.ndarray) else buildGlycan(tFac)
+        vTop += jnp.sum(jnp.square(recon * mMask - np.nan_to_num(mIn)))
         vBottom += np.sum(np.square(np.nan_to_num(mIn)))
 
     return 1.0 - vTop / vBottom
@@ -60,7 +61,7 @@ def sort_factors(tFac):
     """ Sort the components from the largest variance to the smallest. """
     rr = tFac.rank
     tensor = deepcopy(tFac)
-    def totalVar(tFac): return np.nanvar(tl.cp_to_tensor(tFac)) + np.nanvar(tFac.factors[0] @ tFac.mFactor.T)
+    def totalVar(tFac): return np.nanvar(tl.cp_to_tensor(tFac)) + np.nanvar(buildGlycan(tFac))
     vars = np.array([totalVar(delete_component(tFac, np.delete(np.arange(rr), i))) for i in np.arange(rr)])
     order = np.flip(np.argsort(vars))
 
