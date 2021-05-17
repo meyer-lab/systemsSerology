@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import seaborn as sns
+import matplotlib.pyplot as plt
 from ..tensor import perform_CMTF
 from ..regression import function_prediction
 from ..classify import class_predictions
@@ -45,8 +46,12 @@ def makeFigure():
         }
         funcs_df = funcs_df.append(pd.DataFrame(data), ignore_index=True)
 
-    sns.barplot(x="Component", y="Feature Importance", ci="sd", hue="Function", data=funcs_df, errwidth=1, ax=ax[0])
-    sns.barplot(x="Component", y="Feature Importance", ci="sd", hue="Class", data=class_df, errwidth=2, ax=ax[1])
+    sns.barplot(x="Component", y="Feature Importance", ci="sd",
+                hue="Function", data=funcs_df, errwidth=1, ax=ax[0])
+    sns.barplot(x="Component", y="Feature Importance", ci="sd", hue="Class", data=class_df,
+                errwidth=2, ax=ax[1], palette=sns.color_palette('magma', n_colors=3))
+    # plt.legend(bbox_to_anchor=(1.04, 1), loc='upper left', ncol=1)
+    ax[1].set_ylim(-0.75, 1.5)
 
     # Formatting
     shades = np.arange(-0.5, ncomp - 1, step=2.0)
