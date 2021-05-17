@@ -27,6 +27,7 @@ def makeFigure():
     except:
         print("could not get df_function and df_class from csv's",
               "calculating them from scratch....")
+
         # Accuracy with difference component numbers
         df_function = []
         df_class = []
@@ -54,8 +55,6 @@ def makeFigure():
         df_class.to_csv('syserol/data/fig4_df_class.csv', index=False)
         print("done!")
 
-    # df_function['Components'] -= 1
-
     aa = sns.lineplot(x="Components", y="Accuracy", data=df_function, ci="sd", style="Function", hue="Function",
                       ax=ax[0])
 
@@ -66,10 +65,6 @@ def makeFigure():
     aa.grid(False)
     aa.legend(fontsize=8, title="Function", title_fontsize=9, handlelength=2)
     aa.set_xticks(range(1, 11))
-
-    # get rid of dashed lines if you can't get them in the legend
-
-    # df_class['Components'] -= 1
 
     # Classification plot
     bb = sns.lineplot(x="Components", y="Accuracy", data=df_class, ci="sd", style="Class", hue="Class",
@@ -119,10 +114,6 @@ def makeFigure():
     cc.set_ylabel("Accuracy")
     cc.set_xlabel("Function")
     cc.legend(fontsize=8.5, title="Model", title_fontsize=10)
-
-    # handles, labels = plt.gca().get_legend_handles_labels()
-    # order = [0,2,1]
-    # plt.legend([handles[idx] for idx in order],[labels[idx] for idx in order])
 
     # Class Plot
     dd = sns.pointplot(x="Class", y="Accuracies", data=classes, ci="sd", style="Model", hue="Model",
