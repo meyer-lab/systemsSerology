@@ -87,7 +87,7 @@ def makeFigure():
         sns.barplot(data=df, ax=ax[i], palette=palette)
 
         ax[i].set_xticklabels(df.columns.values,
-                              rotation=90, horizontalalignment='right')
+                              rotation=90, horizontalalignment='center', fontsize=6)
         ax[i].set_title("ADCD")
 
     patches = [matplotlib.patches.Patch(
