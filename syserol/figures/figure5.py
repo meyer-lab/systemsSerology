@@ -45,8 +45,10 @@ def makeFigure():
         }
         funcs_df = funcs_df.append(pd.DataFrame(data), ignore_index=True)
 
-    sns.barplot(x="Component", y="Feature Importance", ci="sd", hue="Function", data=funcs_df, errwidth=1, ax=ax[0])
-    sns.barplot(x="Component", y="Feature Importance", ci="sd", hue="Class", data=class_df, errwidth=2, ax=ax[1])
+    sns.barplot(x="Component", y="Feature Importance", ci="sd",
+                hue="Function", data=funcs_df, errwidth=1, ax=ax[0])
+    sns.barplot(x="Component", y="Feature Importance", ci="sd", hue="Class", data=class_df,
+                errwidth=2, ax=ax[1], palette=sns.color_palette('magma', n_colors=3))
 
     # Formatting
     shades = np.arange(-0.5, ncomp - 1, step=2.0)
