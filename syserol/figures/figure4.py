@@ -5,6 +5,7 @@ This creates Paper Figure 4.
 import numpy as np
 import pandas as pd
 import seaborn as sns
+import re
 from pandas import concat
 from ..regression import function_prediction, make_regression_df
 from ..classify import class_predictions, class_predictions_df
@@ -19,29 +20,44 @@ def makeFigure():
     sns.set()
     rep = 10
 
-    # Accuracy with difference component numbers
-    df_function = []
-    df_class = []
-    resample = False
-    for _ in range(rep):
-        for r in np.arange(1, 11):
-            tFac = perform_CMTF(r=r)[1][0]
+    try:
+        df_function = pd.read_csv('syserol/data/fig4_df_function.csv')
+        df_class = pd.read_csv('syserol/data/fig4_df_class.csv')
+        print("got df_function and df_class from csv's")
+    except:
+        print("could not get df_function and df_class from csv's",
+              "calculating them from scratch....")
+        # Accuracy with difference component numbers
+        df_function = []
+        df_class = []
+        resample = False
+        for _ in range(rep):
+            for r in np.arange(1, 11):
+                tFac = perform_CMTF(r=r)[1][0]
 
-            # Functional prediction
-            accuracies = [function_prediction(tFac, resample=resample, function=f)[2] for f in functions]
-            data = {"Accuracy": accuracies, "Components": r, "Function": functions}
-            df_function.append(pd.DataFrame(data))
+                # Functional prediction
+                accuracies = [function_prediction(tFac, resample=resample, function=f)[
+                    2] for f in functions]
+                data = {"Accuracy": accuracies,
+                        "Components": r, "Function": functions}
+                df_function.append(pd.DataFrame(data))
 
-            # Classification
-            accuracy = class_predictions(tFac, resample=resample)[0]
-            df_class.append(pd.DataFrame.from_dict({"Class": accuracy.keys(),
-                                                    "Accuracy": accuracy.values(),
-                                                    "Components": r}))
-    df_function = pd.concat(df_function)
-    df_class = pd.concat(df_class)
+                # Classification
+                accuracy = class_predictions(tFac, resample=resample)[0]
+                df_class.append(pd.DataFrame.from_dict({"Class": accuracy.keys(),
+                                                        "Accuracy": accuracy.values(),
+                                                        "Components": r}))
+        df_function = pd.concat(df_function)
+        df_class = pd.concat(df_class)
 
-    aa = sns.pointplot(x="Components", y="Accuracy", data=df_function, ci="sd", style="Function", hue="Function",
-                       ax=ax[0], join=False, dodge=True)
+        df_function.to_csv('syserol/data/fig4_df_function.csv', index=False)
+        df_class.to_csv('syserol/data/fig4_df_class.csv', index=False)
+        print("done!")
+
+    df_function['Components'] -= 1
+
+    aa = sns.lineplot(x="Components", y="Accuracy", data=df_function, ci="sd", style="Function", hue="Function",
+                      ax=ax[0])
 
     for i in np.arange(-0.5, 9.5, 2):
         aa.axvspan(i, i + 1, alpha=0.1, color="grey")
@@ -49,9 +65,11 @@ def makeFigure():
     aa.grid(False)
     aa.legend(fontsize=8, title="Function", title_fontsize=9)
 
+    df_class['Components'] -= 1
+
     # Classification plot
-    bb = sns.pointplot(x="Components", y="Accuracy", data=df_class, ci="sd", style="Class", hue="Class",
-                       ax=ax[1], join=False, dodge=True)
+    bb = sns.lineplot(x="Components", y="Accuracy", data=df_class, ci="sd", style="Class", hue="Class",
+                      ax=ax[1], palette=sns.color_palette('magma', n_colors=3))
     for i in np.arange(-0.5, 9.5, 2):
         bb.axvspan(i, i + 1, alpha=0.1, color="grey")
     bb.set_ylim(0.2, 1)
@@ -62,11 +80,22 @@ def makeFigure():
     # Decompose Cube
     tFac = perform_CMTF()
 
-    # Function Prediction DataFrame
-    functions_df = concat([make_regression_df(tFac[1][0]) for _ in range(rep)])
-
-    # Class Predictions DataFrame
-    classes = concat([class_predictions_df(tFac[1][0]) for _ in range(rep)])
+    try:
+        functions_df = pd.read_csv('syserol/data/fig4_functions_df.csv')
+        classes = pd.read_csv('syserol/data/fig4_classes.csv')
+        print("also got functions_df and classes from csv's")
+    except:
+        print("could not get functions_df and classes from csv's",
+              "calculating them from scratch....")
+        # Function Prediction DataFrame
+        functions_df = concat([make_regression_df(tFac[1][0])
+                              for _ in range(rep)])
+        # Class Predictions DataFrame
+        classes = concat([class_predictions_df(tFac[1][0])
+                         for _ in range(rep)])
+        functions_df.to_csv('syserol/data/fig4_functions_df.csv', index=False)
+        classes.to_csv('syserol/data/fig4_classes.csv', index=False)
+        print("done!")
 
     # Function Plot
     cc = sns.pointplot(x="Function", y="Accuracy", data=functions_df, ci="sd", style="Model", hue="Model",
@@ -83,7 +112,7 @@ def makeFigure():
     cc.tick_params(axis="x")
     cc.set_ylabel("Accuracy")
     cc.set_xlabel("Function")
-    cc.get_legend().remove()
+    cc.legend(fontsize=8.5, title="Model", title_fontsize=10)
 
     # Class Plot
     dd = sns.pointplot(x="Class", y="Accuracies", data=classes, ci="sd", style="Model", hue="Model",
@@ -99,7 +128,12 @@ def makeFigure():
     dd.set_ylabel("Accuracy")
     dd.set_xlabel("Class Prediction")
     dd.tick_params(axis="x")
-    dd.legend(fontsize=8.5, title="Model", title_fontsize=10)
+    dd.get_legend().remove()
+
+    dd_labels = [re.sub('/', '\n/', x.get_text())
+                 for x in dd.get_xticklabels()]
+
+    dd.set_xticklabels(dd_labels)
 
     subplotLabel(ax)
 
