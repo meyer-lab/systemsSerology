@@ -64,6 +64,7 @@ def makeFigure():
     aa.set_ylim(-0.3, 1)
     aa.grid(False)
     aa.legend(fontsize=8, title="Function", title_fontsize=9)
+    # aa.set_ticks(range(10))
 
     df_class['Components'] -= 1
 
@@ -75,6 +76,7 @@ def makeFigure():
     bb.set_ylim(0.2, 1)
     bb.grid(False)
     bb.legend(fontsize=8, title="Class", title_fontsize=9)
+    bb.xticks(range(3), ['A', 'Big', 'Cat'], color='red')
 
     # Show Similarity in Prediction of Alter Model and Our Model
     # Decompose Cube
@@ -99,7 +101,7 @@ def makeFigure():
 
     # Function Plot
     cc = sns.pointplot(x="Function", y="Accuracy", data=functions_df, ci="sd", style="Model", hue="Model",
-                       ax=ax[2], join=False, dodge=True)
+                       ax=ax[2], join=False, dodge=True, markers=['o', 'X', 's'], hue_order=['CMTF', 'Alter et al', 'Randomized'])
     # Formatting
     shades = [-0.5, 1.5, 3.5]
     for i in shades:
@@ -114,9 +116,13 @@ def makeFigure():
     cc.set_xlabel("Function")
     cc.legend(fontsize=8.5, title="Model", title_fontsize=10)
 
+    # handles, labels = plt.gca().get_legend_handles_labels()
+    # order = [0,2,1]
+    # plt.legend([handles[idx] for idx in order],[labels[idx] for idx in order])
+
     # Class Plot
     dd = sns.pointplot(x="Class", y="Accuracies", data=classes, ci="sd", style="Model", hue="Model",
-                       ax=ax[3], join=False, dodge=True)
+                       ax=ax[3], join=False, dodge=True, markers=['o', 'X', 's'], hue_order=['CMTF', 'Alter et al', 'Randomized'])
     # Formatting
     dd.axvspan(-0.5, 0.5, alpha=0.1, color="grey")
     dd.axvspan(1.5, 2.5, alpha=0.1, color="grey")
@@ -130,7 +136,7 @@ def makeFigure():
     dd.tick_params(axis="x")
     dd.get_legend().remove()
 
-    dd_labels = [re.sub('/', '\n/', x.get_text())
+    dd_labels = [re.sub('/', '/\n', x.get_text())
                  for x in dd.get_xticklabels()]
 
     dd.set_xticklabels(dd_labels)
