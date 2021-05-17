@@ -54,29 +54,33 @@ def makeFigure():
         df_class.to_csv('syserol/data/fig4_df_class.csv', index=False)
         print("done!")
 
-    df_function['Components'] -= 1
+    # df_function['Components'] -= 1
 
     aa = sns.lineplot(x="Components", y="Accuracy", data=df_function, ci="sd", style="Function", hue="Function",
                       ax=ax[0])
 
-    for i in np.arange(-0.5, 9.5, 2):
+    for i in np.arange(0.5, 10.5, 2):
         aa.axvspan(i, i + 1, alpha=0.1, color="grey")
-    aa.set_ylim(-0.3, 1)
+    aa.set_ylim(0, 1)
+    aa.set_xlim(0.5, 10.5)
     aa.grid(False)
-    aa.legend(fontsize=8, title="Function", title_fontsize=9)
-    # aa.set_ticks(range(10))
+    aa.legend(fontsize=8, title="Function", title_fontsize=9, handlelength=2)
+    aa.set_xticks(range(1, 11))
 
-    df_class['Components'] -= 1
+    # get rid of dashed lines if you can't get them in the legend
+
+    # df_class['Components'] -= 1
 
     # Classification plot
     bb = sns.lineplot(x="Components", y="Accuracy", data=df_class, ci="sd", style="Class", hue="Class",
                       ax=ax[1], palette=sns.color_palette('magma', n_colors=3))
-    for i in np.arange(-0.5, 9.5, 2):
+    for i in np.arange(0.5, 10.5, 2):
         bb.axvspan(i, i + 1, alpha=0.1, color="grey")
     bb.set_ylim(0.2, 1)
     bb.grid(False)
-    bb.legend(fontsize=8, title="Class", title_fontsize=9)
-    bb.xticks(range(3), ['A', 'Big', 'Cat'], color='red')
+    bb.legend(fontsize=8, title="Class", title_fontsize=9, handlelength=2)
+    bb.set_xticks(range(1, 11))
+    bb.set_xlim(0.5, 10.5)
 
     # Show Similarity in Prediction of Alter Model and Our Model
     # Decompose Cube
