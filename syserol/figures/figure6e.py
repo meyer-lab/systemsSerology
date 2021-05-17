@@ -42,4 +42,7 @@ def makeFigure():
     ax = sns.heatmap(small_rec, cmap="PRGn", center=0,
                      yticklabels=True, cbar=True, vmax=0.020, vmin=-0.02)
 
+    ax.text(-0.2, 1.1, 'e', transform=ax.transAxes,
+            fontsize=25, fontweight="bold", va="top")
+
     return f
