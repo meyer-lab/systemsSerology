@@ -45,10 +45,10 @@ def makeFigure():
     except:
         print("Building increasing...")
         # Increasing imputations dataframe
+        rep = 1
         comps = np.arange(5, 6)
         increasing_df = pd.concat([pd.DataFrame(np.vstack(increase_missing(comps, PCAcompare=True)[0:3]).T,
                                     columns=['CMTF', 'PCA', 'missing']) for _ in range(rep)])
-        increasing_df = increasing_df.groupby(['missing']).agg(['mean', 'std']).reset_index()
 
         increasing_df.to_csv('syserol/data/fig3_increasing_df.csv', index=False)
 
@@ -79,7 +79,7 @@ def makeFigure():
     ax[1].set_ylim(0, 1)
     ax[1].legend(loc=4)
 
-   
+    increasing_df = increasing_df.groupby(['missing']).agg(['mean', 'std']).reset_index()
     missing = increasing_df['missing']
     CMTFR2X = increasing_df['CMTF']['mean']
     CMTFErr = increasing_df['CMTF']['std']

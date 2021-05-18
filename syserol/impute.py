@@ -21,6 +21,7 @@ def increase_missing(comps, PCAcompare=False):
     PCAR2Xs = np.zeros(samples.shape)
     missing = np.zeros(samples.shape)
     for ii, sample in enumerate(samples):
+        print("Running sample: ", sample)
         CMTFR2X, PCAR2X, missingFrac = evaluate_missing(comps, numSample=sample, chords=False, PCAcompare=PCAcompare)
         CMTFR2Xs[ii] = CMTFR2X[-1]
         PCAR2Xs[ii] = PCAR2X[-1]
@@ -43,7 +44,7 @@ def evaluate_missing(comps, numSample=15, chords=True, PCAcompare=False):
         if chords:
             missingCube[:, j, k] = np.nan
         else:
-            while sum(np.isnan(missingCube[:, j, k])) > len(missingCube[:, j, k]) - 10:
+            while sum(np.isnan(missingCube[:, j, k])) > len(missingCube[:, j, k]) - 6:
                 i, j, k = idxs[np.random.choice(idxs.shape[0], 1)][0]
             missingCube[i, j, k] = np.nan
 
