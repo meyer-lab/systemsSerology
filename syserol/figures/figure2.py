@@ -58,7 +58,7 @@ def makeFigure():
     PCAR2X = np.zeros(rats.shape)
     for ii, rat in enumerate(rats):
         mScaled = mOrig * (2.0 ** rat)
-        tFac = perform_CMTF(tOrig=tOrig, mOrig=mScaled, r=10)
+        tFac = perform_CMTF(tOrig=tOrig, mOrig=mScaled, r=5)
         totalR2X[ii] = calcR2X(tFac, tOrig, mScaled)
         CMTFR2X[ii] = calcR2X(tFac, tIn=tOrig)
         PCAR2X[ii] = calcR2X(tFac, mIn=mScaled)
