@@ -16,7 +16,7 @@ def makeFigure():
     comps = np.arange(1, 6)
 
     try:
-        chords_df = pd.read_csv('syserol/data/fig3_chords_df.csv')
+        chords_df = pd.read_csv('syserol/data/fig3_chords_df.csv', header=[0,1])
     except:
         print("Building chords...")
 
@@ -29,7 +29,7 @@ def makeFigure():
 
 
     try:
-        single_df = pd.read_csv('syserol/data/fig3_single_df.csv')
+        single_df = pd.read_csv('syserol/data/fig3_single_df.csv', header=[0,1])
     except:
         print("Building singles...")
         # Single imputations dataframe
@@ -89,11 +89,10 @@ def makeFigure():
     ax[2].plot(missing, PCAR2X, ".", label="PCA")
     ax[2].errorbar(missing, CMTFR2X, yerr=CMTFErr, fmt='none', ecolor='b')
     ax[2].errorbar(missing, PCAR2X, yerr=PCAErr, fmt='none', ecolor='darkorange')
-    ax[2].set_yscale("log")
     ax[2].set_ylabel("Q2X of Imputation")
     ax[2].set_xlabel("Fraction Missing")
     ax[2].set_xlim(0.4, 1)
-    ax[2].set_ylim(0, 1)
+    ax[2].set_ylim(0.4, 1)
     ax[2].legend(loc=3)
 
     # Add subplot labels
