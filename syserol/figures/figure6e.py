@@ -14,7 +14,7 @@ def makeFigure():
     """ Generate Figure 6e for Paper"""
     tensorFac = perform_CMTF()
 
-    f = plt.figure()
+    f = plt.figure(figsize=(4, 3))
 
     # Gather grouping info
     glycaninf = load_file("meta-glycans")
