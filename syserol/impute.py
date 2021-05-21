@@ -15,6 +15,54 @@ def flatten_to_mat(tensor, matrix):
     tMat = np.hstack((tMat, matrix))
     return tMat
 
+def deletable(cube, emin=6):
+    """ Return a binary cube, test that each chord has at least emin elements """
+    emin = max(emin, 2)
+    miss_cube = np.isfinite(cube)
+    deletable_cube = np.ones_like(cube, dtype=int)
+    if cube.ndim == 3:
+        for d in range(3):
+            js, ks = (np.sum(np.rollaxis(miss_cube, d), axis=0) < emin).nonzero()
+            for ii in range(len(js)):
+                np.rollaxis(deletable_cube, d)[:, js[ii], ks[ii]] = 0
+    elif cube.ndim == 2:
+        for d in range(2):
+            js = (np.sum(np.rollaxis(miss_cube, d), axis=0) < emin).nonzero()
+            for ii in range(len(js)):
+                np.rollaxis(deletable_cube, d)[:, js[ii]] = 0
+    return deletable_cube * miss_cube
+
+
+def missingness(c):
+    return 1 - np.sum(np.isfinite(c))/np.prod(c.shape)
+
+def create_missing(cube, numSample):
+    """ Remove numSample amount of values from cube while maintain the condition set by deletable()
+    Absolute (realistic) upper bound: cube remove 93577 (~86000), glyCube remove 2450 (~2300), """
+
+    missingCube = np.copy(cube)
+    emin = 6
+    while numSample > 0:
+        delet = deletable(missingCube, emin=emin)
+        idxs = np.argwhere(delet)
+        # delete at most 5% of deletable item at a time
+        numDel = min(np.sum(delet) // 20, numSample)
+        if numDel <= 1:
+            numDel = 1
+            if emin > 2:
+                emin -= 1
+            else:
+                raise RuntimeError("Cannot create this many missing values")
+        #print(np.sum(delet) // 20, numSample, emin)
+        if cube.ndim == 3:
+            for (i, j, k) in idxs[np.random.choice(idxs.shape[0], numDel, replace=False)]:
+                missingCube[i, j, k] = np.nan
+        elif cube.ndim == 2:
+            for (i, j) in idxs[np.random.choice(idxs.shape[0], numDel, replace=False)]:
+                missingCube[i, j] = np.nan
+        numSample -= numDel
+    #print('Missingness', missingness(missingCube))
+    return missingCube
 
 def increase_missing(comps, PCAcompare=False):
     samples = np.array([1000, 5000, 12000, 20000, 28000, 36000, 44000, 52000, 60000, 68000, 76000, 80000, 82000, 84000, 86000, 89000, 90000])
@@ -38,16 +86,15 @@ def evaluate_missing(comps, numSample=15, chords=True, PCAcompare=False):
 
     CMTFR2X = np.zeros(comps.shape)
     PCAR2X = np.zeros(comps.shape)
-    missingCube = np.copy(cube)
-    for _ in range(numSample):
-        idxs = np.argwhere(np.isfinite(missingCube))
-        i, j, k = idxs[np.random.choice(idxs.shape[0], 1)][0]
-        if chords:
+
+    if chords:
+        missingCube = np.copy(cube)
+        for _ in range(numSample):
+            idxs = np.argwhere(np.isfinite(missingCube))
+            i, j, k = idxs[np.random.choice(idxs.shape[0], 1)][0]
             missingCube[:, j, k] = np.nan
-        else:
-            while sum(np.isnan(missingCube[:, j, k])) > len(missingCube[:, j, k]) - 6:
-                i, j, k = idxs[np.random.choice(idxs.shape[0], 1)][0]
-            missingCube[i, j, k] = np.nan
+    else:
+        missingCube = create_missing(np.copy(cube), numSample)
 
     missingFrac = np.isnan(missingCube).sum() / np.prod(cube.shape)
     imputeVals = np.copy(cube)
