@@ -26,8 +26,7 @@ def calcR2X(tFac, tIn=None, mIn=None):
     """ Calculate R2X. Optionally it can be calculated for only the tensor or matrix. """
     assert (tIn is not None) or (mIn is not None)
 
-    vTop = 0.0
-    vBottom = 0.0
+    vTop, vBottom  = 0.0, 0.0
 
     if tIn is not None:
         tMask = np.isfinite(tIn)
