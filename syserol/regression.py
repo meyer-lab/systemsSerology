@@ -87,21 +87,24 @@ def RegressionHelper(X, Y, randomize=False, resample=False):
         estCV = LogisticRegressionCV(penalty="elasticnet", solver="saga", cv=cv, l1_ratios=[0.8], n_jobs=-1, max_iter=1000000)
         estCV.fit(X, Y)
         est = LogisticRegression(C=estCV.C_[0], penalty="elasticnet", solver="saga", l1_ratio=0.8, max_iter=1000000)
-        estG = GaussianProcessClassifier(kern, n_restarts_optimizer=5)
+        estG = GaussianProcessClassifier(kern, n_restarts_optimizer=3)
     else:
         assert Y.dtype == float
         estCV = ElasticNetCV(normalize=True, l1_ratio=0.8, cv=cv, n_jobs=-1, max_iter=1000000)
         estCV.fit(X, Y)
         est = ElasticNet(normalize=True, alpha=estCV.alpha_, l1_ratio=0.8, max_iter=1000000)
-        estG = GaussianProcessRegressor(kern, normalize_y=True, n_restarts_optimizer=5)
+        estG = GaussianProcessRegressor(kern, normalize_y=True, n_restarts_optimizer=3)
 
     est = est.fit(X, Y)
     coef = np.squeeze(est.coef_)
 
     if X.shape[1] < 20:
         estG.fit(X, Y)
-        estG.optimizer = None
-        estG.kernel = estG.kernel_
+
+        if np.unique(Y).size != 4:
+            estG.optimizer = None
+            estG.kernel = estG.kernel_
+
         est = estG
 
     Y_pred = cross_val_predict(est, X, Y, cv=cv, n_jobs=-1)
