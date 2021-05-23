@@ -13,7 +13,7 @@ def makeFigure():
     ax, f = getSetup((9, 3), (1, 3))
     rep = 10
 
-    comps = np.arange(1, 6)
+    comps = np.arange(1, 11)
 
     try:
         chords_df = pd.read_csv('syserol/data/fig3_chords_df.csv')
@@ -42,8 +42,8 @@ def makeFigure():
     except:
         print("Building increasing...")
         # Increasing imputations dataframe
-        rep = 1
-        comps = 5
+        rep = 2
+        comps = 2
         increasing_df = pd.concat([pd.DataFrame(np.vstack(increase_missing(comps)[0:3]).T,
                                     columns=['CMTF', 'PCA', 'missing']) for _ in range(rep)])
         increasing_df.to_csv('syserol/data/fig3_increasing_df.csv', index=False)
