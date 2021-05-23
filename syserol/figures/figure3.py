@@ -13,7 +13,7 @@ def makeFigure():
     ax, f = getSetup((9, 3), (1, 3))
     rep = 10
 
-    comps = np.arange(1, 6)
+    comps = np.arange(1, 11)
 
     try:
         chords_df = pd.read_csv('syserol/data/fig3_chords_df.csv', header=[0,1])
@@ -33,7 +33,7 @@ def makeFigure():
     except:
         print("Building singles...")
         # Single imputations dataframe
-        single_df = pd.concat([pd.DataFrame(np.vstack((evaluate_missing(comps, 15, chords=False, PCAcompare=True)[0:2], comps)).T,
+        single_df = pd.concat([pd.DataFrame(np.vstack((evaluate_missing(comps, 15, chords=False, PCAcompare=True, als=False)[0:2], comps)).T,
                                  columns=['CMTF', 'PCA', 'Components']) for _ in range(rep)], axis=0)
         single_df = single_df.groupby(['Components']).agg(['mean', 'std'])
 
@@ -45,9 +45,9 @@ def makeFigure():
     except:
         print("Building increasing...")
         # Increasing imputations dataframe
-        rep = 1
-        comps = np.arange(5, 6)
-        increasing_df = pd.concat([pd.DataFrame(np.vstack(increase_missing(comps, PCAcompare=True)[0:3]).T,
+        rep = 2
+        comps = np.arange(2, 3)
+        increasing_df = pd.concat([pd.DataFrame(np.vstack(increase_missing(comps, PCAcompare=True, als=False)[0:3]).T,
                                     columns=['CMTF', 'PCA', 'missing']) for _ in range(rep)])
 
         increasing_df.to_csv('syserol/data/fig3_increasing_df.csv', index=False)

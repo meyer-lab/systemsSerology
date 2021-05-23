@@ -16,14 +16,14 @@ def flatten_to_mat(tensor, matrix):
     return tMat
 
 
-def increase_missing(comps, PCAcompare=False):
+def increase_missing(comps, PCAcompare=False, als=False):
     samples = np.array([1000, 5000, 12000, 20000, 28000, 36000, 44000, 52000, 60000, 68000, 76000, 80000, 82000, 84000, 86000, 89000, 90000])
     CMTFR2Xs = np.zeros(samples.shape)
     PCAR2Xs = np.zeros(samples.shape)
     missing = np.zeros(samples.shape)
     for ii, sample in enumerate(samples):
         print("Running sample: ", sample)
-        CMTFR2X, PCAR2X, missingFrac = evaluate_missing(comps, numSample=sample, chords=False, PCAcompare=PCAcompare)
+        CMTFR2X, PCAR2X, missingFrac = evaluate_missing(comps, numSample=sample, chords=False, PCAcompare=PCAcompare, als=als)
         CMTFR2Xs[ii] = CMTFR2X[-1]
         PCAR2Xs[ii] = PCAR2X[-1]
         missing[ii] = missingFrac
@@ -31,7 +31,7 @@ def increase_missing(comps, PCAcompare=False):
     return CMTFR2Xs, PCAR2Xs, missing
 
 
-def evaluate_missing(comps, numSample=15, chords=True, PCAcompare=False):
+def evaluate_missing(comps, numSample=15, chords=True, PCAcompare=False, als=True):
     """ check differences between original and recon values for different number of components.
     chords: whether to leave out tensor chords or individual values """
     cube, glyCube = createCube()
@@ -60,15 +60,15 @@ def evaluate_missing(comps, numSample=15, chords=True, PCAcompare=False):
 
     for ii, nComp in enumerate(comps):
         # reconstruct with some values missing
-        tensorR = tl.cp_to_tensor(perform_CMTF(missingCube, glyCube, nComp))
+        tensorR = tl.cp_to_tensor(perform_CMTF(missingCube, glyCube, nComp, als=als))
         tensorR[np.isfinite(missingCube)] = np.nan
 
         # Compare original Cube with reconstructed cube, which was created from the cube with imputed missing values
-        CMTFR2X[ii] = 1.0 - np.nanvar(tensorR - imputeVals) / np.nanvar(imputeVals)
+        CMTFR2X[ii] = 1.0 - np.sum(np.square(np.nan_to_num(tensorR - imputeVals))) / np.sum(np.square(np.nan_to_num(imputeVals)))
 
         if PCAcompare:
             outt = PCA(missingMat, ncomp=nComp, missing="fill-em", standardize=False, demean=False, normalize=False)
             recon = outt.scores @ outt.loadings.T
-            PCAR2X[ii] = 1.0 - np.nanvar(recon - imputeMat) / np.nanvar(imputeMat)
+            PCAR2X[ii] = 1.0 - np.sum(np.square(np.nan_to_num(recon - imputeMat))) / np.sum(np.square(np.nan_to_num(imputeMat)))
 
     return CMTFR2X, PCAR2X, missingFrac
