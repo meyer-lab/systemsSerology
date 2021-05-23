@@ -4,7 +4,7 @@ import numpy as np
 import tensorly as tl
 from statsmodels.multivariate.pca import PCA
 from .dataImport import createCube
-from .tensor import perform_CMTF, buildGlycan, calcR2X
+from .tensor import perform_CMTF, calcR2X
 
 
 def flatten_to_mat(tensor, matrix):
@@ -17,6 +17,7 @@ def flatten_to_mat(tensor, matrix):
 
 
 def missingness(c):
+    """ Calculate the missingness (NaN) in an array"""
     vTop, vBot = 0.0, 0.0
     for cc in c:
         vTop += np.sum(np.isfinite(cc))
@@ -25,6 +26,7 @@ def missingness(c):
 
 
 def gen_missing(cube, missing_num, emin=6):
+    """ Generate a cube with missing values """
     choose_cube = np.isfinite(cube)
     fill_cube = np.zeros_like(cube, dtype=int)
 
@@ -74,20 +76,18 @@ def gen_missing(cube, missing_num, emin=6):
 
 def increase_missing(comp):
     cube, glyCube = createCube()
-    #samples = np.array([1000, 5000, 12000, 20000, 28000, 36000, 44000, 52000, 60000, 68000, 76000, 80000, 82000, 84000, 86000, 88000])
-    samples = np.array([1000, 5000, 12000, 20000, 28000, 36000, 44000, 52000, 60000])
+    samples = np.array([1000, 5000, 12000, 20000, 28000, 36000, 44000, 52000, 60000,
+                        68000, 76000, 80000, 82000, 84000, 86000, 88000])
     CMTFR2Xs = np.zeros(samples.shape)
     PCAR2Xs = np.zeros(samples.shape)
     missing = np.zeros(samples.shape)
 
     for ii, sample in enumerate(samples):
         print("Running sample: ", sample)
-        missCube = gen_missing(cube, int(sample * 0.974))
-        missGlyCube = gen_missing(glyCube, int(sample * 0.026))
+        missCube = gen_missing(cube, int(sample * 0.979))
+        missGlyCube = gen_missing(glyCube, int(sample * 0.021))
 
-        CMTFR2X, PCAR2X = missing_impute(missCube, missGlyCube, np.array([comp]))
-
-
+        CMTFR2X, PCAR2X = impute_accuracy(missCube, missGlyCube, np.array([comp]))
         CMTFR2Xs[ii] = CMTFR2X[-1]
         PCAR2Xs[ii] = PCAR2X[-1]
         missing[ii] = missingness([missCube, missGlyCube])
@@ -105,9 +105,10 @@ def evaluate_missing(comps, numSample=15, chords=True):
             missingCube[:, j, k] = np.nan
     else:
         missingCube = gen_missing(np.copy(cube), numSample)
-    return missing_impute(missingCube, glyCube, comps, PCAcompare=(not chords))
+    return impute_accuracy(missingCube, glyCube, comps, PCAcompare=(not chords))
 
-def missing_impute(missingCube, missingGlyCube, comps, PCAcompare=True):
+def impute_accuracy(missingCube, missingGlyCube, comps, PCAcompare=True, evade_ALS=False):
+    """ Calculate the imputation R2X """
     cube, glyCube = createCube()
     CMTFR2X = np.zeros(comps.shape)
     PCAR2X = np.zeros(comps.shape)
@@ -125,7 +126,7 @@ def missing_impute(missingCube, missingGlyCube, comps, PCAcompare=True):
 
     for ii, nComp in enumerate(comps):
         # reconstruct with some values missing
-        recon_cmtf = perform_CMTF(missingCube, missingGlyCube, nComp)
+        recon_cmtf = perform_CMTF(missingCube, missingGlyCube, nComp, evade_ALS=evade_ALS)
         CMTFR2X[ii] = calcR2X(recon_cmtf, tIn=imputeCube, mIn=imputeGlyCube)
 
         if PCAcompare:

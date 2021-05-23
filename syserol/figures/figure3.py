@@ -16,28 +16,25 @@ def makeFigure():
     comps = np.arange(1, 6)
 
     try:
-        chords_df = pd.read_csv('syserol/data/fig3_chords_df.csv', header=[0,1])
+        chords_df = pd.read_csv('syserol/data/fig3_chords_df.csv')
     except:
         print("Building chords...")
-
         # Imputing chords dataframe
         chords_df = pd.concat([pd.DataFrame({'Components': comps, 'R2X': evaluate_missing(comps, 15, chords=True)[0]})
-                    for _ in range(rep)], axis=0)
-        chords_df = chords_df.groupby('Components').agg({'R2X': ['mean', 'std']})
-
+                                for _ in range(rep)], axis=0)
         chords_df.to_csv('syserol/data/fig3_chords_df.csv', index=False)
+    chords_df = chords_df.groupby('Components').agg({'R2X': ['mean', 'std']})
 
 
     try:
-        single_df = pd.read_csv('syserol/data/fig3_single_df.csv', header=[0,1])
+        single_df = pd.read_csv('syserol/data/fig3_single_df.csv')
     except:
         print("Building singles...")
         # Single imputations dataframe
-        single_df = pd.concat([pd.DataFrame(np.vstack((evaluate_missing(comps, 15, chords=False, PCAcompare=True)[0:2], comps)).T,
+        single_df = pd.concat([pd.DataFrame(np.vstack((evaluate_missing(comps, 15, chords=False)[0:2], comps)).T,
                                  columns=['CMTF', 'PCA', 'Components']) for _ in range(rep)], axis=0)
-        single_df = single_df.groupby(['Components']).agg(['mean', 'std'])
-
         single_df.to_csv('syserol/data/fig3_single_df.csv', index=False)
+    single_df = single_df.groupby(['Components']).agg(['mean', 'std'])
 
 
     try:
@@ -46,10 +43,9 @@ def makeFigure():
         print("Building increasing...")
         # Increasing imputations dataframe
         rep = 1
-        comps = np.arange(5, 6)
-        increasing_df = pd.concat([pd.DataFrame(np.vstack(increase_missing(comps, PCAcompare=True)[0:3]).T,
+        comps = 5
+        increasing_df = pd.concat([pd.DataFrame(np.vstack(increase_missing(comps)[0:3]).T,
                                     columns=['CMTF', 'PCA', 'missing']) for _ in range(rep)])
-
         increasing_df.to_csv('syserol/data/fig3_increasing_df.csv', index=False)
 
 
@@ -62,7 +58,6 @@ def makeFigure():
     ax[0].set_xticks([x for x in comps])
     ax[0].set_xticklabels([x for x in comps])
     ax[0].set_ylim(0, 1)
-
 
     CMTFR2X = single_df['CMTF']['mean']
     CMTFErr = single_df['CMTF']['std']
@@ -87,8 +82,9 @@ def makeFigure():
     PCAErr = increasing_df['PCA']['std']
     ax[2].plot(missing, CMTFR2X, ".", label="CMTF")
     ax[2].plot(missing, PCAR2X, ".", label="PCA")
-    ax[2].errorbar(missing, CMTFR2X, yerr=CMTFErr, fmt='none', ecolor='b')
-    ax[2].errorbar(missing, PCAR2X, yerr=PCAErr, fmt='none', ecolor='darkorange')
+    if np.any(PCAErr) and np.any(CMTFErr):
+        ax[2].errorbar(missing, CMTFR2X, yerr=CMTFErr, fmt='none', ecolor='b')
+        ax[2].errorbar(missing, PCAR2X, yerr=PCAErr, fmt='none', ecolor='darkorange')
     ax[2].set_ylabel("Q2X of Imputation")
     ax[2].set_xlabel("Fraction Missing")
     ax[2].set_xlim(0.4, 1)
