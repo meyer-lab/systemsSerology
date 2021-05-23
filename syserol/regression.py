@@ -5,6 +5,8 @@ from sklearn.model_selection import cross_val_predict
 from sklearn.utils import resample as resampleSK
 from sklearn.preprocessing import scale
 from sklearn.linear_model import ElasticNetCV, LogisticRegressionCV, LogisticRegression, ElasticNet
+from sklearn.gaussian_process import GaussianProcessClassifier, GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import ConstantKernel, RBF, WhiteKernel
 from sklearn.model_selection import KFold
 from scipy.stats import pearsonr
 from .dataImport import (
@@ -68,6 +70,9 @@ def make_regression_df(X, resample=False):
 
 def RegressionHelper(X, Y, randomize=False, resample=False):
     """ Function with the regression cross-validation strategy. """
+    kern = ConstantKernel() * RBF(np.ones(X.shape[1]), (1e-2, 1e14))
+    kern += WhiteKernel(noise_level_bounds=(0.001, 0.8))
+
     if randomize:
         X = np.copy(X)
         np.random.shuffle(X)
@@ -82,14 +87,23 @@ def RegressionHelper(X, Y, randomize=False, resample=False):
         estCV = LogisticRegressionCV(penalty="elasticnet", solver="saga", cv=cv, l1_ratios=[0.8], n_jobs=-1, max_iter=1000000)
         estCV.fit(X, Y)
         est = LogisticRegression(C=estCV.C_[0], penalty="elasticnet", solver="saga", l1_ratio=0.8, max_iter=1000000)
+        estG = GaussianProcessClassifier(kern, n_restarts_optimizer=5)
     else:
         assert Y.dtype == float
         estCV = ElasticNetCV(normalize=True, l1_ratio=0.8, cv=cv, n_jobs=-1, max_iter=1000000)
         estCV.fit(X, Y)
         est = ElasticNet(normalize=True, alpha=estCV.alpha_, l1_ratio=0.8, max_iter=1000000)
+        estG = GaussianProcessRegressor(kern, normalize_y=True, n_restarts_optimizer=5)
 
     est = est.fit(X, Y)
     coef = np.squeeze(est.coef_)
+
+    if X.shape[1] < 20:
+        estG.fit(X, Y)
+        estG.optimizer = None
+        estG.kernel = estG.kernel_
+        est = estG
+
     Y_pred = cross_val_predict(est, X, Y, cv=cv, n_jobs=-1)
 
     return Y_pred, coef, X, Y
