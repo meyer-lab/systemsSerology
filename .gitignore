@@ -149,6 +149,7 @@ manuscript/images/thumbnail.svg
 
 output/
 !output/figure3.svg
+!output/figure6c.svg
 
 *.ipynb
 
