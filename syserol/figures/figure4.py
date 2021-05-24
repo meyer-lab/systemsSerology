@@ -100,7 +100,7 @@ def makeFigure():
 
     # Function Plot
     cc = sns.pointplot(x="Function", y="Accuracy", data=functions_df, ci="sd", style="Model", hue="Model",
-                       ax=ax[2], join=False, dodge=True, markers=['o', 'X', 's'], hue_order=['CMTF', 'Alter et al', 'Randomized'])
+                       ax=ax[2], join=False, dodge=True, markers=['o', 'X', 's'])
     # Formatting
     shades = [-0.5, 1.5, 3.5]
     for i in shades:
@@ -117,7 +117,7 @@ def makeFigure():
 
     # Class Plot
     dd = sns.pointplot(x="Class", y="Accuracies", data=classes, ci="sd", style="Model", hue="Model",
-                       ax=ax[3], join=False, dodge=True, markers=['o', 'X', 's'], hue_order=['CMTF', 'Alter et al', 'Randomized'])
+                       ax=ax[3], join=False, dodge=True, markers=['o', 'X', 's'])
     # Formatting
     dd.axvspan(-0.5, 0.5, alpha=0.1, color="grey")
     dd.axvspan(1.5, 2.5, alpha=0.1, color="grey")
