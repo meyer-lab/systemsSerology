@@ -45,5 +45,7 @@ def makeFigure():
 
     ax.text(-0.2, 1.1, 'e', transform=ax.transAxes,
             fontsize=25, fontweight="bold", va="top")
+    ax.set_yticklabels(small_rec.index, rotation=0, fontsize=10)
+    ax.set_xticklabels(small_rec.columns, rotation=0, fontsize=9)
 
     return f
