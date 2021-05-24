@@ -3,7 +3,7 @@ Tensor decomposition methods
 """
 import numpy as np
 import jax.numpy as jnp
-from jax import grad
+from jax import value_and_grad
 from jax.config import config
 from scipy.optimize import minimize
 from scipy.linalg import khatri_rao
@@ -209,14 +209,15 @@ def fit_refine(tFac, tOrig, mOrig):
     r = tFac.rank
     x0 = cp_to_vec(tFac)
 
-    gF = grad(cost, 0)
+    gF = value_and_grad(cost, 0)
 
     def gradF(*args):
-        return np.array(gF(*args))
+        value, grad = gF(*args)
+        return value, np.array(grad)
 
     tl.set_backend('jax')
     # TODO: Setup constraint to avoid opposing components
-    res = minimize(cost, x0, method="L-BFGS-B", jac=gradF, args=(tOrig, mOrig, r), options={"gtol": 1e-10, "ftol": 1e-10})
+    res = minimize(gradF, x0, method="L-BFGS-B", jac=True, args=(tOrig, mOrig, r), options={"gtol": 1e-10, "ftol": 1e-10})
     tl.set_backend('numpy')
 
     tFac = buildTensors(res.x, tOrig, mOrig, r)
