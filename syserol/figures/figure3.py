@@ -48,7 +48,7 @@ def makeFigure():
                                     columns=['CMTF', 'PCA', 'missing']) for _ in range(rep)])
         increasing_df.to_csv('syserol/data/fig3_increasing_df.csv', index=False)
 
-
+    comps = np.arange(1, 11)
     Q2Xchord = chords_df['R2X']['mean']
     Q2Xerrors = chords_df['R2X']['std']
     ax[0].scatter(comps, Q2Xchord)
