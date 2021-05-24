@@ -88,7 +88,7 @@ def makeFigure():
     ax[2].set_ylabel("Q2X of Imputation")
     ax[2].set_xlabel("Fraction Missing")
     ax[2].set_xlim(0.4, 1)
-    ax[2].set_ylim(0.4, 1)
+    ax[2].set_ylim(0, 1)
     ax[2].legend(loc=3)
 
     # Add subplot labels
