@@ -31,6 +31,7 @@ def gen_missing(cube, missing_num, emin=6):
     fill_cube = np.zeros_like(cube, dtype=int)
 
     # Generate a bare minimum cube
+    # fill each individual with emin elements
     for ii in range(cube.shape[0]):
         idxs = np.argwhere(choose_cube[ii, :])
         if len(idxs) <= 0:
@@ -43,6 +44,7 @@ def gen_missing(cube, missing_num, emin=6):
             fill_cube[ii, jk[:, 0]] = 1
             choose_cube[ii, jk[:, 0]] = 0
 
+    # fill each non-empty chord with emin elements
     fill_feat = np.any(np.isfinite(cube), axis=0) * emin - np.sum(fill_cube, axis=0)
     for jk in np.argwhere(fill_feat > 0):
         idxs = np.argwhere(choose_cube[:, jk[0], jk[1]]) if cube.ndim == 3 else np.argwhere(choose_cube[:, jk[0]])
@@ -57,8 +59,7 @@ def gen_missing(cube, missing_num, emin=6):
             choose_cube[iis, jk[0]] = 0
     assert np.all((np.sum(fill_cube, axis=0) >= emin) == np.any(np.isfinite(cube), axis=0))
 
-    # fill up the rest to the missing ratio
-    #to_fill = int(np.prod(cube.shape) * (1-missing_rate) - np.sum(fill_cube))
+    # fill up the rest to the missing nums
     to_fill = np.sum(np.isfinite(cube)) - missing_num - np.sum(fill_cube)
     assert to_fill <= np.sum(choose_cube)
     assert to_fill > 0
@@ -75,6 +76,7 @@ def gen_missing(cube, missing_num, emin=6):
 
 
 def increase_missing(comp):
+    """ Generate excessive missing values and impute for Fig 3c  """
     cube, glyCube = createCube()
     samples = np.array([1000, 5000, 12000, 20000, 28000, 36000, 44000, 52000, 60000,
                         68000, 76000, 80000, 82000, 84000, 86000, 88000])
@@ -96,6 +98,7 @@ def increase_missing(comp):
 
 
 def evaluate_missing(comps, numSample=15, chords=True):
+    """ Wrapper for chord loss or individual loss """
     cube, glyCube = createCube()
     if chords:
         missingCube = np.copy(cube)
@@ -107,7 +110,7 @@ def evaluate_missing(comps, numSample=15, chords=True):
         missingCube = gen_missing(np.copy(cube), numSample)
     return impute_accuracy(missingCube, glyCube, comps, PCAcompare=(not chords))
 
-def impute_accuracy(missingCube, missingGlyCube, comps, PCAcompare=True, evade_ALS=False):
+def impute_accuracy(missingCube, missingGlyCube, comps, PCAcompare=True, ALS=True):
     """ Calculate the imputation R2X """
     cube, glyCube = createCube()
     CMTFR2X = np.zeros(comps.shape)
@@ -126,7 +129,7 @@ def impute_accuracy(missingCube, missingGlyCube, comps, PCAcompare=True, evade_A
 
     for ii, nComp in enumerate(comps):
         # reconstruct with some values missing
-        recon_cmtf = perform_CMTF(missingCube, missingGlyCube, nComp, evade_ALS=evade_ALS)
+        recon_cmtf = perform_CMTF(missingCube, missingGlyCube, nComp, ALS=ALS)
         CMTFR2X[ii] = calcR2X(recon_cmtf, tIn=imputeCube, mIn=imputeGlyCube)
 
         if PCAcompare:

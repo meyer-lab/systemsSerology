@@ -131,7 +131,7 @@ def cp_normalize(tFac):
     return tFac
 
 
-def perform_CMTF(tOrig=None, mOrig=None, r=5, evade_ALS=False):
+def perform_CMTF(tOrig=None, mOrig=None, r=5, ALS=True):
     """ Perform CMTF decomposition. """
     if tOrig is None:
         tOrig, mOrig = createCube()
@@ -146,7 +146,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=5, evade_ALS=False):
     tFac.R2X = -1.0
     tFac.mFactor = np.linalg.lstsq(tFac.factors[0][selPat, :], mOrig[selPat, :], rcond=None)[0].T
 
-    if not evade_ALS:
+    if ALS:
         for ii in range(100):
             # Solve for the subject matrix
             kr = khatri_rao(tFac.factors[1], tFac.factors[2])
