@@ -4,7 +4,7 @@ import pandas as pd
 from sklearn.model_selection import cross_val_predict
 from sklearn.utils import resample as resampleSK
 from sklearn.preprocessing import scale
-from sklearn.linear_model import ElasticNetCV, LogisticRegressionCV, LogisticRegression, ElasticNet
+from sklearn.linear_model import ElasticNetCV, LogisticRegressionCV
 from sklearn.model_selection import KFold
 from scipy.stats import pearsonr
 from .dataImport import (
@@ -79,16 +79,13 @@ def RegressionHelper(X, Y, randomize=False, resample=False):
     cv = KFold(n_splits=10, shuffle=True)
 
     if Y.dtype == int:
-        estCV = LogisticRegressionCV(penalty="elasticnet", solver="saga", cv=cv, l1_ratios=[0.8], n_jobs=-1, max_iter=1000000)
-        estCV.fit(X, Y)
-        est = LogisticRegression(C=estCV.C_[0], penalty="elasticnet", solver="saga", l1_ratio=0.8, max_iter=1000000)
+        est = LogisticRegressionCV(penalty="elasticnet", solver="saga", cv=cv, l1_ratios=[0.4, 0.8, 1.0], n_jobs=-1, max_iter=1000000)
     else:
         assert Y.dtype == float
-        estCV = ElasticNetCV(normalize=True, l1_ratio=0.8, cv=cv, n_jobs=-1, max_iter=1000000)
-        estCV.fit(X, Y)
-        est = ElasticNet(normalize=True, alpha=estCV.alpha_, l1_ratio=0.8, max_iter=1000000)
+        est = ElasticNetCV(normalize=True, l1_ratio=[0.4, 0.8, 1.0], cv=cv, n_jobs=-1, max_iter=1000000)
 
     est = est.fit(X, Y)
+
     coef = np.squeeze(est.coef_)
     Y_pred = cross_val_predict(est, X, Y, cv=cv, n_jobs=-1)
 
