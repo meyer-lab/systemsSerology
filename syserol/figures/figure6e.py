@@ -14,7 +14,7 @@ def makeFigure():
     """ Generate Figure 6e for Paper"""
     tensorFac = perform_CMTF()
 
-    f = plt.figure(figsize=(4, 3))
+    f = plt.figure(figsize=(4.5, 3))
 
     # Gather grouping info
     glycaninf = load_file("meta-glycans")
@@ -33,7 +33,6 @@ def makeFigure():
     _, detections, antigen = getAxes()
     detections = [x[:2] + "γ" + x[3:] if x[:2]
                   == "Fc" else x for x in detections]
-    subjinfo = load_file("meta-subjects")
 
     rec = pd.DataFrame(tensorFac.factors[1], columns=[
         f"Cmp. {i}" for i in np.arange(1, tensorFac.rank + 1)], index=detections)
@@ -41,6 +40,8 @@ def makeFigure():
     small_rec = rec.loc[['FcγRI', 'IgG2', 'IgG3', 'IgG4', 'MBL', 'VVL']]
     ax = sns.heatmap(small_rec, cmap="PRGn", center=0,
                      yticklabels=True, cbar=True, vmax=0.020, vmin=-0.02)
+    ax.set_xticklabels(ax.get_xticklabels(), rotation=0)
+    ax.set_yticklabels(ax.get_yticklabels(), rotation=0)
 
     ax.text(-0.2, 1.1, 'e', transform=ax.transAxes,
             fontsize=25, fontweight="bold", va="top")

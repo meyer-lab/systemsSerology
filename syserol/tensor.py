@@ -3,7 +3,7 @@ Tensor decomposition methods
 """
 import numpy as np
 import jax.numpy as jnp
-from jax import grad
+from jax import value_and_grad
 from jax.config import config
 from scipy.optimize import minimize
 from scipy.linalg import khatri_rao
@@ -26,8 +26,7 @@ def calcR2X(tFac, tIn=None, mIn=None):
     """ Calculate R2X. Optionally it can be calculated for only the tensor or matrix. """
     assert (tIn is not None) or (mIn is not None)
 
-    vTop = 0.0
-    vBottom = 0.0
+    vTop, vBottom  = 0.0, 0.0
 
     if tIn is not None:
         tMask = np.isfinite(tIn)
@@ -132,7 +131,7 @@ def cp_normalize(tFac):
     return tFac
 
 
-def perform_CMTF(tOrig=None, mOrig=None, r=5):
+def perform_CMTF(tOrig=None, mOrig=None, r=5, ALS=True):
     """ Perform CMTF decomposition. """
     if tOrig is None:
         tOrig, mOrig = createCube()
@@ -147,28 +146,29 @@ def perform_CMTF(tOrig=None, mOrig=None, r=5):
     tFac.R2X = -1.0
     tFac.mFactor = np.linalg.lstsq(tFac.factors[0][selPat, :], mOrig[selPat, :], rcond=None)[0].T
 
-    for ii in range(100):
-        # Solve for the subject matrix
-        kr = khatri_rao(tFac.factors[1], tFac.factors[2])
-        kr2 = np.vstack((kr, tFac.mFactor))
+    if ALS:
+        for ii in range(100):
+            # Solve for the subject matrix
+            kr = khatri_rao(tFac.factors[1], tFac.factors[2])
+            kr2 = np.vstack((kr, tFac.mFactor))
 
-        tFac.factors[0] = censored_lstsq(kr2, unfolded[0].T)
+            tFac.factors[0] = censored_lstsq(kr2, unfolded[0].T)
 
-        # PARAFAC on other antigen modes
-        for m in [1, 2]:
-            kr = khatri_rao(tFac.factors[0], tFac.factors[3 - m])
-            tFac.factors[m] = censored_lstsq(kr, unfolded[m].T)
+            # PARAFAC on other antigen modes
+            for m in [1, 2]:
+                kr = khatri_rao(tFac.factors[0], tFac.factors[3 - m])
+                tFac.factors[m] = censored_lstsq(kr, unfolded[m].T)
 
-        # Solve for the glycan matrix fit
-        tFac.mFactor = np.linalg.lstsq(tFac.factors[0][selPat, :], mOrig[selPat, :], rcond=None)[0].T
+            # Solve for the glycan matrix fit
+            tFac.mFactor = np.linalg.lstsq(tFac.factors[0][selPat, :], mOrig[selPat, :], rcond=None)[0].T
 
-        if ii % 2 == 0:
-            R2X_last = tFac.R2X
-            tFac.R2X = calcR2X(tFac, tOrig, mOrig)
-            assert tFac.R2X > 0.0
+            if ii % 2 == 0:
+                R2X_last = tFac.R2X
+                tFac.R2X = calcR2X(tFac, tOrig, mOrig)
+                assert tFac.R2X > 0.0
 
-        if tFac.R2X - R2X_last < 1e-6:
-            break
+            if tFac.R2X - R2X_last < 1e-6:
+                break
 
     # Refine with direct optimization
     tFac = fit_refine(tFac, tOrig, mOrig)
@@ -209,14 +209,15 @@ def fit_refine(tFac, tOrig, mOrig):
     r = tFac.rank
     x0 = cp_to_vec(tFac)
 
-    gF = grad(cost, 0)
+    gF = value_and_grad(cost, 0)
 
     def gradF(*args):
-        return np.array(gF(*args))
+        value, grad = gF(*args)
+        return value, np.array(grad)
 
     tl.set_backend('jax')
     # TODO: Setup constraint to avoid opposing components
-    res = minimize(cost, x0, method="L-BFGS-B", jac=gradF, args=(tOrig, mOrig, r), options={"gtol": 1e-10, "ftol": 1e-10})
+    res = minimize(gradF, x0, method="L-BFGS-B", jac=True, args=(tOrig, mOrig, r), options={"gtol": 1e-10, "ftol": 1e-10})
     tl.set_backend('numpy')
 
     tFac = buildTensors(res.x, tOrig, mOrig, r)
