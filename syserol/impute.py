@@ -75,6 +75,19 @@ def gen_missing(cube, missing_num, emin=6):
     return gen_cube
 
 
+def gen_missing_chord(cube, numSample):
+    """ Generate a tensor with missing chords """
+    missingCube = np.copy(cube)
+    for _ in range(numSample):
+        chs = np.any(np.isfinite(cube), axis=0)
+        idxs = np.argwhere(chs)
+        idxs = np.array([idx for idx in idxs
+                         if (np.sum(chs, axis=0)[idx[1]] > 10) and (np.sum(chs, axis=1)[idx[0]] > 10)])
+        j, k = idxs[np.random.choice(idxs.shape[0], 1)][0]
+        missingCube[:, j, k] = np.nan
+    return missingCube
+
+
 def increase_missing(comp):
     """ Generate excessive missing values and impute for Fig 3c  """
     cube, glyCube = createCube()
@@ -101,11 +114,7 @@ def evaluate_missing(comps, numSample=15, chords=True):
     """ Wrapper for chord loss or individual loss """
     cube, glyCube = createCube()
     if chords:
-        missingCube = np.copy(cube)
-        for _ in range(numSample):
-            idxs = np.argwhere(np.isfinite(missingCube))
-            i, j, k = idxs[np.random.choice(idxs.shape[0], 1)][0]
-            missingCube[:, j, k] = np.nan
+        missingCube = gen_missing_chord(cube, numSample)
     else:
         missingCube = gen_missing(np.copy(cube), numSample)
     return impute_accuracy(missingCube, glyCube, comps, PCAcompare=(not chords))
@@ -138,8 +147,3 @@ def impute_accuracy(missingCube, missingGlyCube, comps, PCAcompare=True, ALS=Tru
             PCAR2X[ii] = calcR2X(recon_pca, mIn=imputeMat)
 
     return CMTFR2X, PCAR2X
-
-
-
-
-

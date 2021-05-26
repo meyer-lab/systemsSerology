@@ -217,7 +217,7 @@ def fit_refine(tFac, tOrig, mOrig):
 
     tl.set_backend('jax')
     # TODO: Setup constraint to avoid opposing components
-    res = minimize(gradF, x0, method="L-BFGS-B", jac=True, args=(tOrig, mOrig, r), options={"gtol": 1e-10, "ftol": 1e-10})
+    res = minimize(gradF, x0, method="L-BFGS-B", jac=True, args=(tOrig, mOrig, r), options={"gtol": 1e-8, "ftol": 1e-8})
     tl.set_backend('numpy')
 
     tFac = buildTensors(res.x, tOrig, mOrig, r)
