@@ -227,7 +227,7 @@ def fit_refine(tFac, tOrig, mOrig):
 
 def slide_wise_R2X(r=5):
     import pandas as pd
-    from .dataImport import getAxes, normalize_receptors
+    from .dataImport import getAxes
 
     cube, glyCube = createCube()
     tFac = perform_CMTF(cube, glyCube, r=r)
