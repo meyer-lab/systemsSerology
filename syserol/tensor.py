@@ -223,3 +223,16 @@ def fit_refine(tFac, tOrig, mOrig):
     tFac = buildTensors(res.x, tOrig, mOrig, r)
     tFac.R2X = calcR2X(tFac, tOrig, mOrig)
     return tFac
+
+
+def slide_wise_R2X(r=5):
+    import pandas as pd
+    from .dataImport import getAxes, normalize_receptors
+
+    cube, glyCube = createCube()
+    tFac = perform_CMTF(cube, glyCube, r=r)
+    tt = tl.cp_to_tensor(tFac)
+    rowR2X = np.array([calcR2X(tt[:, ii, :], mIn=cube[:, ii, :]) for ii in range(cube.shape[1])])
+
+    _, detections, _ = getAxes()
+    return pd.DataFrame({"detection": detections, "R2X (r={})".format(r): rowR2X})
