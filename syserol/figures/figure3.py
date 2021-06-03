@@ -20,7 +20,7 @@ def makeFigure():
     except:
         print("Building chords...")
         # Imputing chords dataframe
-        chords_df = pd.concat([pd.DataFrame({'Components': comps, 'R2X': evaluate_missing(comps, 2, chords=True)[0]})
+        chords_df = pd.concat([pd.DataFrame({'Components': comps, 'R2X': evaluate_missing(comps, 15, chords=True)[0]})
                                 for _ in range(rep)], axis=0)
         chords_df.to_csv('syserol/data/fig3_chords_df.csv', index=False)
     chords_df = chords_df.groupby('Components').agg({'R2X': ['mean', 'std']})
