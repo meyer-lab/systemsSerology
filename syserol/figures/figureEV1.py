@@ -1,57 +1,47 @@
-"""
-This creates Figure EV1.
-"""
 import numpy as np
-import seaborn as sns
-import tensorly as tl
-from scipy.optimize import least_squares
-from .common import subplotLabel, getSetup
-from ..dataImport import createCube, getAxes
+from sklearn.linear_model import LogisticRegression
+from syserol.tensor import perform_CMTF
+from syserol.dataImport import load_file
+from syserol.figures.common import getSetup, subplotLabel
 
 
 def makeFigure():
-    """ Compare genotype vs non-genotype specific readings. """
-    cube, _ = createCube()
-    _, detections, _ = getAxes()
+    ax, f = getSetup((6, 3), (1, 2))
 
-    cube = tl.unfold(cube[:, 1:11, :], 1)
-    cube = np.delete(cube, 3, axis=1)
-    detections = detections[1:11]
-    detections = [x[:2] + "γ" + x[3:] if x[:2] == "Fc" else x for x in detections]
-    del detections[3]
+    tFac = perform_CMTF()
+    X = tFac.factors[0]
 
-    # Remove fully missing subjects
-    missing = np.all(np.isnan(cube), axis=0)
-    cube = cube[:, ~missing]
+    df = load_file("meta-subjects")
+    Y1 = (df["class.cp"] == "controller").astype(int)  # control 1, progress 0
+    Y2 = (df["class.nv"] == "viremic").astype(int)  # viremic 1, nonviremic 0
 
-    axs, fig = getSetup((8, 8), (3, 3))
+    make_decision_plot(ax[0], X[:, np.array([1, 3])], Y2, title="Viremic/Nonviremic", black="Nonviremic",
+                       white="Viremic", xaxis=2, yaxis=4)
+    make_decision_plot(ax[1], X[:, np.array([2, 4])], Y1, title="Controller/Progressor", black="Progressor",
+                       white="Controller", xaxis=3, yaxis=5)
 
-    for ii, ax in enumerate(axs):
-        groupi = ii - (ii % 3)
-        xi = groupi + [1, 1, 2][ii % 3]
-        yi = groupi + [0, 2, 0][ii % 3]
+    # Add subplot labels
+    subplotLabel(ax)
 
-        data = cube[(xi, yi), :]
-        miss = np.all(np.isfinite(data), axis=0)
-        data = data[:, miss]
+    return f
 
-        ax.scatter(data[0, :], data[1, :], s=0.3)
 
-        def pfunc(x, p):
-            return np.power(x, p[0]) * p[1]
+def make_decision_plot(ax, X, y, title="", black="", white="", xaxis="", yaxis=""):
+    """ Make one decision plot. Only works with 2D data. """
+    xx = np.linspace(-1.05, 1.05, 100)
+    xx, yy = np.meshgrid(xx, xx.T)
+    Xfull = np.c_[xx.ravel(), yy.ravel()]
 
-        popt = least_squares(lambda x: pfunc(data[0, :], x) - data[1, :], x0=[1.0, 1.0], jac="3-point")
-        linx = np.linspace(0.0, np.amax(data[0, :]), num=100)
-        liny = pfunc(linx, popt.x)
-        ax.plot(linx, liny, "r-")
+    classifier = LogisticRegression(penalty="none")
 
-        ax.set_xlabel(detections[xi])
-        ax.set_ylabel(detections[yi])
-        ax.set_xticks(ax.get_xticks().tolist())
-        ax.set_xticklabels(ax.get_xticks().tolist(), rotation=20, ha="right")
-        ax.set_ylim(bottom=-2000, top=180000)
-        ax.set_xlim(left=-2000, right=180000)
+    # Fit and get model probabilities
+    classifier.fit(X, y)
+    probas = classifier.predict_proba(Xfull)
 
-    subplotLabel(axs)
-
-    return fig
+    ax.imshow(probas[:, 0].reshape((100, 100)), extent=(-1.05, 1.05, -1.05, 1.05), origin='lower', cmap="plasma")
+    blk = ax.scatter(X[y==0, 0], X[y==0, 1], marker='.', c='k', edgecolor='k')
+    wht = ax.scatter(X[y==1, 0], X[y==1, 1], marker='.', c='w', edgecolor='k')
+    ax.set_title(title)
+    ax.set_xlabel("Component " + str(xaxis))
+    ax.set_ylabel("Component " + str(yaxis))
+    ax.legend([blk, wht], [black, white], framealpha=0.99)

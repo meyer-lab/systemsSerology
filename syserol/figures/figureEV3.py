@@ -1,47 +1,51 @@
-import numpy as np
-from sklearn.linear_model import LogisticRegression
-from syserol.tensor import perform_CMTF
-from syserol.dataImport import load_file
-from syserol.figures.common import getSetup, subplotLabel
-
+import numpy as np 
+import pandas as pd 
+import seaborn as sns
+from scipy.stats import gmean
+from sklearn.metrics import accuracy_score
+from .common import getSetup, subplotLabel
+from ..dataImport import importAlterDF
+from ..regression import RegressionHelper
 
 def makeFigure():
-    ax, f = getSetup((6, 3), (1, 2))
+    """Get a list of the axis objects and create a figure"""
+    # Get list of axis objects
+    ax, f = getSetup((9, 3), (1, 2))
 
-    tFac = perform_CMTF()
-    X = tFac.factors[0]
+    df = importAlterDF(subjects=True)
+    gp120 = df.loc[:, df.columns.str.contains("IgG") & df.columns.str.contains("gp120")]
+    p24 = df.loc[:, df.columns.str.contains("IgG") & df.columns.str.contains("p24")]
+    IgGs = ["IgG1", "IgG2", "IgG3", "IgG4"]
 
-    df = load_file("meta-subjects")
-    Y1 = (df["class.cp"] == "controller").astype(int)  # control 1, progress 0
-    Y2 = (df["class.nv"] == "viremic").astype(int)  # viremic 1, nonviremic 0
+    test = pd.DataFrame(columns=["Class", "IgG", "gp120/p24 Ratio", "Gp120", "P24", "Progression"])
+    accuracies = pd.DataFrame(columns=["IgG", "Accuracy"])
+    for ig in IgGs:
+        # Get data for boxplot
+        gp_id = gp120.loc[:, gp120.columns.str.contains(ig)].mean(axis=1) 
+        p24_id = p24.loc[:, p24.columns.str.contains(ig)].mean(axis=1)
+        data = {"Class":df["class.etuv"], "IgG":[ig]*181, "gp120/p24 Ratio": gp_id/p24_id, "Gp120":gp_id, "P24":p24_id, "Progression":df["class.cp"]}        
+        test = pd.concat([test, pd.DataFrame(data)])
 
-    make_decision_plot(ax[0], X[:, np.array([1, 3])], Y2, title="Viremic/Nonviremic", black="Nonviremic",
-                       white="Viremic", xaxis=2, yaxis=4)
-    make_decision_plot(ax[1], X[:, np.array([2, 4])], Y1, title="Controller/Progressor", black="Progressor",
-                       white="Controller", xaxis=3, yaxis=5)
+        # Make predictions
+        df_pred = test.loc[test["IgG"] == ig, :]
+        X = df_pred[["Gp120", "P24"]]
+        Y = (df_pred["Progression"] == "controller").astype(int)
+        Y_pred, coef, X, Y = RegressionHelper(X, Y)
+        acc = accuracy_score(Y, Y_pred)
+        data = {"IgG":ig, "Accuracy":acc}
+        accuracies = accuracies.append(data, ignore_index=True)
+    
+    # Clip values < 0
+    test["gp120/p24 Ratio"] = test["gp120/p24 Ratio"].clip(0)
 
-    # Add subplot labels
+    # Plot
+    sns.boxplot(x="IgG", y="gp120/p24 Ratio", hue="Class", data=test, palette="colorblind", ax=ax[0])
+    ax[0].set_ylim(-1, 15)
+    
+    sns.pointplot(x="IgG", y="Accuracy", data=accuracies, join=False, ax=ax[1])
+    ax[1].set_ylim(0, 1)
+    ax[1].set_title("Controller/Progressor Predictions")
+
     subplotLabel(ax)
-
     return f
 
-
-def make_decision_plot(ax, X, y, title="", black="", white="", xaxis="", yaxis=""):
-    """ Make one decision plot. Only works with 2D data. """
-    xx = np.linspace(-1.05, 1.05, 100)
-    xx, yy = np.meshgrid(xx, xx.T)
-    Xfull = np.c_[xx.ravel(), yy.ravel()]
-
-    classifier = LogisticRegression(penalty="none")
-
-    # Fit and get model probabilities
-    classifier.fit(X, y)
-    probas = classifier.predict_proba(Xfull)
-
-    ax.imshow(probas[:, 0].reshape((100, 100)), extent=(-1.05, 1.05, -1.05, 1.05), origin='lower', cmap="plasma")
-    blk = ax.scatter(X[y==0, 0], X[y==0, 1], marker='.', c='k', edgecolor='k')
-    wht = ax.scatter(X[y==1, 0], X[y==1, 1], marker='.', c='w', edgecolor='k')
-    ax.set_title(title)
-    ax.set_xlabel("Component " + str(xaxis))
-    ax.set_ylabel("Component " + str(yaxis))
-    ax.legend([blk, wht], [black, white], framealpha=0.99)
