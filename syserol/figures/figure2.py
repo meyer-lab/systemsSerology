@@ -44,7 +44,7 @@ def makeFigure():
     ax[1].plot(sizeTfac, 1.0 - CMTFR2X, ".", label="CMTF")
     ax[1].plot(sizePCA, 1.0 - PCAR2X, ".", label="PCA")
     ax[1].set_ylabel("Normalized Unexplained Variance")
-    ax[1].set_xlabel("Size of Factorization")
+    ax[1].set_xlabel("Size of Reduced Data")
     ax[1].set_ylim(bottom=0.0)
     ax[1].set_xlim(2 ** 8, 2 ** 12)
     ax[1].xaxis.set_major_formatter(ScalarFormatter())
