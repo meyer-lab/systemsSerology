@@ -147,7 +147,7 @@ venv
 
 manuscript/images/thumbnail.svg
 
-output/*
+output
 !output/figure3.svg
 !output/figureEV2.svg
 
