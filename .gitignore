@@ -148,8 +148,6 @@ venv
 manuscript/images/thumbnail.svg
 
 output
-!output/figure3.svg
 !output/figureEV2.svg
 
 *.ipynb
-
