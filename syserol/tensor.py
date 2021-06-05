@@ -139,12 +139,11 @@ def perform_CMTF(tOrig=None, mOrig=None, r=5, ALS=True):
     tFac = initialize_nn_cp(np.nan_to_num(tOrig), r, nntype="nndsvd")
 
     # Pre-unfold
-    selPat = np.all(np.isfinite(mOrig), axis=1)
     unfolded = [tl.unfold(tOrig, i) for i in range(3)]
     unfolded[0] = np.hstack((unfolded[0], mOrig))
 
     tFac.R2X = -1.0
-    tFac.mFactor = np.linalg.lstsq(tFac.factors[0][selPat, :], mOrig[selPat, :], rcond=None)[0].T
+    tFac.mFactor = censored_lstsq(tFac.factors[0], mOrig)
 
     if ALS:
         for ii in range(100):
@@ -160,7 +159,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=5, ALS=True):
                 tFac.factors[m] = censored_lstsq(kr, unfolded[m].T)
 
             # Solve for the glycan matrix fit
-            tFac.mFactor = np.linalg.lstsq(tFac.factors[0][selPat, :], mOrig[selPat, :], rcond=None)[0].T
+            tFac.mFactor = censored_lstsq(tFac.factors[0], mOrig)
 
             if ii % 2 == 0:
                 R2X_last = tFac.R2X
