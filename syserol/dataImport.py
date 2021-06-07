@@ -15,6 +15,8 @@ def load_file(name):
 def importLuminex(antigen=None):
     """ Import the Luminex measurements. Subset if only a specific antigen is needed. """
     df = load_file("data-luminex")
+    # Delete antigens with more than 97% missingness
+    df = df.loc[:, ~df.columns.str.contains("HIV1.Gag") & ~df.columns.str.contains("gp140.HXBc2")]
     df = pd.melt(df, id_vars=["subject"])
 
     if antigen is not None:
@@ -57,11 +59,13 @@ def getAxes():
     """ Get each of the axes over which the data is measured. """
     subjects = load_file("meta-subjects")
     detections = load_file("meta-detections")
-    antigen = load_file("meta-antigens")
+    antigens = load_file("meta-antigens")
+    # Delete antigens with more than 97% missingness
+    antigens = antigens[(antigens.antigen != "HIV1.Gag") & (antigens.antigen != "gp140.HXBc2")]
 
     subjects = subjects["subject"].to_list()
     detections = detections["detection"].to_list()
-    antigen = antigen["antigen"].to_list()
+    antigen = antigens["antigen"].to_list()
 
     return subjects, detections, antigen
 
@@ -135,7 +139,7 @@ def createCube():
     glyCube = np.full([len(subjects), len(glycan)], np.nan)
 
     for k, curAnti in enumerate(antigen):
-        lumx = importLuminex(curAnti)
+        lumx = importLuminex(curAnti) # will not select bad (97% missingness) antigens 
 
         for _, row in lumx.iterrows():
             i = subjects.index(row["subject"])
