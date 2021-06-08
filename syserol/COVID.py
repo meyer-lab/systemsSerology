@@ -70,12 +70,3 @@ def dimensionLabel4D():
     ]
     antigenLabel = ["S", "RBD", "N", "S1", "S2", "S1 Trimer", "flu_mix", "NL63", "HKU1"]
     return weekLabel, receptorLabel, antigenLabel
-
-
-
-
-
-
-
-
-
