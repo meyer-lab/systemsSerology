@@ -19,7 +19,7 @@ def test_COVID_import():
     tensor, subjects = Tensor4D()
     assert tensor.shape[0] == len(subjects)
 
-    print(np.mean(np.isfinite(tensor), axis=(1, 2, 3)))
-    print(np.mean(np.isfinite(tensor), axis=(0, 2, 3)))
-    print(np.mean(np.isfinite(tensor), axis=(0, 1, 3)))
-    print(np.mean(np.isfinite(tensor), axis=(0, 1, 2)))
+    # assert np.all(np.mean(np.isfinite(tensor), axis=(1, 2, 3))) > 0.1)
+    assert np.all(np.mean(np.isfinite(tensor), axis=(0, 2, 3)) > 0.1)
+    assert np.all(np.mean(np.isfinite(tensor), axis=(0, 1, 3)) > 0.1)
+    assert np.all(np.mean(np.isfinite(tensor), axis=(0, 1, 2)) > 0.1)
