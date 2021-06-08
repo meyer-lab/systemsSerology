@@ -7,10 +7,11 @@ import pytest
 import tensorly as tl
 from tensorly.cp_tensor import _validate_cp_tensor
 from tensorly.random import random_cp
-from ..tensor import perform_CMTF, delete_component, calcR2X, buildGlycan, sort_factors, cp_to_vec, buildTensors
+from ..tensor import perform_CMTF, delete_component, calcR2X, buildGlycan, sort_factors, cp_to_vec, buildTensors, cp_decomp
 from ..regression import make_regression_df
 from ..classify import class_predictions_df
 from ..dataImport import createCube
+from ..COVID import Tensor4D
 
 
 def test_R2X():
@@ -28,6 +29,12 @@ def test_R2X():
     # confirm R2X is >= 0 and <=1
     assert np.min(arr) >= 0
     assert np.max(arr) <= 1
+
+
+def test_cp():
+    """ Test that the CP decomposition code works. """
+    tensor, _ = Tensor4D()
+    facT = cp_decomp(tensor, 6)
 
 
 def test_delete():
