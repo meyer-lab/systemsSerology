@@ -33,7 +33,7 @@ def makeFigure():
         df_class = []
         resample = False
         for _ in range(rep):
-            for r in np.arange(1, 11):
+            for r in np.arange(1, 15):
                 tFac = perform_CMTF(r=r)[1][0]
 
                 # Functional prediction
