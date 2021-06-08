@@ -140,7 +140,7 @@ def createCube():
     glyCube = np.full([len(subjects), len(glycan)], np.nan)
 
     for k, curAnti in enumerate(antigen):
-        lumx = importLuminex(curAnti) 
+        lumx = importLuminex(curAnti)
 
         for _, row in lumx.iterrows():
             i = subjects.index(row["subject"])
