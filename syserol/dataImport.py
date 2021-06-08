@@ -15,7 +15,7 @@ def load_file(name):
 def importLuminex(antigen=None, delete=True):
     """ Import the Luminex measurements. Subset if only a specific antigen is needed. """
     df = load_file("data-luminex")
-    # Delete antigens with more than 97% missingness
+    # Delete HIV1.Gag and gp140.HXBc2 antigens
     if delete:
         df = df.loc[:, ~df.columns.str.contains("HIV1.Gag") & ~df.columns.str.contains("gp140.HXBc2")]
     df = pd.melt(df, id_vars=["subject"])
@@ -61,7 +61,7 @@ def getAxes():
     subjects = load_file("meta-subjects")
     detections = load_file("meta-detections")
     antigens = load_file("meta-antigens")
-    # Delete antigens with more than 97% missingness
+    # Delete HIV1.Gag and gp140.HXBc2 antigens
     antigens = antigens[(antigens.antigen != "HIV1.Gag") & (antigens.antigen != "gp140.HXBc2")]
 
     subjects = subjects["subject"].to_list()
