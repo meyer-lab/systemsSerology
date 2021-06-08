@@ -47,7 +47,9 @@ def reorient_factors(tFac):
     subjMeans = np.sign(np.mean(tFac.factors[0], axis=0))
     tFac.factors[0] *= subjMeans[np.newaxis, :]
     tFac.factors[1] *= subjMeans[np.newaxis, :]
-    tFac.mFactor *= subjMeans[np.newaxis, :]
+
+    if hasattr(tFac, 'mFactor'):
+        tFac.mFactor *= subjMeans[np.newaxis, :]
 
     # Flip the receptors to be positive
     rMeans = np.sign(np.mean(tFac.factors[1], axis=0))
@@ -123,7 +125,7 @@ def cp_normalize(tFac):
     for i, factor in enumerate(tFac.factors):
         scales = np.linalg.norm(factor, ord=np.inf, axis=0)
         tFac.weights *= scales
-        if i == 0:
+        if i == 0 and hasattr(tFac, 'mFactor'):
             tFac.mFactor *= scales
 
         tFac.factors[i] /= scales
@@ -179,6 +181,34 @@ def perform_CMTF(tOrig=None, mOrig=None, r=5, ALS=True):
         tFac = sort_factors(tFac)
 
     return tFac
+
+
+def cp_decomp(tOrig, r):
+    """ Perform CMTF decomposition. """
+    tFac = initialize_nn_cp(np.nan_to_num(tOrig, nan=np.nanmean(tOrig)), r)
+
+    # Pre-unfold
+    unfolded = [tl.unfold(tOrig, i) for i in range(4)]
+
+    R2X = -1.0
+
+    for ii in range(8000):
+        # PARAFAC on other antigen modes
+        for m in range(4):
+            kr = tl.kr([tFac.factors[ii] for ii in range(4) if ii != m])
+            tFac.factors[m] = censored_lstsq(kr, unfolded[m].T)
+
+        if ii % 20 == 0:
+            R2X_last = R2X
+            R2X = calcR2X(tFac, tOrig)
+
+        if R2X - R2X_last < 1e-6:
+            break
+
+    tFac = cp_normalize(tFac)
+    tFac = reorient_factors(tFac)
+
+    return R2X, tFac
 
 
 def cp_to_vec(tFac):
