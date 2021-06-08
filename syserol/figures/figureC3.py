@@ -9,24 +9,19 @@ def makeFigure():
     tensor, _ = Tensor4D()
     weeklabels, receptorslabels, agLabels = dimensionLabel4D()
 
-    assert tensor.shape[0] == len(weeklabels)
-    assert tensor.shape[1] == len(agLabels)
-    assert tensor.shape[3] == len(receptorslabels)
-
     tfac = cp_decomp(tensor, 6)
 
     components = [str(ii + 1) for ii in range(tfac.rank)]
-    comp_plot(tfac.factors[0], components, weeklabels, "Weeks", ax[0])
+    comp_plot(tfac.factors[0], components, False, "Subjects", ax[0])
     comp_plot(tfac.factors[1], components, agLabels, "Antigens", ax[1])
-    comp_plot(tfac.factors[2], components, False, "Subjects", ax[2])
-    comp_plot(tfac.factors[3], components, receptorslabels, "Receptors", ax[3])
+    comp_plot(tfac.factors[2], components, receptorslabels, "Receptors", ax[2])
+    comp_plot(tfac.factors[3], components, weeklabels, "Weeks", ax[3])
     subplotLabel(ax)
     return f
 
 
 def comp_plot(factors, xlabel, ylabel, plotLabel, ax):
-    """Creates heatmap plots for each input dimension by component"""
+    """ Creates heatmap plots for each input dimension by component. """
     sns.heatmap(factors, cmap="PiYG", center=0, xticklabels=xlabel, yticklabels=ylabel, ax=ax)
     ax.set_xlabel("Components")
     ax.set_ylabel(plotLabel)
-    ax.set_title(plotLabel + " by Component")

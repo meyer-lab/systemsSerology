@@ -184,7 +184,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=5, ALS=True):
 
 
 def cp_decomp(tOrig, r):
-    """ Perform CMTF decomposition. """
+    """ Perform CP decomposition. """
     tFac = initialize_nn_cp(np.nan_to_num(tOrig), r)
 
     # Pre-unfold
