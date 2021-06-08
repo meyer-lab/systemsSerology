@@ -185,12 +185,12 @@ def perform_CMTF(tOrig=None, mOrig=None, r=5, ALS=True):
 
 def cp_decomp(tOrig, r):
     """ Perform CMTF decomposition. """
-    tFac = initialize_nn_cp(np.nan_to_num(tOrig, nan=np.nanmean(tOrig)), r)
+    tFac = initialize_nn_cp(np.nan_to_num(tOrig), r)
 
     # Pre-unfold
     unfolded = [tl.unfold(tOrig, i) for i in range(4)]
 
-    R2X = -1.0
+    tFac.R2X = -1.0
 
     for ii in range(8000):
         # PARAFAC on other antigen modes
@@ -198,17 +198,17 @@ def cp_decomp(tOrig, r):
             kr = tl.kr([tFac.factors[ii] for ii in range(4) if ii != m])
             tFac.factors[m] = censored_lstsq(kr, unfolded[m].T)
 
-        if ii % 20 == 0:
-            R2X_last = R2X
-            R2X = calcR2X(tFac, tOrig)
+        if ii % 2 == 0:
+            R2X_last = tFac.R2X
+            tFac.R2X = calcR2X(tFac, tOrig)
 
-        if R2X - R2X_last < 1e-6:
+        if tFac.R2X - R2X_last < 1e-6:
             break
 
     tFac = cp_normalize(tFac)
     tFac = reorient_factors(tFac)
 
-    return R2X, tFac
+    return tFac
 
 
 def cp_to_vec(tFac):
