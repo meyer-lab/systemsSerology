@@ -58,29 +58,26 @@ def makeFigure():
     aa = sns.lineplot(x="Components", y="Accuracy", data=df_function, ci="sd", style="Function", hue="Function",
                       ax=ax[0])
 
-    for i in np.arange(0.5, 10.5, 2):
+    for i in np.arange(0.5, 14.5, 2):
         aa.axvspan(i, i + 1, alpha=0.1, color="grey")
     aa.set_ylim(0, 1)
-    aa.set_xlim(0.5, 10.5)
+    aa.set_xlim(0.5, 14.5)
     aa.grid(False)
     aa.legend(fontsize=8, title="Function", title_fontsize=9, handlelength=2)
-    aa.set_xticks(range(1, 11))
+    aa.set_xticks(range(1, 15))
 
     # Classification plot
     bb = sns.lineplot(x="Components", y="Accuracy", data=df_class, ci="sd", style="Class", hue="Class",
                       ax=ax[1], palette=sns.color_palette('magma', n_colors=3))
-    for i in np.arange(0.5, 10.5, 2):
+    for i in np.arange(0.5, 14.5, 2):
         bb.axvspan(i, i + 1, alpha=0.1, color="grey")
     bb.set_ylim(0.2, 1)
     bb.grid(False)
     bb.legend(fontsize=8, title="Class", title_fontsize=9, handlelength=2)
-    bb.set_xticks(range(1, 11))
-    bb.set_xlim(0.5, 10.5)
+    bb.set_xticks(range(1, 15))
+    bb.set_xlim(0.5, 14.5)
 
     # Show Similarity in Prediction of Alter Model and Our Model
-    # Decompose Cube
-    tFac = perform_CMTF()
-
     try:
         functions_df = pd.read_csv('syserol/data/fig4_functions_df.csv')
         classes = pd.read_csv('syserol/data/fig4_classes.csv')
@@ -88,6 +85,9 @@ def makeFigure():
     except:
         print("could not get functions_df and classes from csv's",
               "calculating them from scratch....")
+        # Decompose Cube
+        tFac = perform_CMTF()
+
         # Function Prediction DataFrame
         functions_df = concat([make_regression_df(tFac[1][0])
                               for _ in range(rep)])
