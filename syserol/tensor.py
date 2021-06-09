@@ -41,6 +41,16 @@ def calcR2X(tFac, tIn=None, mIn=None):
     return 1.0 - vTop / vBottom
 
 
+def tensor_degFreedom(tFac):
+    """ Calculate the degrees of freedom within a tensor factorization. """
+    deg = np.sum([f.size for f in tFac.factors])
+
+    if hasattr(tFac, 'mFactor'):
+        deg += tFac.mFactor.size
+
+    return deg
+
+
 def reorient_factors(tFac):
     """ This function ensures that factors are negative on at most one direction. """
     # Flip the subjects to be positive
