@@ -6,8 +6,8 @@ import jax.numpy as jnp
 from jax import value_and_grad
 from jax.config import config
 from scipy.optimize import minimize
-from scipy.linalg import khatri_rao
 import tensorly as tl
+from tensorly.tenalg import khatri_rao
 from tensorly.decomposition._nn_cp import initialize_nn_cp
 from copy import deepcopy
 from .dataImport import createCube
@@ -41,7 +41,7 @@ def calcR2X(tFac, tIn=None, mIn=None):
     return 1.0 - vTop / vBottom
 
 
-def tensor_degFreedom(tFac):
+def tensor_degFreedom(tFac) -> int:
     """ Calculate the degrees of freedom within a tensor factorization. """
     deg = np.sum([f.size for f in tFac.factors])
 
@@ -68,21 +68,29 @@ def reorient_factors(tFac):
     return tFac
 
 
+def totalVar(tFac):
+    """ Total variance of a factorization on reconstruction. """
+    varr = tl.cp_norm(tFac)
+    if hasattr(tFac, 'mFactor'):
+        varr += tl.cp_norm((None, [tFac.factors[0], tFac.mFactor]))
+    return varr
+
+
 def sort_factors(tFac):
     """ Sort the components from the largest variance to the smallest. """
     rr = tFac.rank
     tensor = deepcopy(tFac)
-    def totalVar(tFac): return np.nanvar(tl.cp_to_tensor(tFac)) + np.nanvar(buildGlycan(tFac))
     vars = np.array([totalVar(delete_component(tFac, np.delete(np.arange(rr), i))) for i in np.arange(rr)])
     order = np.flip(np.argsort(vars))
 
     tensor.weights = tensor.weights[order]
-    tensor.mFactor = tensor.mFactor[:, order]
-    for i, fac in enumerate(tensor.factors):
-        tensor.factors[i] = fac[:, order]
-
+    tensor.factors = [fac[:, order] for fac in tensor.factors]
     np.testing.assert_allclose(tl.cp_to_tensor(tFac), tl.cp_to_tensor(tensor))
-    np.testing.assert_allclose(buildGlycan(tFac), buildGlycan(tensor))
+
+    if hasattr(tFac, 'mFactor'):
+        tensor.mFactor = tensor.mFactor[:, order]
+        np.testing.assert_allclose(buildGlycan(tFac), buildGlycan(tensor))
+
     return tensor
 
 
@@ -97,7 +105,10 @@ def delete_component(tFac, compNum):
 
     tensor.rank -= compNum.size
     tensor.weights = np.delete(tensor.weights, compNum)
-    tensor.mFactor = np.delete(tensor.mFactor, compNum, axis=1)
+
+    if hasattr(tFac, 'mFactor'):
+        tensor.mFactor = np.delete(tensor.mFactor, compNum, axis=1)
+
     tensor.factors = [np.delete(fac, compNum, axis=1) for fac in tensor.factors]
     return tensor
 
@@ -151,27 +162,31 @@ def perform_CMTF(tOrig=None, mOrig=None, r=5, ALS=True):
     tFac = initialize_nn_cp(np.nan_to_num(tOrig), r, nntype="nndsvd")
 
     # Pre-unfold
-    unfolded = [tl.unfold(tOrig, i) for i in range(3)]
-    unfolded[0] = np.hstack((unfolded[0], mOrig))
-
+    unfolded = [tl.unfold(tOrig, i) for i in range(tOrig.ndim)]
     tFac.R2X = -1.0
-    tFac.mFactor = censored_lstsq(tFac.factors[0], mOrig)
+
+    if mOrig is not None:
+        tFac.mFactor = censored_lstsq(tFac.factors[0], mOrig)
+        unfolded[0] = np.hstack((unfolded[0], mOrig))
 
     if ALS:
         for ii in range(100):
             # Solve for the subject matrix
-            kr = khatri_rao(tFac.factors[1], tFac.factors[2])
-            kr2 = np.vstack((kr, tFac.mFactor))
+            kr = khatri_rao(tFac.factors, skip_matrix=0)
 
-            tFac.factors[0] = censored_lstsq(kr2, unfolded[0].T)
+            if mOrig is not None:
+                kr = np.vstack((kr, tFac.mFactor))
+
+            tFac.factors[0] = censored_lstsq(kr, unfolded[0].T)
 
             # PARAFAC on other antigen modes
-            for m in [1, 2]:
-                kr = khatri_rao(tFac.factors[0], tFac.factors[3 - m])
+            for m in range(1, len(tFac.factors)):
+                kr = khatri_rao(tFac.factors, skip_matrix=m)
                 tFac.factors[m] = censored_lstsq(kr, unfolded[m].T)
 
             # Solve for the glycan matrix fit
-            tFac.mFactor = censored_lstsq(tFac.factors[0], mOrig)
+            if mOrig is not None:
+                tFac.mFactor = censored_lstsq(tFac.factors[0], mOrig)
 
             if ii % 2 == 0:
                 R2X_last = tFac.R2X
@@ -189,37 +204,6 @@ def perform_CMTF(tOrig=None, mOrig=None, r=5, ALS=True):
 
     if r > 1:
         tFac = sort_factors(tFac)
-
-    return tFac
-
-
-def cp_decomp(tOrig, r):
-    """ Perform CP decomposition. """
-    tFac = initialize_nn_cp(np.nan_to_num(tOrig), r)
-
-    # Pre-unfold
-    unfolded = [tl.unfold(tOrig, i) for i in range(4)]
-
-    tFac.R2X = -1.0
-
-    for ii in range(100):
-        # PARAFAC on other antigen modes
-        for m in range(4):
-            kr = tl.kr([tFac.factors[ii] for ii in range(4) if ii != m])
-            tFac.factors[m] = censored_lstsq(kr, unfolded[m].T)
-
-        if ii % 2 == 0:
-            R2X_last = tFac.R2X
-            tFac.R2X = calcR2X(tFac, tOrig)
-
-        if tFac.R2X - R2X_last < 1e-6:
-            break
-
-    # Refine with direct optimization
-    tFac = fit_refine(tFac, tOrig, None)
-
-    tFac = cp_normalize(tFac)
-    tFac = reorient_factors(tFac)
 
     return tFac
 
@@ -269,7 +253,7 @@ def fit_refine(tFac, tOrig, mOrig):
 
     tl.set_backend('jax')
     # TODO: Setup constraint to avoid opposing components
-    res = minimize(gradF, x0, method="L-BFGS-B", jac=True, args=(tOrig, mOrig, r), options={"disp": 10, "gtol": 1e-10, "ftol": 1e-10})
+    res = minimize(gradF, x0, method="L-BFGS-B", jac=True, args=(tOrig, mOrig, r), options={"gtol": 1e-10, "ftol": 1e-10})
     tl.set_backend('numpy')
 
     tFac = buildTensors(res.x, tOrig, mOrig, r)
