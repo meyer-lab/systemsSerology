@@ -1,6 +1,6 @@
 import seaborn as sns
 from ..COVID import Tensor4D, dimensionLabel4D
-from ..tensor import cp_decomp
+from ..tensor import perform_CMTF
 from .common import getSetup, subplotLabel
 
 
@@ -9,7 +9,7 @@ def makeFigure():
     tensor, _ = Tensor4D()
     weeklabels, Rlabels, agLabels = dimensionLabel4D()
 
-    tfac = cp_decomp(tensor, 6)
+    tfac = perform_CMTF(tensor, r=6)
 
     components = [str(ii + 1) for ii in range(tfac.rank)]
     comp_plot(tfac.factors[0], components, False, "Subjects", ax[0])

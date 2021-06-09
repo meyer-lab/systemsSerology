@@ -5,7 +5,7 @@ This creates Figure 2.
 import numpy as np
 from statsmodels.multivariate.pca import PCA
 from .common import subplotLabel, getSetup
-from ..tensor import perform_CMTF, calcR2X
+from ..tensor import perform_CMTF, calcR2X, tensor_degFreedom
 from ..dataImport import createCube
 from ..impute import flatten_to_mat
 from matplotlib.ticker import ScalarFormatter
@@ -19,18 +19,20 @@ def makeFigure():
     comps = np.arange(1, 12)
     CMTFR2X = np.zeros(comps.shape)
     PCAR2X = np.zeros(comps.shape)
+    sizeTfac = np.zeros(comps.shape)
 
     tOrig, mOrig = createCube()
     tMat = flatten_to_mat(tOrig, mOrig)
 
     sizePCA = comps * np.sum(tMat.shape)
-    sizeTfac = comps * (np.sum(tOrig.shape) + mOrig.shape[1])
 
     for i, cc in enumerate(comps):
         outt = PCA(tMat, ncomp=cc, missing="fill-em", standardize=False, demean=False, normalize=False)
         recon = outt.scores @ outt.loadings.T
         PCAR2X[i] = calcR2X(recon, mIn=tMat)
-        CMTFR2X[i] = perform_CMTF(r=cc).R2X
+        tFac = perform_CMTF(r=cc)
+        CMTFR2X[i] = tFac.R2X
+        sizeTfac[i] = tensor_degFreedom(tFac)
 
     ax[0].scatter(comps, CMTFR2X, s=10)
     ax[0].set_ylabel("CMTF R2X")

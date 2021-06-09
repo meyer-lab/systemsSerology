@@ -1,7 +1,7 @@
 """ This makes Figure 1. Plot of R2X values"""
 import numpy as np
 from ..COVID import Tensor4D
-from ..tensor import cp_decomp
+from ..tensor import perform_CMTF
 from .common import getSetup, subplotLabel
 
 
@@ -10,7 +10,7 @@ def makeFigure():
     comps = np.arange(1, 11)
 
     tensor, _ = Tensor4D()
-    R2X = [cp_decomp(tensor, cc).R2X for cc in comps]
+    R2X = [perform_CMTF(tensor, r=cc).R2X for cc in comps]
 
     ax[0].scatter(comps, R2X, color="b")
     ax[0].set_ylabel("R2X")
