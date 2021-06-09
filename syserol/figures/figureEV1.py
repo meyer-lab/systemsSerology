@@ -39,8 +39,8 @@ def make_decision_plot(ax, X, y, title="", black="", white="", xaxis="", yaxis="
     probas = classifier.predict_proba(Xfull)
 
     ax.imshow(probas[:, 0].reshape((100, 100)), extent=(-1.05, 1.05, -1.05, 1.05), origin='lower', cmap="plasma")
-    blk = ax.scatter(X[y==0, 0], X[y==0, 1], marker='.', c='k', edgecolor='k')
-    wht = ax.scatter(X[y==1, 0], X[y==1, 1], marker='.', c='w', edgecolor='k')
+    blk = ax.scatter(X[y == 0, 0], X[y == 0, 1], marker='.', c='k', edgecolor='k')
+    wht = ax.scatter(X[y == 1, 0], X[y == 1, 1], marker='.', c='w', edgecolor='k')
     ax.set_title(title)
     ax.set_xlabel("Component " + str(xaxis))
     ax.set_ylabel("Component " + str(yaxis))

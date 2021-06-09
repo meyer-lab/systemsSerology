@@ -17,35 +17,33 @@ def makeFigure():
 
     try:
         chords_df = pd.read_csv('syserol/data/fig3_chords_df.csv')
-    except:
+    except FileNotFoundError:
         print("Building chords...")
         # Imputing chords dataframe
         chords_df = pd.concat([pd.DataFrame({'Components': comps, 'R2X': evaluate_missing(comps, 15, chords=True)[0]})
-                                for _ in range(rep)], axis=0)
+                               for _ in range(rep)], axis=0)
         chords_df.to_csv('syserol/data/fig3_chords_df.csv', index=False)
     chords_df = chords_df.groupby('Components').agg({'R2X': ['mean', 'std']})
 
-
     try:
         single_df = pd.read_csv('syserol/data/fig3_single_df.csv')
-    except:
+    except FileNotFoundError:
         print("Building singles...")
         # Single imputations dataframe
         single_df = pd.concat([pd.DataFrame(np.vstack((evaluate_missing(comps, 15, chords=False)[0:2], comps)).T,
-                                 columns=['CMTF', 'PCA', 'Components']) for _ in range(rep)], axis=0)
+                                            columns=['CMTF', 'PCA', 'Components']) for _ in range(rep)], axis=0)
         single_df.to_csv('syserol/data/fig3_single_df.csv', index=False)
     single_df = single_df.groupby(['Components']).agg(['mean', 'std'])
 
-
     try:
         increasing_df = pd.read_csv('syserol/data/fig3_increasing_df.csv')
-    except:
+    except FileNotFoundError:
         print("Building increasing...")
         # Increasing imputations dataframe
         rep = 2
         comps = 2
         increasing_df = pd.concat([pd.DataFrame(np.vstack(increase_missing(comps)[0:3]).T,
-                                    columns=['CMTF', 'PCA', 'missing']) for _ in range(rep)])
+                                                columns=['CMTF', 'PCA', 'missing']) for _ in range(rep)])
         increasing_df.to_csv('syserol/data/fig3_increasing_df.csv', index=False)
 
     comps = np.arange(1, 11)
