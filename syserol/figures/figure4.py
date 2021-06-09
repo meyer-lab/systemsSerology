@@ -24,7 +24,7 @@ def makeFigure():
         df_function = pd.read_csv('syserol/data/fig4_df_function.csv')
         df_class = pd.read_csv('syserol/data/fig4_df_class.csv')
         print("got df_function and df_class from csv's")
-    except:
+    except FileNotFoundError:
         print("could not get df_function and df_class from csv's",
               "calculating them from scratch....")
 
@@ -82,7 +82,7 @@ def makeFigure():
         functions_df = pd.read_csv('syserol/data/fig4_functions_df.csv')
         classes = pd.read_csv('syserol/data/fig4_classes.csv')
         print("also got functions_df and classes from csv's")
-    except:
+    except FileNotFoundError:
         print("could not get functions_df and classes from csv's",
               "calculating them from scratch....")
         # Decompose Cube

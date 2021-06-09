@@ -66,7 +66,7 @@ def gen_missing(cube, missing_num, emin=6):
     idxs = np.argwhere(choose_cube)
     ijk = idxs[np.random.choice(idxs.shape[0], to_fill, replace=False)]
     if cube.ndim == 3:
-        fill_cube[ijk[:,0], ijk[:,1], ijk[:,2]] = 1
+        fill_cube[ijk[:, 0], ijk[:, 1], ijk[:, 2]] = 1
     elif cube.ndim == 2:
         fill_cube[ijk[:, 0], ijk[:, 1]] = 1
 
@@ -110,6 +110,7 @@ def evaluate_missing(comps, numSample=15, chords=True):
         missingCube = gen_missing(np.copy(cube), numSample)
     return impute_accuracy(missingCube, glyCube, comps, PCAcompare=(not chords))
 
+
 def impute_accuracy(missingCube, missingGlyCube, comps, PCAcompare=True, ALS=True):
     """ Calculate the imputation R2X """
     cube, glyCube = createCube()
@@ -138,8 +139,3 @@ def impute_accuracy(missingCube, missingGlyCube, comps, PCAcompare=True, ALS=Tru
             PCAR2X[ii] = calcR2X(recon_pca, mIn=imputeMat)
 
     return CMTFR2X, PCAR2X
-
-
-
-
-
