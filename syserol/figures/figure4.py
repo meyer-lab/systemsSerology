@@ -185,6 +185,6 @@ def makeFigure():
         axx.set_xlim(-0.5, ncomp - 0.5)
 
     # Add subplot labels
-    subplotLabel(ax)
+    subplotLabel([ax[0], ax[1], ax[3], ax[4], ax[2], ax[5]])
 
     return f
