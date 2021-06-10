@@ -218,17 +218,13 @@ def cp_to_vec(tFac):
 def buildTensors(pIn, tensor, matrix, r):
     """ Use parameter vector to build kruskal tensors. """
     nN = np.cumsum(np.array(tensor.shape) * r)
-    factorList = [jnp.reshape(pIn[:nN[0]], (tensor.shape[0], r))]
-    factorList.append(jnp.reshape(pIn[nN[0]:nN[1]], (tensor.shape[1], r)))
-    factorList.append(jnp.reshape(pIn[nN[1]:nN[2]], (tensor.shape[2], r)))
-    if tensor.ndim == 4:
-        factorList.append(jnp.reshape(pIn[nN[2]:nN[3]], (tensor.shape[3], r)))
-
+    nN = np.insert(nN, 0, 0)
+    factorList = [jnp.reshape(pIn[nN[i]:nN[i+1]], (tensor.shape[i], r)) for i in range(tensor.ndim)]
     tFac = tl.cp_tensor.CPTensor((None, factorList))
 
     if matrix is not None:
         assert tensor.shape[0] == matrix.shape[0]
-        tFac.mFactor = jnp.reshape(pIn[nN[2]:], (matrix.shape[1], r))
+        tFac.mFactor = jnp.reshape(pIn[nN[3]:], (matrix.shape[1], r))
     return tFac
 
 
