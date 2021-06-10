@@ -16,7 +16,7 @@ from ..dataImport import functions
 
 def makeFigure():
     """ Compare prediction accuracies """
-    ax, f = getSetup((12, 3), (1, 4))
+    ax, f = getSetup((9, 6), (2, 3))
     sns.set()
     rep = 10
 
@@ -100,7 +100,7 @@ def makeFigure():
 
     # Function Plot
     cc = sns.pointplot(x="Function", y="Accuracy", data=functions_df, ci="sd", style="Model", hue="Model",
-                       ax=ax[2], join=False, dodge=True, markers=['o', 'X', 's'], hue_order=['CMTF', 'Alter et al', 'Randomized'])
+                       ax=ax[3], join=False, dodge=True, markers=['o', 'X', 's'], hue_order=['CMTF', 'Alter et al', 'Randomized'])
     # Formatting
     shades = [-0.5, 1.5, 3.5]
     for i in shades:
@@ -117,7 +117,7 @@ def makeFigure():
 
     # Class Plot
     dd = sns.pointplot(x="Class", y="Accuracies", data=classes, ci="sd", style="Model", hue="Model",
-                       ax=ax[3], join=False, dodge=True, markers=['o', 'X', 's'], hue_order=['CMTF', 'Alter et al', 'Randomized'])
+                       ax=ax[4], join=False, dodge=True, markers=['o', 'X', 's'], hue_order=['CMTF', 'Alter et al', 'Randomized'])
     # Formatting
     dd.axvspan(-0.5, 0.5, alpha=0.1, color="grey")
     dd.axvspan(1.5, 2.5, alpha=0.1, color="grey")
@@ -136,6 +136,55 @@ def makeFigure():
 
     dd.set_xticklabels(dd_labels)
 
-    subplotLabel(ax)
+    ## Model prediction weight
+
+    tFac = perform_CMTF()
+    X = tFac.factors[0]
+    ncomp = X.shape[1]
+    nboot = 20
+
+    class_df = pd.DataFrame()
+    for _ in range(nboot):
+        classes = []
+        outt = class_predictions(X)
+        classes.extend(outt[1])
+        classes.extend(outt[2])
+
+        data = {
+            "Feature Importance": classes,
+            "Component": [str(x) for x in np.arange(1, ncomp + 1).tolist()] * 2,
+            "Class": [x for i in [[j] * ncomp for j in ["Controller/Progressor", "Viremic/Non-Viremic"]] for x in i],
+        }
+        class_df = class_df.append(pd.DataFrame(data), ignore_index=True)
+
+    funcs_df = pd.DataFrame()
+    for _ in range(nboot):
+        funcs = []
+        for function in functions:
+            coef = function_prediction(X, resample=True, function=function)[3]
+            funcs.extend(coef)
+        data = {
+            "Feature Importance": funcs,
+            "Component": [str(x) for x in np.arange(1, ncomp + 1).tolist()] * 6,
+            "Function": [x for i in [[j] * ncomp for j in functions] for x in i],
+        }
+        funcs_df = funcs_df.append(pd.DataFrame(data), ignore_index=True)
+
+    sns.barplot(x="Component", y="Feature Importance", ci="sd",
+                hue="Function", data=funcs_df, errwidth=1, ax=ax[2])
+    sns.barplot(x="Component", y="Feature Importance", ci="sd", hue="Class", data=class_df,
+                errwidth=2, ax=ax[5], palette=sns.color_palette('magma', n_colors=3))
+    # plt.legend(bbox_to_anchor=(1.04, 1), loc='upper left', ncol=1)
+    ax[5].set_ylim(-0.75, 1.5)
+
+    # Formatting
+    shades = np.arange(-0.5, ncomp - 1, step=2.0)
+    for axx in [ax[2], ax[5]]:
+        for i in shades:
+            axx.axvspan(i, i + 1, alpha=0.1, color="grey")
+        axx.set_xlim(-0.5, ncomp - 0.5)
+
+    # Add subplot labels
+    subplotLabel([ax[0], ax[1], ax[3], ax[4], ax[2], ax[5]])
 
     return f

@@ -13,7 +13,6 @@ from matplotlib import gridspec, pyplot as plt
 def makeFigure():
     """ Generate Figure 6e for Paper"""
     tensorFac = perform_CMTF()
-
     f = plt.figure(figsize=(4.5, 3))
 
     # Gather grouping info

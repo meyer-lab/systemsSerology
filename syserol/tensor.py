@@ -115,15 +115,12 @@ def delete_component(tFac, compNum):
 
 def censored_lstsq(A: np.ndarray, B: np.ndarray) -> np.ndarray:
     """Solves least squares problem subject to missing data.
-
     Note: uses a for loop over the missing patterns of B, leading to a
     slower but more numerically stable algorithm
-
     Args
     ----
     A (ndarray) : m x r matrix
     B (ndarray) : m x n matrix
-
     Returns
     -------
     X (ndarray) : r x n matrix that minimizes norm(M*(AX - B))
