@@ -5,9 +5,8 @@ import numpy as np
 import jax.numpy as jnp
 from jax import value_and_grad
 from jax.config import config
-from scipy.optimize import minimize
+from scipy.optimize import minimize, Bounds
 import tensorly as tl
-from tensorly.tenalg import khatri_rao
 from tensorly.decomposition._nn_cp import initialize_nn_cp
 from copy import deepcopy
 from .dataImport import createCube
@@ -113,34 +112,6 @@ def delete_component(tFac, compNum):
     return tensor
 
 
-def censored_lstsq(A: np.ndarray, B: np.ndarray) -> np.ndarray:
-    """Solves least squares problem subject to missing data.
-
-    Note: uses a for loop over the missing patterns of B, leading to a
-    slower but more numerically stable algorithm
-
-    Args
-    ----
-    A (ndarray) : m x r matrix
-    B (ndarray) : m x n matrix
-
-    Returns
-    -------
-    X (ndarray) : r x n matrix that minimizes norm(M*(AX - B))
-    """
-    X = np.empty((A.shape[1], B.shape[1]))
-    # Calculate the missingness patterns
-    unique, uIDX = np.unique(np.isfinite(B), axis=1, return_inverse=True)
-
-    for i in range(unique.shape[1]):
-        uI = uIDX == i
-        uu = np.squeeze(unique[:, i])
-
-        Bx = B[uu, :]
-        X[:, uI] = np.linalg.lstsq(A[uu, :], Bx[:, uI], rcond=None)[0]
-    return X.T
-
-
 def cp_normalize(tFac):
     """ Normalize the factors using the inf norm. """
     for i, factor in enumerate(tFac.factors):
@@ -154,47 +125,15 @@ def cp_normalize(tFac):
     return tFac
 
 
-def perform_CMTF(tOrig=None, mOrig=None, r=5, ALS=True):
+def perform_CMTF(tOrig=None, mOrig=None, r=5):
     """ Perform CMTF decomposition. """
     if tOrig is None:
         tOrig, mOrig = createCube()
 
     tFac = initialize_nn_cp(np.nan_to_num(tOrig), r, nntype="nndsvd")
 
-    # Pre-unfold
-    unfolded = [tl.unfold(tOrig, i) for i in range(tOrig.ndim)]
-    tFac.R2X = -1.0
-
     if mOrig is not None:
-        tFac.mFactor = censored_lstsq(tFac.factors[0], mOrig)
-        unfolded[0] = np.hstack((unfolded[0], mOrig))
-
-    if ALS:
-        for ii in range(100):
-            # Solve for the subject matrix
-            kr = khatri_rao(tFac.factors, skip_matrix=0)
-
-            if mOrig is not None:
-                kr = np.vstack((kr, tFac.mFactor))
-
-            tFac.factors[0] = censored_lstsq(kr, unfolded[0].T)
-
-            # PARAFAC on other antigen modes
-            for m in range(1, len(tFac.factors)):
-                kr = khatri_rao(tFac.factors, skip_matrix=m)
-                tFac.factors[m] = censored_lstsq(kr, unfolded[m].T)
-
-            # Solve for the glycan matrix fit
-            if mOrig is not None:
-                tFac.mFactor = censored_lstsq(tFac.factors[0], mOrig)
-
-            if ii % 2 == 0:
-                R2X_last = tFac.R2X
-                tFac.R2X = calcR2X(tFac, tOrig, mOrig)
-                assert tFac.R2X > 0.0
-
-            if tFac.R2X - R2X_last < 1e-6:
-                break
+        tFac.mFactor = np.zeros((mOrig.shape[1], r))
 
     # Refine with direct optimization
     tFac = fit_refine(tFac, tOrig, mOrig)
@@ -245,6 +184,10 @@ def fit_refine(tFac, tOrig, mOrig):
     r = tFac.rank
     x0 = cp_to_vec(tFac)
 
+    tFac.factors = [np.clip(f, 0.0, np.inf) for f in tFac.factors]
+    if hasattr(tFac, 'mFactor'):
+        tFac.mFactor = np.clip(tFac.mFactor, 0.0, np.inf)
+
     gF = value_and_grad(cost, 0)
 
     def gradF(*args):
@@ -253,7 +196,8 @@ def fit_refine(tFac, tOrig, mOrig):
 
     tl.set_backend('jax')
     # TODO: Setup constraint to avoid opposing components
-    res = minimize(gradF, x0, method="L-BFGS-B", jac=True, args=(tOrig, mOrig, r), options={"gtol": 1e-10, "ftol": 1e-10})
+    bnds = Bounds(np.zeros_like(x0), np.full_like(x0, np.inf))
+    res = minimize(gradF, x0, method="L-BFGS-B", jac=True, bounds=bnds, args=(tOrig, mOrig, r), options={"disp": 90, "gtol": 1e-10, "ftol": 1e-10})
     tl.set_backend('numpy')
 
     tFac = buildTensors(res.x, tOrig, mOrig, r)
