@@ -7,7 +7,7 @@ import pytest
 import tensorly as tl
 from tensorly.cp_tensor import _validate_cp_tensor
 from tensorly.random import random_cp
-from ..tensor import perform_CMTF, delete_component, calcR2X, buildGlycan, sort_factors, cp_to_vec, buildTensors, cp_decomp
+from ..tensor import perform_CMTF, delete_component, calcR2X, buildGlycan, sort_factors, cp_to_vec, buildTensors
 from ..regression import make_regression_df
 from ..classify import class_predictions_df
 from ..dataImport import createCube
@@ -34,7 +34,7 @@ def test_R2X():
 def test_cp():
     """ Test that the CP decomposition code works. """
     tensor, _ = Tensor4D()
-    facT = cp_decomp(tensor, 6)
+    facT = perform_CMTF(tensor, r=6)
 
 
 def test_delete():

@@ -2,7 +2,7 @@
 import numpy as np
 import seaborn as sns
 from ..COVID import Tensor4D, dimensionLabel4D
-from ..tensor import cp_decomp
+from ..tensor import perform_CMTF
 from .common import getSetup, subplotLabel
 
 def makeFigure():
@@ -10,7 +10,7 @@ def makeFigure():
     comps = np.arange(1, 11)
 
     tensor, _ = Tensor4D()
-    R2X = [cp_decomp(tensor, cc).R2X for cc in comps]
+    R2X = [perform_CMTF(tensor, r=cc).R2X for cc in comps]
 
     ax[0].axis("off")
     ax[1].scatter(comps, R2X, color="b")
@@ -24,7 +24,7 @@ def makeFigure():
     ## Colormap
 
     weeklabels, Rlabels, agLabels = dimensionLabel4D()
-    tfac = cp_decomp(tensor, 6)
+    tfac = perform_CMTF(tensor, r=6)
 
     components = [str(ii + 1) for ii in range(tfac.rank)]
     comp_plot(tfac.factors[0], components, False, "Subjects", ax[2])
