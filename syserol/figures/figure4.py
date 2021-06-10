@@ -175,11 +175,11 @@ def makeFigure():
     sns.barplot(x="Component", y="Feature Importance", ci="sd", hue="Class", data=class_df,
                 errwidth=2, ax=ax[5], palette=sns.color_palette('magma', n_colors=3))
     # plt.legend(bbox_to_anchor=(1.04, 1), loc='upper left', ncol=1)
-    ax[1].set_ylim(-0.75, 1.5)
+    ax[5].set_ylim(-0.75, 1.5)
 
     # Formatting
     shades = np.arange(-0.5, ncomp - 1, step=2.0)
-    for axx in ax:
+    for axx in [ax[2], ax[5]]:
         for i in shades:
             axx.axvspan(i, i + 1, alpha=0.1, color="grey")
         axx.set_xlim(-0.5, ncomp - 0.5)
