@@ -200,7 +200,6 @@ def fit_refine(tFac, tOrig, mOrig):
         grad = cp_to_vec(tFacG)
         return f / 1.0e12, grad / 1.0e12
 
-    # TODO: Setup constraint to avoid opposing components
     bnds = Bounds(np.zeros_like(x0), np.full_like(x0, np.inf))
     res = minimize(gradF, x0, method="L-BFGS-B", jac=True, bounds=bnds, args=(tOrig, mOrig, r), options={"disp": 90, "gtol": 1e-10, "ftol": 1e-10})
 
