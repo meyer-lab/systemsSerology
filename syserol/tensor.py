@@ -2,9 +2,6 @@
 Tensor decomposition methods
 """
 import numpy as np
-import jax.numpy as jnp
-from jax import value_and_grad
-from jax.config import config
 from scipy.optimize import minimize, Bounds
 import tensorly as tl
 from tensorly.decomposition._nn_cp import initialize_nn_cp
@@ -13,7 +10,6 @@ from .dataImport import createCube
 
 
 tl.set_backend('numpy')
-config.update("jax_enable_x64", True)
 
 
 def buildGlycan(tFac):
@@ -29,12 +25,12 @@ def calcR2X(tFac, tIn=None, mIn=None):
 
     if tIn is not None:
         tMask = np.isfinite(tIn)
-        vTop += jnp.sum(jnp.square(tl.cp_to_tensor(tFac) * tMask - np.nan_to_num(tIn)))
+        vTop += np.sum(np.square(tl.cp_to_tensor(tFac) * tMask - np.nan_to_num(tIn)))
         vBottom += np.sum(np.square(np.nan_to_num(tIn)))
     if mIn is not None:
         mMask = np.isfinite(mIn)
         recon = tFac if isinstance(tFac, np.ndarray) else buildGlycan(tFac)
-        vTop += jnp.sum(jnp.square(recon * mMask - np.nan_to_num(mIn)))
+        vTop += np.sum(np.square(recon * mMask - np.nan_to_num(mIn)))
         vBottom += np.sum(np.square(np.nan_to_num(mIn)))
 
     return 1.0 - vTop / vBottom
@@ -160,23 +156,14 @@ def cp_to_vec(tFac):
 def buildTensors(pIn, tensor, matrix, r):
     """ Use parameter vector to build kruskal tensors. """
     nN = np.cumsum(np.array(tensor.shape) * r)
-    factorList = [jnp.reshape(pIn[:nN[0]], (tensor.shape[0], r))]
-    factorList.append(jnp.reshape(pIn[nN[0]:nN[1]], (tensor.shape[1], r)))
-    factorList.append(jnp.reshape(pIn[nN[1]:nN[2]], (tensor.shape[2], r)))
-    if tensor.ndim == 4:
-        factorList.append(jnp.reshape(pIn[nN[2]:nN[3]], (tensor.shape[3], r)))
-
+    nN = np.insert(nN, 0, 0)
+    factorList = [np.reshape(pIn[nN[i]:nN[i+1]], (tensor.shape[i], r)) for i in range(tensor.ndim)]
     tFac = tl.cp_tensor.CPTensor((None, factorList))
 
     if matrix is not None:
         assert tensor.shape[0] == matrix.shape[0]
-        tFac.mFactor = jnp.reshape(pIn[nN[2]:], (matrix.shape[1], r))
+        tFac.mFactor = np.reshape(pIn[nN[3]:], (matrix.shape[1], r))
     return tFac
-
-
-def cost(pIn, tOrig, mOrig, r):
-    tFac = buildTensors(pIn, tOrig, mOrig, r)
-    return -calcR2X(tFac, tOrig, mOrig)
 
 
 def fit_refine(tFac, tOrig, mOrig):
@@ -184,22 +171,40 @@ def fit_refine(tFac, tOrig, mOrig):
     r = tFac.rank
     x0 = cp_to_vec(tFac)
 
-    tFac.factors = [np.clip(f, 0.0, np.inf) for f in tFac.factors]
-    if hasattr(tFac, 'mFactor'):
-        tFac.mFactor = np.clip(tFac.mFactor, 0.0, np.inf)
+    Z = np.nan_to_num(tOrig)
+    normZsqr = np.square(np.linalg.norm(Z))
+    if mOrig is not None:
+        ZM = np.nan_to_num(mOrig)
+        normZsqrM = np.square(np.linalg.norm(ZM))
 
-    gF = value_and_grad(cost, 0)
+    def gradF(pIn, tOrig, mOrig, r):
+        # Tensor
+        tFac = buildTensors(pIn, tOrig, mOrig, r)
+        B = np.isfinite(tOrig) * tl.cp_to_tensor(tFac)
+        f = 0.5 * normZsqr - tl.tenalg.inner(Z, B) + 0.5 * np.square(np.linalg.norm(B))
+        T = Z - B
 
-    def gradF(*args):
-        value, grad = gF(*args)
-        return value, np.array(grad)
+        Gfactors = [-tl.unfolding_dot_khatri_rao(T, tFac, ii) for ii in range(tOrig.ndim)]
+        tFacG = tl.cp_tensor.CPTensor((None, Gfactors))
 
-    tl.set_backend('jax')
+        # Matrix
+        if mOrig is not None:
+            BM = np.isfinite(mOrig) * buildGlycan(tFac)
+            f += 0.5 * normZsqrM - tl.tenalg.inner(ZM, BM) + 0.5 * np.square(np.linalg.norm(BM))
+            TM = ZM - BM
+
+            Mcp = tl.cp_tensor.CPTensor((None, [tFac.factors[0], tFac.mFactor]))
+            tFacG.factors[0] -= tl.unfolding_dot_khatri_rao(TM, Mcp, 0)
+            tFacG.mFactor = -tl.unfolding_dot_khatri_rao(TM, Mcp, 1)
+
+        grad = cp_to_vec(tFacG)
+        return f / 1.0e12, grad / 1.0e12
+
     # TODO: Setup constraint to avoid opposing components
     bnds = Bounds(np.zeros_like(x0), np.full_like(x0, np.inf))
     res = minimize(gradF, x0, method="L-BFGS-B", jac=True, bounds=bnds, args=(tOrig, mOrig, r), options={"disp": 90, "gtol": 1e-10, "ftol": 1e-10})
-    tl.set_backend('numpy')
 
     tFac = buildTensors(res.x, tOrig, mOrig, r)
     tFac.R2X = calcR2X(tFac, tOrig, mOrig)
+    print(tFac.R2X)
     return tFac
