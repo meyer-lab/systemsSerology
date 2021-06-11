@@ -11,10 +11,10 @@ venv/bin/activate: requirements.txt
 
 output/figure%.svg: venv genFigure.py
 	mkdir -p output
-	. venv/bin/activate && JAX_PLATFORM_NAME=cpu ./genFigure.py $*
+	. venv/bin/activate && ./genFigure.py $*
 
 test: venv
-	. venv/bin/activate && JAX_PLATFORM_NAME=cpu pytest -s -v -x
+	. venv/bin/activate && pytest -s -v -x
 
 output/manuscript.md: venv manuscript/*.md
 	. venv/bin/activate && manubot process --content-directory=manuscript --output-directory=output --cache-directory=cache --skip-citations --log-level=INFO
