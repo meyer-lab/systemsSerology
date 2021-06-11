@@ -240,31 +240,45 @@ def fit_refine(tFac, tOrig, mOrig):
         ZM = np.nan_to_num(mOrig)
         normZsqrM = np.square(np.linalg.norm(ZM))
 
-    def gradF(pIn, tOrig, mOrig, r):
-        # Tensor
+    def funcF(pIn):
         tFac = buildTensors(pIn, tOrig, mOrig, r)
         B = np.isfinite(tOrig) * tl.cp_to_tensor(tFac)
         f = 0.5 * normZsqr - tl.tenalg.inner(Z, B) + 0.5 * np.square(np.linalg.norm(B))
-        T = Z - B
 
         # Matrix
         if mOrig is not None:
             BM = np.isfinite(mOrig) * buildGlycan(tFac)
             f += 0.5 * normZsqrM - tl.tenalg.inner(ZM, BM) + 0.5 * np.square(np.linalg.norm(BM))
-            TM = ZM - BM
+
+        print(f / 1.0e12)
+        return f / 1.0e12
+
+    def gradF(pIn):
+        # Tensor
+        tFac = buildTensors(pIn, tOrig, mOrig, r)
+        B = np.isfinite(tOrig) * tl.cp_to_tensor(tFac)
+        T = Z - B
 
         Gfactors = [-tl.unfolding_dot_khatri_rao(T, tFac, ii) for ii in range(tOrig.ndim)]
         tFacG = tl.cp_tensor.CPTensor((None, Gfactors))
 
+        # Matrix
         if mOrig is not None:
+            BM = np.isfinite(mOrig) * buildGlycan(tFac)
+            TM = ZM - BM
+
             Mcp = tl.cp_tensor.CPTensor((None, [tFac.factors[0], tFac.mFactor]))
             tFacG.factors[0] -= tl.unfolding_dot_khatri_rao(TM, Mcp, 0)
             tFacG.mFactor = -tl.unfolding_dot_khatri_rao(TM, Mcp, 1)
 
         grad = cp_to_vec(tFacG)
-        return f / 1.0e12, grad / 1.0e12
+        return grad / 1.0e12
 
-    res = minimize(gradF, x0, method="L-BFGS-B", jac=True, args=(tOrig, mOrig, r), options={"gtol": 1e-10, "ftol": 1e-10})
+    def hvp(x, v):
+        pert = 1e-6
+        return (gradF(x + pert*v) - gradF(x - pert*v)) / pert / 2.0
+
+    res = minimize(funcF, x0, method="trust-krylov", jac=gradF, hessp=hvp)
 
     tFac = buildTensors(res.x, tOrig, mOrig, r)
     tFac.R2X = calcR2X(tFac, tOrig, mOrig)
