@@ -247,16 +247,15 @@ def fit_refine(tFac, tOrig, mOrig):
         f = 0.5 * normZsqr - tl.tenalg.inner(Z, B) + 0.5 * np.square(np.linalg.norm(B))
         T = Z - B
 
+        Gfactors = [-tl.unfolding_dot_khatri_rao(T, tFac, ii) for ii in range(tOrig.ndim)]
+        tFacG = tl.cp_tensor.CPTensor((None, Gfactors))
+
         # Matrix
         if mOrig is not None:
             BM = np.isfinite(mOrig) * buildGlycan(tFac)
             f += 0.5 * normZsqrM - tl.tenalg.inner(ZM, BM) + 0.5 * np.square(np.linalg.norm(BM))
             TM = ZM - BM
 
-        Gfactors = [-tl.unfolding_dot_khatri_rao(T, tFac, ii) for ii in range(tOrig.ndim)]
-        tFacG = tl.cp_tensor.CPTensor((None, Gfactors))
-
-        if mOrig is not None:
             Mcp = tl.cp_tensor.CPTensor((None, [tFac.factors[0], tFac.mFactor]))
             tFacG.factors[0] -= tl.unfolding_dot_khatri_rao(TM, Mcp, 0)
             tFacG.mFactor = -tl.unfolding_dot_khatri_rao(TM, Mcp, 1)
@@ -268,6 +267,6 @@ def fit_refine(tFac, tOrig, mOrig):
 
     tFac = buildTensors(res.x, tOrig, mOrig, r)
     tFac.R2X = calcR2X(tFac, tOrig, mOrig)
-    print(tFac.R2X - R2Xbefore)
+
     assert R2Xbefore < tFac.R2X
     return tFac
