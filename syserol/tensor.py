@@ -109,7 +109,7 @@ def delete_component(tFac, compNum):
     return tensor
 
 
-def censored_lstsq(A: np.ndarray, B: np.ndarray) -> np.ndarray:
+def censored_lstsq(A: np.ndarray, B: np.ndarray, uniqueInfo) -> np.ndarray:
     """Solves least squares problem subject to missing data.
     Note: uses a for loop over the missing patterns of B, leading to a
     slower but more numerically stable algorithm
@@ -122,8 +122,8 @@ def censored_lstsq(A: np.ndarray, B: np.ndarray) -> np.ndarray:
     X (ndarray) : r x n matrix that minimizes norm(M*(AX - B))
     """
     X = np.empty((A.shape[1], B.shape[1]))
-    # Calculate the missingness patterns
-    unique, uIDX = np.unique(np.isfinite(B), axis=1, return_inverse=True)
+    # Missingness patterns
+    unique, uIDX = uniqueInfo
 
     for i in range(unique.shape[1]):
         uI = uIDX == i
@@ -159,10 +159,14 @@ def perform_CMTF(tOrig=None, mOrig=None, r=5, ALS=True):
     tFac.R2X = -1.0
 
     if mOrig is not None:
-        tFac.mFactor = censored_lstsq(tFac.factors[0], mOrig)
+        uniqueInfoM = np.unique(np.isfinite(mOrig), axis=1, return_inverse=True)
+        tFac.mFactor = censored_lstsq(tFac.factors[0], mOrig, uniqueInfoM)
         unfolded[0] = np.hstack((unfolded[0], mOrig))
 
     if ALS:
+        # Precalculate the missingness patterns
+        uniqueInfo = [np.unique(np.isfinite(B.T), axis=1, return_inverse=True) for B in unfolded]
+
         for ii in range(100):
             # Solve for the subject matrix
             kr = khatri_rao(tFac.factors, skip_matrix=0)
@@ -170,16 +174,16 @@ def perform_CMTF(tOrig=None, mOrig=None, r=5, ALS=True):
             if mOrig is not None:
                 kr = np.vstack((kr, tFac.mFactor))
 
-            tFac.factors[0] = censored_lstsq(kr, unfolded[0].T)
+            tFac.factors[0] = censored_lstsq(kr, unfolded[0].T, uniqueInfo[0])
 
             # PARAFAC on other antigen modes
             for m in range(1, len(tFac.factors)):
                 kr = khatri_rao(tFac.factors, skip_matrix=m)
-                tFac.factors[m] = censored_lstsq(kr, unfolded[m].T)
+                tFac.factors[m] = censored_lstsq(kr, unfolded[m].T, uniqueInfo[m])
 
             # Solve for the glycan matrix fit
             if mOrig is not None:
-                tFac.mFactor = censored_lstsq(tFac.factors[0], mOrig)
+                tFac.mFactor = censored_lstsq(tFac.factors[0], mOrig, uniqueInfoM)
 
             if ii % 2 == 0:
                 R2X_last = tFac.R2X
@@ -249,9 +253,8 @@ def fit_refine(tFac, tOrig, mOrig):
             f += 0.5 * normZsqrM - tl.tenalg.inner(ZM, BM) + 0.5 * np.square(np.linalg.norm(BM))
             TM = ZM - BM
 
-        tFacG = deepcopy(tFac)
-        for ii in range(len(tFacG.factors)):
-            tFacG.factors[ii] = -tl.unfolding_dot_khatri_rao(T, tFac, ii)
+        Gfactors = [-tl.unfolding_dot_khatri_rao(T, tFac, ii) for ii in range(tOrig.ndim)]
+        tFacG = tl.cp_tensor.CPTensor((None, Gfactors))
 
         if mOrig is not None:
             Mcp = tl.cp_tensor.CPTensor((None, [tFac.factors[0], tFac.mFactor]))
@@ -262,8 +265,6 @@ def fit_refine(tFac, tOrig, mOrig):
         return f / 1.0e12, grad / 1.0e12
 
     res = minimize(gradF, x0, method="L-BFGS-B", jac=True, args=(tOrig, mOrig, r), options={"gtol": 1e-10, "ftol": 1e-10})
-
-    res = minimize(gradF, res.x, method="CG", jac=True, args=(tOrig, mOrig, r), options={"maxiter": 500})
 
     tFac = buildTensors(res.x, tOrig, mOrig, r)
     tFac.R2X = calcR2X(tFac, tOrig, mOrig)
