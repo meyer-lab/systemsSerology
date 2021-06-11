@@ -250,7 +250,6 @@ def fit_refine(tFac, tOrig, mOrig):
             BM = np.isfinite(mOrig) * buildGlycan(tFac)
             f += 0.5 * normZsqrM - tl.tenalg.inner(ZM, BM) + 0.5 * np.square(np.linalg.norm(BM))
 
-        print(f / 1.0e12)
         return f / 1.0e12
 
     def gradF(pIn):
@@ -274,14 +273,10 @@ def fit_refine(tFac, tOrig, mOrig):
         grad = cp_to_vec(tFacG)
         return grad / 1.0e12
 
-    def hvp(x, v):
-        pert = 1e-6
-        return (gradF(x + pert*v) - gradF(x - pert*v)) / pert / 2.0
-
-    res = minimize(funcF, x0, method="trust-krylov", jac=gradF, hessp=hvp)
+    res = minimize(funcF, x0, method="L-BFGS-B", jac=gradF)
+    res = minimize(funcF, res.x, method="CG", jac=gradF, options={"maxiter": 200})
 
     tFac = buildTensors(res.x, tOrig, mOrig, r)
     tFac.R2X = calcR2X(tFac, tOrig, mOrig)
-    print(tFac.R2X - R2Xbefore)
     assert R2Xbefore < tFac.R2X
     return tFac
