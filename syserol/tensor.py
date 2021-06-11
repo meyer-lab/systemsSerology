@@ -261,12 +261,9 @@ def fit_refine(tFac, tOrig, mOrig):
         grad = cp_to_vec(tFacG)
         return f / 1.0e12, grad / 1.0e12
 
-    tl.set_backend('jax')
     res = minimize(gradF, x0, method="L-BFGS-B", jac=True, args=(tOrig, mOrig, r), options={"gtol": 1e-10, "ftol": 1e-10})
 
     res = minimize(gradF, res.x, method="CG", jac=True, args=(tOrig, mOrig, r), options={"maxiter": 500})
-
-    tl.set_backend('numpy')
 
     tFac = buildTensors(res.x, tOrig, mOrig, r)
     tFac.R2X = calcR2X(tFac, tOrig, mOrig)
