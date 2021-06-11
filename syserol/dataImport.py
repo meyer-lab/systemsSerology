@@ -159,8 +159,7 @@ def createCube():
         cube[i, -1, k] = row["value"]
 
     # Clip to 0 as there are a few strongly negative outliers
-    # IIa.H/R were offset to negative, so correct that
-    cube[:, 1:11, :] = np.clip(cube[:, 1:11, :], 0, None)
+    cube = np.clip(cube, 0, None)
 
     # Check that there are no slices with completely missing data
     assert ~np.any(np.all(np.isnan(cube), axis=(0, 1)))
