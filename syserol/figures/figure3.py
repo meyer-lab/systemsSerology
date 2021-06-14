@@ -40,7 +40,7 @@ def makeFigure():
     except FileNotFoundError:
         print("Building increasing...")
         # Increasing imputations dataframe
-        rep = 2
+        rep = 3
         comps = 2
         increasing_df = pd.concat([pd.DataFrame(np.vstack(increase_missing(comps)[0:3]).T,
                                                 columns=['CMTF', 'PCA', 'missing']) for _ in range(rep)])
@@ -74,6 +74,7 @@ def makeFigure():
 
     increasing_df = increasing_df.groupby(['missing']).agg(['mean', 'std']).reset_index()
     missing = increasing_df['missing']
+    missing = missing ** 3
     CMTFR2X = increasing_df['CMTF']['mean']
     CMTFErr = increasing_df['CMTF']['std']
     PCAR2X = increasing_df['PCA']['mean']
@@ -85,8 +86,10 @@ def makeFigure():
         ax[2].errorbar(missing, PCAR2X, yerr=PCAErr, fmt='none', ecolor='darkorange')
     ax[2].set_ylabel("Q2X of Imputation")
     ax[2].set_xlabel("Fraction Missing")
-    ax[2].set_xlim(0.4, 1)
+    ax[2].set_xlim(0.38, 1)
     ax[2].set_ylim(0, 1)
+    ax[2].set_xticks(np.arange(0.4, 1.01, 0.1)**3)
+    ax[2].set_xticklabels([str(round(a,1)) for a in np.arange(0.4, 1.01, 0.1)])
     ax[2].legend(loc=3)
 
     # Add subplot labels
