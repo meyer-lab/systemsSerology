@@ -6,13 +6,20 @@ import pandas as pd
 import seaborn as sns
 from string import ascii_lowercase
 from ..tensor import perform_CMTF
-from ..dataImport import getAxes, load_file
+from ..dataImport import getAxes, load_file, createCube
 from matplotlib import gridspec, pyplot as plt
 
 
-def makeFigure():
+def makeFigure(boot=False):
     """ Generate Figure 5 for Paper"""
-    tensorFac = perform_CMTF()
+    if boot:
+        cube, glyCube = createCube()
+        sel = np.random.choice(cube.shape[0], cube.shape[0], replace=True)
+        newcube = cube[sel, :, :]
+        newglyCube = glyCube[sel, :]
+        tensorFac = perform_CMTF(tOrig=newcube, mOrig=newglyCube)
+    else:
+        tensorFac = perform_CMTF()
 
     # Gather grouping info
     glycaninf = load_file("meta-glycans")
