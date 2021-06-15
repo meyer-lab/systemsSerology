@@ -9,7 +9,7 @@ from statsmodels.multivariate.pca import PCA
 from matplotlib.ticker import ScalarFormatter
 
 def makeFigure():
-    ax, f = getSetup((7, 9), (3, 2))
+    ax, f = getSetup((14, 7), (2, 4))
     comps = np.arange(1, 11)
 
     tensor, _ = Tensor4D()
