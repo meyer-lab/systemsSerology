@@ -2,6 +2,8 @@
 import numpy as np
 import pandas as pd
 
+from .tensor import perform_CMTF
+from .regression import RegressionHelper
 
 def pbsSubtractOriginal():
     """ Paper Background subtract, will keep all rows for any confusing result. """
@@ -73,3 +75,14 @@ def dimensionLabel4D():
     ]
     antigenLabel = ["S", "RBD", "N", "S1", "S2", "S1 Trimer", "flu_mix", "NL63", "HKU1"]
     return weekLabel, receptorLabel, antigenLabel
+
+
+def COVIDpredict(item):
+    tensor, subjects = Tensor4D()
+    tfac = perform_CMTF(tensor, r=6)
+    X = tfac[1][0]
+
+    df = pbsSubtractOriginal()
+    y = df[~df.index.duplicated(keep='first')][item].loc[subjects]
+    Y_pred, coef, XX, YY = RegressionHelper(X, pd.factorize(y)[0])
+    return np.sum(Y_pred == YY)/len(y)
