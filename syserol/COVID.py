@@ -44,7 +44,10 @@ def Tensor4D():
     tensors = [to_slice(subjects, df.loc[df["week"] == ii, :]) for ii in range(1, 5)]
 
     # Create Tensor 4
-    return np.stack(tensors, axis=3), subjects
+    tensor = np.stack(tensors, axis=3)
+    idxs = np.any(np.isfinite(tensor), axis=(1,2,3))
+
+    return tensor[idxs, :], subjects[idxs]
 
 
 def dimensionLabel4D():
