@@ -5,7 +5,7 @@ import numpy as np
 from scipy.optimize import minimize
 import tensorly as tl
 from tensorly.tenalg import khatri_rao
-from tensorly.decomposition._nn_cp import initialize_nn_cp
+from tensorly.decomposition._nn_cp import make_svd_non_negative
 from copy import deepcopy
 from .dataImport import createCube
 
@@ -147,12 +147,48 @@ def cp_normalize(tFac):
     return tFac
 
 
+def initialize_nn_cp(tensor, matrix, rank):
+    r"""Initialize factors used in `parafac`.
+    Parameters
+    ----------
+    tensor : ndarray
+    rank : int
+    Returns
+    -------
+    factors : CPTensor
+        An initial cp tensor.
+    """
+    factors = []
+    for mode in range(tl.ndim(tensor)):
+        unfold = tl.unfold(tensor, mode)
+
+        if mode == 0 and (matrix is not None):
+            unfold = np.hstack((unfold, matrix))
+
+        # Remove completely missing columns
+        unfold = unfold[:, ~np.all(np.isnan(unfold), axis=0)]
+
+        U, S, V = np.linalg.svd(np.nan_to_num(unfold))
+
+        # Apply nnsvd to make non-negative
+        U = make_svd_non_negative(tensor, U, S, V, "nndsvd")
+
+        if U.shape[1] < rank:
+            # This is a hack but it seems to do the job for now
+            pad_part = np.zeros((U.shape[0], rank - U.shape[1]))
+            U = tl.concatenate([U, pad_part], axis=1)
+
+        factors.append(U[:, :rank])
+
+    return tl.cp_tensor.CPTensor((None, factors))
+
+
 def perform_CMTF(tOrig=None, mOrig=None, r=5, ALS=True):
     """ Perform CMTF decomposition. """
     if tOrig is None:
         tOrig, mOrig = createCube()
 
-    tFac = initialize_nn_cp(np.nan_to_num(tOrig), r, nntype="nndsvd")
+    tFac = initialize_nn_cp(tOrig, mOrig, r)
 
     # Pre-unfold
     unfolded = [tl.unfold(tOrig, i) for i in range(tOrig.ndim)]
@@ -167,7 +203,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=5, ALS=True):
         # Precalculate the missingness patterns
         uniqueInfo = [np.unique(np.isfinite(B.T), axis=1, return_inverse=True) for B in unfolded]
 
-        for ii in range(100):
+        for ii in range(200):
             # Solve for the subject matrix
             kr = khatri_rao(tFac.factors, skip_matrix=0)
 
