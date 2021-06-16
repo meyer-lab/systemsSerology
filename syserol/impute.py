@@ -7,12 +7,13 @@ from .dataImport import createCube
 from .tensor import perform_CMTF, calcR2X
 
 
-def flatten_to_mat(tensor, matrix):
+def flatten_to_mat(tensor, matrix=None):
     """ Flatten a tensor and a matrix into just a matrix """
     n = tensor.shape[0]
     tMat = np.reshape(tensor, (n, -1))
     tMat = tMat[:, ~np.all(np.isnan(tMat), axis=0)]
-    tMat = np.hstack((tMat, matrix))
+    if matrix is not None:
+        tMat = np.hstack((tMat, matrix))
     return tMat
 
 
