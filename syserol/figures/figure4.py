@@ -113,7 +113,7 @@ def makeFigure():
     cc.tick_params(axis="x")
     cc.set_ylabel("Accuracy")
     cc.set_xlabel("Function")
-    cc.legend(fontsize=8.5, title="Model", title_fontsize=10)
+    cc.legend(fontsize=8, title="Model", title_fontsize=9)
 
     # Class Plot
     dd = sns.pointplot(x="Class", y="Accuracies", data=classes, ci="sd", style="Model", hue="Model",
@@ -136,7 +136,7 @@ def makeFigure():
 
     dd.set_xticklabels(dd_labels)
 
-    ## Model prediction weight
+    # Model prediction weight
 
     tFac = perform_CMTF()
     X = tFac.factors[0]
@@ -183,6 +183,9 @@ def makeFigure():
         for i in shades:
             axx.axvspan(i, i + 1, alpha=0.1, color="grey")
         axx.set_xlim(-0.5, ncomp - 0.5)
+
+    ax[2].legend(fontsize=8, title="Function", title_fontsize=9)
+    ax[5].legend(fontsize=8, title="Class", title_fontsize=9)
 
     # Add subplot labels
     subplotLabel([ax[0], ax[1], ax[3], ax[4], ax[2], ax[5]])

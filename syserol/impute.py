@@ -7,12 +7,13 @@ from .dataImport import createCube
 from .tensor import perform_CMTF, calcR2X
 
 
-def flatten_to_mat(tensor, matrix):
+def flatten_to_mat(tensor, matrix=None):
     """ Flatten a tensor and a matrix into just a matrix """
     n = tensor.shape[0]
     tMat = np.reshape(tensor, (n, -1))
     tMat = tMat[:, ~np.all(np.isnan(tMat), axis=0)]
-    tMat = np.hstack((tMat, matrix))
+    if matrix is not None:
+        tMat = np.hstack((tMat, matrix))
     return tMat
 
 
@@ -78,8 +79,8 @@ def gen_missing(cube, missing_num, emin=6):
 def increase_missing(comp):
     """ Generate excessive missing values and impute for Fig 3c  """
     cube, glyCube = createCube()
-    samples = np.array([1000, 5000, 12000, 20000, 28000, 36000, 44000, 52000, 60000,
-                        68000, 76000, 80000, 82000, 84000, 86000, 88000])
+    samples = np.array([8000, 20000, 28000, 36000, 44000, 52000, 60000, 68000,
+                        72000, 76000, 80000, 82000, 84000, 86000, 88000, 89000])
     CMTFR2Xs = np.zeros(samples.shape)
     PCAR2Xs = np.zeros(samples.shape)
     missing = np.zeros(samples.shape)

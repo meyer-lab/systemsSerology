@@ -4,7 +4,7 @@ Tensor decomposition methods
 import numpy as np
 from scipy.optimize import minimize, Bounds
 import tensorly as tl
-from tensorly.decomposition._nn_cp import initialize_nn_cp
+from tensorly.decomposition._nn_cp import make_svd_non_negative
 from copy import deepcopy
 from .dataImport import createCube
 
@@ -121,12 +121,48 @@ def cp_normalize(tFac):
     return tFac
 
 
+def initialize_nn_cp(tensor, matrix, rank):
+    r"""Initialize factors used in `parafac`.
+    Parameters
+    ----------
+    tensor : ndarray
+    rank : int
+    Returns
+    -------
+    factors : CPTensor
+        An initial cp tensor.
+    """
+    factors = []
+    for mode in range(tl.ndim(tensor)):
+        unfold = tl.unfold(tensor, mode)
+
+        if mode == 0 and (matrix is not None):
+            unfold = np.hstack((unfold, matrix))
+
+        # Remove completely missing columns
+        unfold = unfold[:, ~np.all(np.isnan(unfold), axis=0)]
+
+        U, S, V = np.linalg.svd(np.nan_to_num(unfold))
+
+        # Apply nnsvd to make non-negative
+        U = make_svd_non_negative(tensor, U, S, V, "nndsvd")
+
+        if U.shape[1] < rank:
+            # This is a hack but it seems to do the job for now
+            pad_part = np.zeros((U.shape[0], rank - U.shape[1]))
+            U = tl.concatenate([U, pad_part], axis=1)
+
+        factors.append(U[:, :rank])
+
+    return tl.cp_tensor.CPTensor((None, factors))
+
+
 def perform_CMTF(tOrig=None, mOrig=None, r=5):
     """ Perform CMTF decomposition. """
     if tOrig is None:
         tOrig, mOrig = createCube()
 
-    tFac = initialize_nn_cp(np.nan_to_num(tOrig), r, nntype="nndsvd")
+    tFac = initialize_nn_cp(tOrig, mOrig, r)
 
     if mOrig is not None:
         tFac.mFactor = np.zeros((mOrig.shape[1], r))
@@ -205,5 +241,6 @@ def fit_refine(tFac, tOrig, mOrig):
 
     tFac = buildTensors(res.x, tOrig, mOrig, r)
     tFac.R2X = calcR2X(tFac, tOrig, mOrig)
-    print(tFac.R2X)
+    assert R2Xbefore < tFac.R2X
+
     return tFac
