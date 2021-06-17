@@ -241,6 +241,4 @@ def fit_refine(tFac, tOrig, mOrig):
 
     tFac = buildTensors(res.x, tOrig, mOrig, r)
     tFac.R2X = calcR2X(tFac, tOrig, mOrig)
-    assert R2Xbefore < tFac.R2X
-
     return tFac
