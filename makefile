@@ -9,7 +9,7 @@ venv/bin/activate: requirements.txt
 	. venv/bin/activate && pip install --prefer-binary -Uqr requirements.txt
 	touch venv/bin/activate
 
-output/figure%.svg: venv genFigure.py
+output/figure%.svg: venv genFigure.py syserol/figures/figure%.py
 	mkdir -p output
 	. venv/bin/activate && ./genFigure.py $*
 
