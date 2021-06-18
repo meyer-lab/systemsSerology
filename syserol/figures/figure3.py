@@ -11,7 +11,7 @@ def makeFigure():
     """Get a list of the axis objects and create a figure"""
     # Get list of axis objects
     ax, f = getSetup((9, 3), (1, 3))
-    rep = 10
+    rep = 20
 
     comps = np.arange(1, 11)
 
@@ -40,8 +40,7 @@ def makeFigure():
     except FileNotFoundError:
         print("Building increasing...")
         # Increasing imputations dataframe
-        rep = 3
-        comps = 2
+        comps = 5
         increasing_df = pd.concat([pd.DataFrame(np.vstack(increase_missing(comps)[0:3]).T,
                                                 columns=['CMTF', 'PCA', 'missing']) for _ in range(rep)])
         increasing_df.to_csv('syserol/data/fig3_increasing_df.csv', index=False)

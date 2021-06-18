@@ -80,7 +80,7 @@ def increase_missing(comp):
     """ Generate excessive missing values and impute for Fig 3c  """
     cube, glyCube = createCube()
     samples = np.array([8000, 20000, 28000, 36000, 44000, 52000, 60000, 68000,
-                        72000, 76000, 80000, 82000, 84000, 86000, 88000, 89000])
+                        72000, 76000, 80000, 82000, 84000, 86000, 88000])
     CMTFR2Xs = np.zeros(samples.shape)
     PCAR2Xs = np.zeros(samples.shape)
     missing = np.zeros(samples.shape)
