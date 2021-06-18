@@ -47,7 +47,7 @@ def Tensor4D():
 
     # Create Tensor 4
     tensor = np.stack(tensors, axis=3)
-    idxs = np.any(np.isfinite(tensor), axis=(1,2,3))
+    idxs = np.any(np.isfinite(tensor), axis=(1, 2, 3))
 
     return tensor[idxs, :], subjects[idxs]
 
@@ -66,12 +66,7 @@ def dimensionLabel4D():
         "FcR2A",
         "FcR2B",
         "FcR3A",
-        "FcR3B",
-        "ADCP",
-        "ADNP",
-        "ADCD",
-        "ADNKA_CD107a",
-        "ADNKA_MIP1b",
+        "FcR3B"
     ]
     antigenLabel = ["S", "RBD", "N", "S1", "S2", "S1 Trimer", "flu_mix", "NL63", "HKU1"]
     return weekLabel, receptorLabel, antigenLabel
