@@ -175,7 +175,7 @@ def initialize_nn_cp(tensor, matrix, rank):
 
         if U.shape[1] < rank:
             # This is a hack but it seems to do the job for now
-            pad_part = np.zeros((U.shape[0], rank - U.shape[1]))
+            pad_part = np.random.rand(U.shape[0], rank - U.shape[1])
             U = tl.concatenate([U, pad_part], axis=1)
 
         factors.append(U[:, :rank])
