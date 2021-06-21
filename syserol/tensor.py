@@ -203,7 +203,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=5, ALS=True):
         # Precalculate the missingness patterns
         uniqueInfo = [np.unique(np.isfinite(B.T), axis=1, return_inverse=True) for B in unfolded]
 
-        for ii in range(200):
+        for ii in range(400):
             # Solve for the subject matrix
             kr = khatri_rao(tFac.factors, skip_matrix=0)
 
@@ -297,7 +297,7 @@ def fit_refine(tFac, tOrig, mOrig):
             tFacG.mFactor = -tl.unfolding_dot_khatri_rao(TM, Mcp, 1)
 
         grad = cp_to_vec(tFacG)
-        return f / 1.0e12, grad / 1.0e12
+        return f, grad
 
     res = minimize(gradF, x0, method="L-BFGS-B", jac=True, args=(tOrig, mOrig, r), options={"gtol": 1e-10, "ftol": 1e-10})
 

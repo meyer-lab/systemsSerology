@@ -47,6 +47,8 @@ def Tensor4D():
 
     # Create Tensor 4
     tensor = np.stack(tensors, axis=3)
+    tensor = np.clip(tensor, a_min=1.0, a_max=np.inf)
+    tensor = np.log10(tensor)
     idxs = np.any(np.isfinite(tensor), axis=(1, 2, 3))
 
     return tensor[idxs, :], subjects[idxs]
