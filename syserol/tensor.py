@@ -4,12 +4,12 @@ Tensor decomposition methods
 import numpy as np
 from scipy.optimize import minimize
 import tensorly as tl
+from tensorly.tenalg import khatri_rao
 from copy import deepcopy
 from .dataImport import createCube
 
 
 tl.set_backend('numpy')
-tl.tenalg.set_tenalg_backend('einsum')
 
 
 def buildGlycan(tFac):
@@ -108,6 +108,31 @@ def delete_component(tFac, compNum):
     return tensor
 
 
+def censored_lstsq(A: np.ndarray, B: np.ndarray, uniqueInfo) -> np.ndarray:
+    """Solves least squares problem subject to missing data.
+    Note: uses a for loop over the missing patterns of B, leading to a
+    slower but more numerically stable algorithm
+    Args
+    ----
+    A (ndarray) : m x r matrix
+    B (ndarray) : m x n matrix
+    Returns
+    -------
+    X (ndarray) : r x n matrix that minimizes norm(M*(AX - B))
+    """
+    X = np.empty((A.shape[1], B.shape[1]))
+    # Missingness patterns
+    unique, uIDX = uniqueInfo
+
+    for i in range(unique.shape[1]):
+        uI = uIDX == i
+        uu = np.squeeze(unique[:, i])
+
+        Bx = B[uu, :]
+        X[:, uI] = np.linalg.lstsq(A[uu, :], Bx[:, uI], rcond=None)[0]
+    return X.T
+
+
 def cp_normalize(tFac):
     """ Normalize the factors using the inf norm. """
     for i, factor in enumerate(tFac.factors):
@@ -121,7 +146,7 @@ def cp_normalize(tFac):
     return tFac
 
 
-def initialize_nn_cp(tensor, matrix, rank):
+def initialize_cp(tensor, matrix, rank):
     r"""Initialize factors used in `parafac`.
     Parameters
     ----------
@@ -142,14 +167,7 @@ def initialize_nn_cp(tensor, matrix, rank):
         # Remove completely missing columns
         unfold = unfold[:, ~np.all(np.isnan(unfold), axis=0)]
 
-        U, S, V = np.linalg.svd(np.nan_to_num(unfold))
-
-        # Put the scaling on mode 0
-        if mode == 0:
-            U = U @ np.diag(S)
-
-        if mode == 0 and (matrix is not None):
-            mFactor = V[:rank, -matrix.shape[1]:].T
+        U = np.linalg.svd(np.nan_to_num(unfold))[0]
 
         if U.shape[1] < rank:
             # This is a hack but it seems to do the job for now
@@ -158,26 +176,55 @@ def initialize_nn_cp(tensor, matrix, rank):
 
         factors.append(U[:, :rank])
 
-    tFac = tl.cp_tensor.CPTensor((None, factors))
-    if matrix is not None:
-        tFac.mFactor = mFactor
-    
-    return tFac
+    return tl.cp_tensor.CPTensor((None, factors))
 
 
-def perform_CMTF(tOrig=None, mOrig=None, r=10):
+def perform_CMTF(tOrig=None, mOrig=None, r=7, ALS=True):
     """ Perform CMTF decomposition. """
     if tOrig is None:
         tOrig, mOrig = createCube()
 
-    tFac = initialize_nn_cp(tOrig, mOrig, r)
-    for ii in range(10):
-        tFill = np.copy(tOrig)
-        tFill[np.isnan(tOrig)] = tl.cp_to_tensor(tFac)[np.isnan(tOrig)]
-        mFill = np.copy(mOrig)
-        mFill[np.isnan(mOrig)] = buildGlycan(tFac)[np.isnan(mOrig)]
-        tFac = initialize_nn_cp(tFill, mFill, r)
-        print(calcR2X(tFac, tOrig, mOrig))
+    tFac = initialize_cp(tOrig, mOrig, r)
+
+    # Pre-unfold
+    unfolded = [tl.unfold(tOrig, i) for i in range(tOrig.ndim)]
+
+    if mOrig is not None:
+        uniqueInfoM = np.unique(np.isfinite(mOrig), axis=1, return_inverse=True)
+        tFac.mFactor = censored_lstsq(tFac.factors[0], mOrig, uniqueInfoM)
+        unfolded[0] = np.hstack((unfolded[0], mOrig))
+
+    tFac.R2X = calcR2X(tFac, tOrig, mOrig)
+
+    if ALS:
+        # Precalculate the missingness patterns
+        uniqueInfo = [np.unique(np.isfinite(B.T), axis=1, return_inverse=True) for B in unfolded]
+
+        for ii in range(200):
+            # Solve for the subject matrix
+            kr = khatri_rao(tFac.factors, skip_matrix=0)
+
+            if mOrig is not None:
+                kr = np.vstack((kr, tFac.mFactor))
+
+            tFac.factors[0] = censored_lstsq(kr, unfolded[0].T, uniqueInfo[0])
+
+            # PARAFAC on other antigen modes
+            for m in range(1, len(tFac.factors)):
+                kr = khatri_rao(tFac.factors, skip_matrix=m)
+                tFac.factors[m] = censored_lstsq(kr, unfolded[m].T, uniqueInfo[m])
+
+            # Solve for the glycan matrix fit
+            if mOrig is not None:
+                tFac.mFactor = censored_lstsq(tFac.factors[0], mOrig, uniqueInfoM)
+
+            if ii % 2 == 0:
+                R2X_last = tFac.R2X
+                tFac.R2X = calcR2X(tFac, tOrig, mOrig)
+                assert tFac.R2X > 0.0
+
+            if tFac.R2X - R2X_last < 1e-6:
+                break
 
     # Refine with direct optimization
     tFac = fit_refine(tFac, tOrig, mOrig)
@@ -225,23 +272,11 @@ def fit_refine(tFac, tOrig, mOrig):
         ZM = np.nan_to_num(mOrig)
         normZsqrM = np.square(np.linalg.norm(ZM))
 
-    def funcF(pIn, tOrig, mOrig, r):
-        # Tensor
-        tFac = buildTensors(pIn, tOrig, mOrig, r)
-        B = np.isfinite(tOrig) * tl.cp_to_tensor(tFac)
-        f = 0.5 * normZsqr - tl.tenalg.inner(Z, B) + 0.5 * np.square(np.linalg.norm(B))
-
-        # Matrix
-        if mOrig is not None:
-            BM = np.isfinite(mOrig) * buildGlycan(tFac)
-            f += 0.5 * normZsqrM - tl.tenalg.inner(ZM, BM) + 0.5 * np.square(np.linalg.norm(BM))
-
-        return f
-
     def gradF(pIn, tOrig, mOrig, r):
         # Tensor
         tFac = buildTensors(pIn, tOrig, mOrig, r)
         B = np.isfinite(tOrig) * tl.cp_to_tensor(tFac)
+        f = 0.5 * normZsqr - tl.tenalg.inner(Z, B) + 0.5 * np.square(np.linalg.norm(B))
         T = Z - B
 
         Gfactors = [-tl.unfolding_dot_khatri_rao(T, tFac, ii) for ii in range(tOrig.ndim)]
@@ -250,18 +285,19 @@ def fit_refine(tFac, tOrig, mOrig):
         # Matrix
         if mOrig is not None:
             BM = np.isfinite(mOrig) * buildGlycan(tFac)
+            f += 0.5 * normZsqrM - tl.tenalg.inner(ZM, BM) + 0.5 * np.square(np.linalg.norm(BM))
             TM = ZM - BM
 
             Mcp = tl.cp_tensor.CPTensor((None, [tFac.factors[0], tFac.mFactor]))
             tFacG.factors[0] -= tl.unfolding_dot_khatri_rao(TM, Mcp, 0)
             tFacG.mFactor = -tl.unfolding_dot_khatri_rao(TM, Mcp, 1)
 
-        return cp_to_vec(tFacG)
+        grad = cp_to_vec(tFacG)
+        return f / 2.0e4, grad / 2.0e4
 
-    res = minimize(funcF, x0, method="L-BFGS-B", jac=gradF, args=(tOrig, mOrig, r), options={"disp": 98, "maxcor": 20})
+    res = minimize(gradF, x0, method="L-BFGS-B", jac=True, args=(tOrig, mOrig, r), options={"maxiter": 1e3})
 
     tFac = buildTensors(res.x, tOrig, mOrig, r)
     tFac.R2X = calcR2X(tFac, tOrig, mOrig)
-    print(tFac.R2X)
 
     return tFac

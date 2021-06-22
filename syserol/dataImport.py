@@ -165,9 +165,9 @@ def createCube():
     cube = np.log10(cube)
     glyCube = np.log10(glyCube)
 
-    # Mean center
-    cube -= np.nanmean(cube)
-    glyCube -= np.nanmean(glyCube)
+    # Mean center each measurement
+    cube -= np.nanmean(cube, axis=0)
+    glyCube -= np.nanmean(glyCube, axis=0)
 
     # Check that there are no slices with completely missing data
     assert ~np.any(np.all(np.isnan(cube), axis=(0, 1)))

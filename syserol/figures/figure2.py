@@ -77,7 +77,7 @@ def makeFigure():
         else:
             return '1/' + rat2frac(-rat)
     ax[2].set_xlim(-7.5, 7.5)
-    ax[2].set_ylim(0.8, 1.0)
+    # ax[2].set_ylim(0.8, 1.0)
     ax[2].set_xticks(rats[::2])
     ax[2].set_xticklabels([rat2frac(r) for r in rats[::2]])
     ax[2].legend()
