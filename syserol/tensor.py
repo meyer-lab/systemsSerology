@@ -5,7 +5,6 @@ import numpy as np
 from scipy.optimize import minimize
 import tensorly as tl
 from tensorly.tenalg import khatri_rao
-from tensorly.decomposition._nn_cp import make_svd_non_negative
 from copy import deepcopy
 from .dataImport import createCube
 
@@ -168,10 +167,7 @@ def initialize_nn_cp(tensor, matrix, rank):
         # Remove completely missing columns
         unfold = unfold[:, ~np.all(np.isnan(unfold), axis=0)]
 
-        U, S, V = np.linalg.svd(np.nan_to_num(unfold))
-
-        # Apply nnsvd to make non-negative
-        U = make_svd_non_negative(tensor, U, S, V, "nndsvd")
+        U = np.linalg.svd(np.nan_to_num(unfold))[0]
 
         if U.shape[1] < rank:
             # This is a hack but it seems to do the job for now
@@ -183,7 +179,7 @@ def initialize_nn_cp(tensor, matrix, rank):
     return tl.cp_tensor.CPTensor((None, factors))
 
 
-def perform_CMTF(tOrig=None, mOrig=None, r=5, ALS=True):
+def perform_CMTF(tOrig=None, mOrig=None, r=6, ALS=True):
     """ Perform CMTF decomposition. """
     if tOrig is None:
         tOrig, mOrig = createCube()
@@ -203,7 +199,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=5, ALS=True):
         # Precalculate the missingness patterns
         uniqueInfo = [np.unique(np.isfinite(B.T), axis=1, return_inverse=True) for B in unfolded]
 
-        for ii in range(400):
+        for ii in range(800):
             # Solve for the subject matrix
             kr = khatri_rao(tFac.factors, skip_matrix=0)
 
@@ -221,12 +217,14 @@ def perform_CMTF(tOrig=None, mOrig=None, r=5, ALS=True):
             if mOrig is not None:
                 tFac.mFactor = censored_lstsq(tFac.factors[0], mOrig, uniqueInfoM)
 
-            if ii % 2 == 0:
+            if ii % 20 == 0:
                 R2X_last = tFac.R2X
                 tFac.R2X = calcR2X(tFac, tOrig, mOrig)
                 assert tFac.R2X > 0.0
 
             if tFac.R2X - R2X_last < 1e-6:
+                print(tFac.R2X)
+                print(ii)
                 break
 
     # Refine with direct optimization
@@ -297,12 +295,14 @@ def fit_refine(tFac, tOrig, mOrig):
             tFacG.mFactor = -tl.unfolding_dot_khatri_rao(TM, Mcp, 1)
 
         grad = cp_to_vec(tFacG)
+        print(f)
         return f, grad
 
-    res = minimize(gradF, x0, method="L-BFGS-B", jac=True, args=(tOrig, mOrig, r), options={"gtol": 1e-10, "ftol": 1e-10})
+    res = minimize(gradF, x0, method="CG", jac=True, args=(tOrig, mOrig, r), options={"disp": 98})
 
     tFac = buildTensors(res.x, tOrig, mOrig, r)
     tFac.R2X = calcR2X(tFac, tOrig, mOrig)
 
+    print(tFac.R2X - R2Xbefore)
     assert R2Xbefore < tFac.R2X
     return tFac

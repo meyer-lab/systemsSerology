@@ -32,10 +32,10 @@ def makeFigure():
         df_function = []
         df_class = []
         resample = False
-        for _ in range(rep):
-            for r in np.arange(1, 15):
-                tFac = perform_CMTF(r=r)[1][0]
 
+        for r in np.arange(1, 15):
+            tFac = perform_CMTF(r=r)[1][0]
+            for _ in range(rep):
                 # Functional prediction
                 accuracies = [function_prediction(tFac, resample=resample, function=f)[
                     2] for f in functions]
