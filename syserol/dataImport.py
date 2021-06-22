@@ -165,6 +165,7 @@ def createCube():
     cube = np.log10(cube)
     glyCube = np.log10(glyCube)
 
+    # Mean center
     cube -= np.nanmean(cube)
     glyCube -= np.nanmean(glyCube)
 

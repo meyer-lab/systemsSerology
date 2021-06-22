@@ -131,7 +131,7 @@ def impute_accuracy(missingCube, missingGlyCube, comps, PCAcompare=True, ALS=Tru
 
     for ii, nComp in enumerate(comps):
         # reconstruct with some values missing
-        recon_cmtf = perform_CMTF(missingCube, missingGlyCube, nComp, ALS=ALS)
+        recon_cmtf = perform_CMTF(missingCube, missingGlyCube, nComp)
         CMTFR2X[ii] = calcR2X(recon_cmtf, tIn=imputeCube, mIn=imputeGlyCube)
 
         if PCAcompare:
