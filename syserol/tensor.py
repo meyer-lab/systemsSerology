@@ -179,7 +179,7 @@ def initialize_cp(tensor, matrix, rank):
     return tl.cp_tensor.CPTensor((None, factors))
 
 
-def perform_CMTF(tOrig=None, mOrig=None, r=7, ALS=True):
+def perform_CMTF(tOrig=None, mOrig=None, r=7):
     """ Perform CMTF decomposition. """
     if tOrig is None:
         tOrig, mOrig = createCube()
@@ -196,35 +196,34 @@ def perform_CMTF(tOrig=None, mOrig=None, r=7, ALS=True):
 
     tFac.R2X = calcR2X(tFac, tOrig, mOrig)
 
-    if ALS:
-        # Precalculate the missingness patterns
-        uniqueInfo = [np.unique(np.isfinite(B.T), axis=1, return_inverse=True) for B in unfolded]
+    # Precalculate the missingness patterns
+    uniqueInfo = [np.unique(np.isfinite(B.T), axis=1, return_inverse=True) for B in unfolded]
 
-        for ii in range(200):
-            # Solve for the subject matrix
-            kr = khatri_rao(tFac.factors, skip_matrix=0)
+    for ii in range(200):
+        # Solve for the subject matrix
+        kr = khatri_rao(tFac.factors, skip_matrix=0)
 
-            if mOrig is not None:
-                kr = np.vstack((kr, tFac.mFactor))
+        if mOrig is not None:
+            kr = np.vstack((kr, tFac.mFactor))
 
-            tFac.factors[0] = censored_lstsq(kr, unfolded[0].T, uniqueInfo[0])
+        tFac.factors[0] = censored_lstsq(kr, unfolded[0].T, uniqueInfo[0])
 
-            # PARAFAC on other antigen modes
-            for m in range(1, len(tFac.factors)):
-                kr = khatri_rao(tFac.factors, skip_matrix=m)
-                tFac.factors[m] = censored_lstsq(kr, unfolded[m].T, uniqueInfo[m])
+        # PARAFAC on other antigen modes
+        for m in range(1, len(tFac.factors)):
+            kr = khatri_rao(tFac.factors, skip_matrix=m)
+            tFac.factors[m] = censored_lstsq(kr, unfolded[m].T, uniqueInfo[m])
 
-            # Solve for the glycan matrix fit
-            if mOrig is not None:
-                tFac.mFactor = censored_lstsq(tFac.factors[0], mOrig, uniqueInfoM)
+        # Solve for the glycan matrix fit
+        if mOrig is not None:
+            tFac.mFactor = censored_lstsq(tFac.factors[0], mOrig, uniqueInfoM)
 
-            if ii % 2 == 0:
-                R2X_last = tFac.R2X
-                tFac.R2X = calcR2X(tFac, tOrig, mOrig)
-                assert tFac.R2X > 0.0
+        if ii % 2 == 0:
+            R2X_last = tFac.R2X
+            tFac.R2X = calcR2X(tFac, tOrig, mOrig)
+            assert tFac.R2X > 0.0
 
-            if tFac.R2X - R2X_last < 1e-6:
-                break
+        if tFac.R2X - R2X_last < 1e-6:
+            break
 
     # Refine with direct optimization
     tFac = fit_refine(tFac, tOrig, mOrig)

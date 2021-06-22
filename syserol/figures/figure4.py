@@ -151,7 +151,7 @@ def makeFigure():
         classes.extend(outt[2])
 
         data = {
-            "Feature Importance": classes,
+            "Component Weight": classes,
             "Component": [str(x) for x in np.arange(1, ncomp + 1).tolist()] * 2,
             "Class": [x for i in [[j] * ncomp for j in ["Controller/Progressor", "Viremic/Non-Viremic"]] for x in i],
         }
@@ -164,15 +164,15 @@ def makeFigure():
             coef = function_prediction(X, resample=True, function=function)[3]
             funcs.extend(coef)
         data = {
-            "Feature Importance": funcs,
+            "Component Weight": funcs,
             "Component": [str(x) for x in np.arange(1, ncomp + 1).tolist()] * 6,
             "Function": [x for i in [[j] * ncomp for j in functions] for x in i],
         }
         funcs_df = funcs_df.append(pd.DataFrame(data), ignore_index=True)
 
-    sns.barplot(x="Component", y="Feature Importance", ci="sd",
+    sns.barplot(x="Component", y="Component Weight", ci="sd",
                 hue="Function", data=funcs_df, errwidth=1, ax=ax[2])
-    sns.barplot(x="Component", y="Feature Importance", ci="sd", hue="Class", data=class_df,
+    sns.barplot(x="Component", y="Component Weight", ci="sd", hue="Class", data=class_df,
                 errwidth=2, ax=ax[5], palette=sns.color_palette('magma', n_colors=3))
     # plt.legend(bbox_to_anchor=(1.04, 1), loc='upper left', ncol=1)
     ax[5].set_ylim(-0.75, 1.5)
