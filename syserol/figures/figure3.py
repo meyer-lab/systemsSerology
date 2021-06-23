@@ -10,7 +10,7 @@ from ..impute import evaluate_missing, increase_missing
 def makeFigure():
     """Get a list of the axis objects and create a figure"""
     # Get list of axis objects
-    ax, f = getSetup((9, 3), (1, 3))
+    ax, f = getSetup((7, 3), (1, 2))
     rep = 10
 
     comps = np.arange(1, 11)
@@ -35,18 +35,7 @@ def makeFigure():
         single_df.to_csv('syserol/data/fig3_single_df.csv', index=False)
     single_df = single_df.groupby(['Components']).agg(['mean', 'std'])
 
-    try:
-        increasing_df = pd.read_csv('syserol/data/fig3_increasing_df.csv')
-    except FileNotFoundError:
-        print("Building increasing...")
-        # Increasing imputations dataframe
-        rep = 3
-        comps = 2
-        increasing_df = pd.concat([pd.DataFrame(np.vstack(increase_missing(comps)[0:3]).T,
-                                                columns=['CMTF', 'PCA', 'missing']) for _ in range(rep)])
-        increasing_df.to_csv('syserol/data/fig3_increasing_df.csv', index=False)
 
-    comps = np.arange(1, 11)
     Q2Xchord = chords_df['R2X']['mean']
     Q2Xerrors = chords_df['R2X']['std']
     ax[0].scatter(comps, Q2Xchord)
@@ -71,26 +60,6 @@ def makeFigure():
     ax[1].set_xticklabels([x for x in comps])
     ax[1].set_ylim(0, 1)
     ax[1].legend(loc=4)
-
-    increasing_df = increasing_df.groupby(['missing']).agg(['mean', 'std']).reset_index()
-    missing = increasing_df['missing']
-    missing = missing ** 3
-    CMTFR2X = increasing_df['CMTF']['mean']
-    CMTFErr = increasing_df['CMTF']['std']
-    PCAR2X = increasing_df['PCA']['mean']
-    PCAErr = increasing_df['PCA']['std']
-    ax[2].plot(missing, CMTFR2X, ".", label="CMTF")
-    ax[2].plot(missing, PCAR2X, ".", label="PCA")
-    if np.any(PCAErr) and np.any(CMTFErr):
-        ax[2].errorbar(missing, CMTFR2X, yerr=CMTFErr, fmt='none', ecolor='b')
-        ax[2].errorbar(missing, PCAR2X, yerr=PCAErr, fmt='none', ecolor='darkorange')
-    ax[2].set_ylabel("Q2X of Imputation")
-    ax[2].set_xlabel("Fraction Missing")
-    ax[2].set_xlim(0.38, 1)
-    ax[2].set_ylim(0, 1)
-    ax[2].set_xticks(np.arange(0.4, 1.01, 0.1)**3)
-    ax[2].set_xticklabels([str(round(a,1)) for a in np.arange(0.4, 1.01, 0.1)])
-    ax[2].legend(loc=3)
 
     # Add subplot labels
     subplotLabel(ax)
