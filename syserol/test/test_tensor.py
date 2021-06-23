@@ -51,7 +51,6 @@ def test_delete():
         delR2X = calcR2X(facTdel, tOrig, mOrig)
 
         assert delR2X < fullR2X
-        assert delR2X > -1.0
 
 
 def test_sort():

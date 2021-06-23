@@ -32,10 +32,10 @@ def makeFigure():
         df_function = []
         df_class = []
         resample = False
-        for _ in range(rep):
-            for r in np.arange(1, 15):
-                tFac = perform_CMTF(r=r)[1][0]
 
+        for r in np.arange(1, 15):
+            tFac = perform_CMTF(r=r)[1][0]
+            for _ in range(rep):
                 # Functional prediction
                 accuracies = [function_prediction(tFac, resample=resample, function=f)[
                     2] for f in functions]
@@ -113,7 +113,7 @@ def makeFigure():
     cc.tick_params(axis="x")
     cc.set_ylabel("Accuracy")
     cc.set_xlabel("Function")
-    cc.legend(fontsize=8.5, title="Model", title_fontsize=10)
+    cc.legend(fontsize=8, title="Model", title_fontsize=9)
 
     # Class Plot
     dd = sns.pointplot(x="Class", y="Accuracies", data=classes, ci="sd", style="Model", hue="Model",
@@ -136,7 +136,7 @@ def makeFigure():
 
     dd.set_xticklabels(dd_labels)
 
-    ## Model prediction weight
+    # Model prediction weight
 
     tFac = perform_CMTF()
     X = tFac.factors[0]
@@ -151,7 +151,7 @@ def makeFigure():
         classes.extend(outt[2])
 
         data = {
-            "Feature Importance": classes,
+            "Component Weight": classes,
             "Component": [str(x) for x in np.arange(1, ncomp + 1).tolist()] * 2,
             "Class": [x for i in [[j] * ncomp for j in ["Controller/Progressor", "Viremic/Non-Viremic"]] for x in i],
         }
@@ -164,15 +164,15 @@ def makeFigure():
             coef = function_prediction(X, resample=True, function=function)[3]
             funcs.extend(coef)
         data = {
-            "Feature Importance": funcs,
+            "Component Weight": funcs,
             "Component": [str(x) for x in np.arange(1, ncomp + 1).tolist()] * 6,
             "Function": [x for i in [[j] * ncomp for j in functions] for x in i],
         }
         funcs_df = funcs_df.append(pd.DataFrame(data), ignore_index=True)
 
-    sns.barplot(x="Component", y="Feature Importance", ci="sd",
+    sns.barplot(x="Component", y="Component Weight", ci="sd",
                 hue="Function", data=funcs_df, errwidth=1, ax=ax[2])
-    sns.barplot(x="Component", y="Feature Importance", ci="sd", hue="Class", data=class_df,
+    sns.barplot(x="Component", y="Component Weight", ci="sd", hue="Class", data=class_df,
                 errwidth=2, ax=ax[5], palette=sns.color_palette('magma', n_colors=3))
     # plt.legend(bbox_to_anchor=(1.04, 1), loc='upper left', ncol=1)
     ax[5].set_ylim(-0.75, 1.5)
@@ -183,6 +183,9 @@ def makeFigure():
         for i in shades:
             axx.axvspan(i, i + 1, alpha=0.1, color="grey")
         axx.set_xlim(-0.5, ncomp - 0.5)
+
+    ax[2].legend(fontsize=8, title="Function", title_fontsize=9)
+    ax[5].legend(fontsize=8, title="Class", title_fontsize=9)
 
     # Add subplot labels
     subplotLabel([ax[0], ax[1], ax[3], ax[4], ax[2], ax[5]])
