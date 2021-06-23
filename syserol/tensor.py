@@ -5,7 +5,6 @@ import numpy as np
 from scipy.optimize import minimize
 import tensorly as tl
 from tensorly.tenalg import khatri_rao
-from tensorly.decomposition._nn_cp import make_svd_non_negative
 from copy import deepcopy
 from .dataImport import createCube
 
@@ -147,7 +146,7 @@ def cp_normalize(tFac):
     return tFac
 
 
-def initialize_nn_cp(tensor, matrix, rank):
+def initialize_cp(tensor, matrix, rank):
     r"""Initialize factors used in `parafac`.
     Parameters
     ----------
@@ -168,10 +167,7 @@ def initialize_nn_cp(tensor, matrix, rank):
         # Remove completely missing columns
         unfold = unfold[:, ~np.all(np.isnan(unfold), axis=0)]
 
-        U, S, V = np.linalg.svd(np.nan_to_num(unfold))
-
-        # Apply nnsvd to make non-negative
-        U = make_svd_non_negative(tensor, U, S, V, "nndsvd")
+        U = np.linalg.svd(np.nan_to_num(unfold))[0]
 
         if U.shape[1] < rank:
             # This is a hack but it seems to do the job for now
@@ -183,51 +179,51 @@ def initialize_nn_cp(tensor, matrix, rank):
     return tl.cp_tensor.CPTensor((None, factors))
 
 
-def perform_CMTF(tOrig=None, mOrig=None, r=5, ALS=True):
+def perform_CMTF(tOrig=None, mOrig=None, r=7):
     """ Perform CMTF decomposition. """
     if tOrig is None:
         tOrig, mOrig = createCube()
 
-    tFac = initialize_nn_cp(tOrig, mOrig, r)
+    tFac = initialize_cp(tOrig, mOrig, r)
 
     # Pre-unfold
     unfolded = [tl.unfold(tOrig, i) for i in range(tOrig.ndim)]
-    tFac.R2X = -1.0
 
     if mOrig is not None:
         uniqueInfoM = np.unique(np.isfinite(mOrig), axis=1, return_inverse=True)
         tFac.mFactor = censored_lstsq(tFac.factors[0], mOrig, uniqueInfoM)
         unfolded[0] = np.hstack((unfolded[0], mOrig))
 
-    if ALS:
-        # Precalculate the missingness patterns
-        uniqueInfo = [np.unique(np.isfinite(B.T), axis=1, return_inverse=True) for B in unfolded]
+    tFac.R2X = calcR2X(tFac, tOrig, mOrig)
 
-        for ii in range(200):
-            # Solve for the subject matrix
-            kr = khatri_rao(tFac.factors, skip_matrix=0)
+    # Precalculate the missingness patterns
+    uniqueInfo = [np.unique(np.isfinite(B.T), axis=1, return_inverse=True) for B in unfolded]
 
-            if mOrig is not None:
-                kr = np.vstack((kr, tFac.mFactor))
+    for ii in range(200):
+        # Solve for the subject matrix
+        kr = khatri_rao(tFac.factors, skip_matrix=0)
 
-            tFac.factors[0] = censored_lstsq(kr, unfolded[0].T, uniqueInfo[0])
+        if mOrig is not None:
+            kr = np.vstack((kr, tFac.mFactor))
 
-            # PARAFAC on other antigen modes
-            for m in range(1, len(tFac.factors)):
-                kr = khatri_rao(tFac.factors, skip_matrix=m)
-                tFac.factors[m] = censored_lstsq(kr, unfolded[m].T, uniqueInfo[m])
+        tFac.factors[0] = censored_lstsq(kr, unfolded[0].T, uniqueInfo[0])
 
-            # Solve for the glycan matrix fit
-            if mOrig is not None:
-                tFac.mFactor = censored_lstsq(tFac.factors[0], mOrig, uniqueInfoM)
+        # PARAFAC on other antigen modes
+        for m in range(1, len(tFac.factors)):
+            kr = khatri_rao(tFac.factors, skip_matrix=m)
+            tFac.factors[m] = censored_lstsq(kr, unfolded[m].T, uniqueInfo[m])
 
-            if ii % 2 == 0:
-                R2X_last = tFac.R2X
-                tFac.R2X = calcR2X(tFac, tOrig, mOrig)
-                assert tFac.R2X > 0.0
+        # Solve for the glycan matrix fit
+        if mOrig is not None:
+            tFac.mFactor = censored_lstsq(tFac.factors[0], mOrig, uniqueInfoM)
 
-            if tFac.R2X - R2X_last < 1e-6:
-                break
+        if ii % 2 == 0:
+            R2X_last = tFac.R2X
+            tFac.R2X = calcR2X(tFac, tOrig, mOrig)
+            assert tFac.R2X > 0.0
+
+        if tFac.R2X - R2X_last < 1e-6:
+            break
 
     # Refine with direct optimization
     tFac = fit_refine(tFac, tOrig, mOrig)
@@ -268,7 +264,6 @@ def fit_refine(tFac, tOrig, mOrig):
     """ Refine the factorization with direct optimization. """
     r = tFac.rank
     x0 = cp_to_vec(tFac)
-    R2Xbefore = tFac.R2X
 
     Z = np.nan_to_num(tOrig)
     normZsqr = np.square(np.linalg.norm(Z))
@@ -297,12 +292,11 @@ def fit_refine(tFac, tOrig, mOrig):
             tFacG.mFactor = -tl.unfolding_dot_khatri_rao(TM, Mcp, 1)
 
         grad = cp_to_vec(tFacG)
-        return f / 1.0e12, grad / 1.0e12
+        return f / 2.0e4, grad / 2.0e4
 
-    res = minimize(gradF, x0, method="L-BFGS-B", jac=True, args=(tOrig, mOrig, r), options={"gtol": 1e-10, "ftol": 1e-10})
+    res = minimize(gradF, x0, method="L-BFGS-B", jac=True, args=(tOrig, mOrig, r), options={"maxiter": 1e3})
 
     tFac = buildTensors(res.x, tOrig, mOrig, r)
     tFac.R2X = calcR2X(tFac, tOrig, mOrig)
 
-    assert R2Xbefore < tFac.R2X
     return tFac
