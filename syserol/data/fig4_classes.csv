@@ -1,91 +1,91 @@
 Class,Accuracies,Model
-Controller/Progressor,0.712707182320442,Alter et al
-Viremic/Non-Viremic,0.7624309392265194,Alter et al
-Four-Class,0.6298342541436464,Alter et al
-Controller/Progressor,0.7237569060773481,CMTF
-Viremic/Non-Viremic,0.6519337016574586,CMTF
-Four-Class,0.47513812154696133,CMTF
-Controller/Progressor,0.5248618784530387,Randomized
-Viremic/Non-Viremic,0.4861878453038674,Randomized
-Four-Class,0.19889502762430938,Randomized
-Controller/Progressor,0.712707182320442,Alter et al
-Viremic/Non-Viremic,0.7513812154696132,Alter et al
+Controller/Progressor,0.7403314917127072,Alter et al
+Viremic/Non-Viremic,0.7679558011049724,Alter et al
 Four-Class,0.5966850828729282,Alter et al
 Controller/Progressor,0.7348066298342542,CMTF
-Viremic/Non-Viremic,0.6519337016574586,CMTF
-Four-Class,0.5082872928176796,CMTF
-Controller/Progressor,0.430939226519337,Randomized
-Viremic/Non-Viremic,0.4585635359116022,Randomized
-Four-Class,0.20441988950276244,Randomized
-Controller/Progressor,0.7071823204419889,Alter et al
-Viremic/Non-Viremic,0.7734806629834254,Alter et al
-Four-Class,0.6077348066298343,Alter et al
-Controller/Progressor,0.7403314917127072,CMTF
-Viremic/Non-Viremic,0.6629834254143646,CMTF
+Viremic/Non-Viremic,0.7513812154696132,CMTF
 Four-Class,0.5138121546961326,CMTF
-Controller/Progressor,0.5193370165745856,Randomized
-Viremic/Non-Viremic,0.5524861878453039,Randomized
-Four-Class,0.2265193370165746,Randomized
-Controller/Progressor,0.7403314917127072,Alter et al
-Viremic/Non-Viremic,0.7845303867403315,Alter et al
-Four-Class,0.585635359116022,Alter et al
-Controller/Progressor,0.7292817679558011,CMTF
-Viremic/Non-Viremic,0.6629834254143646,CMTF
-Four-Class,0.48066298342541436,CMTF
-Controller/Progressor,0.5193370165745856,Randomized
-Viremic/Non-Viremic,0.4088397790055249,Randomized
-Four-Class,0.24861878453038674,Randomized
-Controller/Progressor,0.7182320441988951,Alter et al
-Viremic/Non-Viremic,0.7624309392265194,Alter et al
-Four-Class,0.574585635359116,Alter et al
-Controller/Progressor,0.7292817679558011,CMTF
-Viremic/Non-Viremic,0.6464088397790055,CMTF
-Four-Class,0.4861878453038674,CMTF
 Controller/Progressor,0.5082872928176796,Randomized
-Viremic/Non-Viremic,0.4585635359116022,Randomized
-Four-Class,0.23756906077348067,Randomized
-Controller/Progressor,0.7403314917127072,Alter et al
-Viremic/Non-Viremic,0.7458563535911602,Alter et al
-Four-Class,0.5580110497237569,Alter et al
-Controller/Progressor,0.7292817679558011,CMTF
-Viremic/Non-Viremic,0.6464088397790055,CMTF
-Four-Class,0.46408839779005523,CMTF
-Controller/Progressor,0.5303867403314917,Randomized
-Viremic/Non-Viremic,0.4696132596685083,Randomized
-Four-Class,0.27071823204419887,Randomized
-Controller/Progressor,0.7348066298342542,Alter et al
-Viremic/Non-Viremic,0.7679558011049724,Alter et al
-Four-Class,0.585635359116022,Alter et al
-Controller/Progressor,0.7348066298342542,CMTF
-Viremic/Non-Viremic,0.6574585635359116,CMTF
-Four-Class,0.47513812154696133,CMTF
-Controller/Progressor,0.5248618784530387,Randomized
-Viremic/Non-Viremic,0.5027624309392266,Randomized
+Viremic/Non-Viremic,0.4088397790055249,Randomized
+Four-Class,0.20441988950276244,Randomized
+Controller/Progressor,0.7016574585635359,Alter et al
+Viremic/Non-Viremic,0.7624309392265194,Alter et al
+Four-Class,0.5359116022099447,Alter et al
+Controller/Progressor,0.712707182320442,CMTF
+Viremic/Non-Viremic,0.7403314917127072,CMTF
+Four-Class,0.56353591160221,CMTF
+Controller/Progressor,0.4972375690607735,Randomized
+Viremic/Non-Viremic,0.4419889502762431,Randomized
 Four-Class,0.2541436464088398,Randomized
 Controller/Progressor,0.712707182320442,Alter et al
-Viremic/Non-Viremic,0.7790055248618785,Alter et al
-Four-Class,0.6187845303867403,Alter et al
-Controller/Progressor,0.7237569060773481,CMTF
-Viremic/Non-Viremic,0.6629834254143646,CMTF
-Four-Class,0.46408839779005523,CMTF
-Controller/Progressor,0.4972375690607735,Randomized
-Viremic/Non-Viremic,0.5027624309392266,Randomized
-Four-Class,0.2541436464088398,Randomized
-Controller/Progressor,0.7071823204419889,Alter et al
-Viremic/Non-Viremic,0.7734806629834254,Alter et al
-Four-Class,0.56353591160221,Alter et al
-Controller/Progressor,0.7237569060773481,CMTF
-Viremic/Non-Viremic,0.6408839779005525,CMTF
-Four-Class,0.47513812154696133,CMTF
-Controller/Progressor,0.5082872928176796,Randomized
-Viremic/Non-Viremic,0.4861878453038674,Randomized
-Four-Class,0.2541436464088398,Randomized
-Controller/Progressor,0.7569060773480663,Alter et al
-Viremic/Non-Viremic,0.7569060773480663,Alter et al
-Four-Class,0.5580110497237569,Alter et al
+Viremic/Non-Viremic,0.7845303867403315,Alter et al
+Four-Class,0.5966850828729282,Alter et al
 Controller/Progressor,0.7292817679558011,CMTF
-Viremic/Non-Viremic,0.6574585635359116,CMTF
-Four-Class,0.49171270718232046,CMTF
+Viremic/Non-Viremic,0.7569060773480663,CMTF
+Four-Class,0.5138121546961326,CMTF
+Controller/Progressor,0.4585635359116022,Randomized
+Viremic/Non-Viremic,0.5193370165745856,Randomized
+Four-Class,0.2265193370165746,Randomized
+Controller/Progressor,0.7458563535911602,Alter et al
+Viremic/Non-Viremic,0.7624309392265194,Alter et al
+Four-Class,0.569060773480663,Alter et al
+Controller/Progressor,0.7458563535911602,CMTF
+Viremic/Non-Viremic,0.7513812154696132,CMTF
+Four-Class,0.5580110497237569,CMTF
 Controller/Progressor,0.5303867403314917,Randomized
-Viremic/Non-Viremic,0.5027624309392266,Randomized
-Four-Class,0.292817679558011,Randomized
+Viremic/Non-Viremic,0.5082872928176796,Randomized
+Four-Class,0.3314917127071823,Randomized
+Controller/Progressor,0.7237569060773481,Alter et al
+Viremic/Non-Viremic,0.7624309392265194,Alter et al
+Four-Class,0.6022099447513812,Alter et al
+Controller/Progressor,0.7403314917127072,CMTF
+Viremic/Non-Viremic,0.7624309392265194,CMTF
+Four-Class,0.5469613259668509,CMTF
+Controller/Progressor,0.5359116022099447,Randomized
+Viremic/Non-Viremic,0.4861878453038674,Randomized
+Four-Class,0.19889502762430938,Randomized
+Controller/Progressor,0.7348066298342542,Alter et al
+Viremic/Non-Viremic,0.7569060773480663,Alter et al
+Four-Class,0.5469613259668509,Alter et al
+Controller/Progressor,0.7513812154696132,CMTF
+Viremic/Non-Viremic,0.7458563535911602,CMTF
+Four-Class,0.5524861878453039,CMTF
+Controller/Progressor,0.4696132596685083,Randomized
+Viremic/Non-Viremic,0.4530386740331492,Randomized
+Four-Class,0.23756906077348067,Randomized
+Controller/Progressor,0.7348066298342542,Alter et al
+Viremic/Non-Viremic,0.7624309392265194,Alter et al
+Four-Class,0.6353591160220995,Alter et al
+Controller/Progressor,0.7348066298342542,CMTF
+Viremic/Non-Viremic,0.7348066298342542,CMTF
+Four-Class,0.5359116022099447,CMTF
+Controller/Progressor,0.5082872928176796,Randomized
+Viremic/Non-Viremic,0.5469613259668509,Randomized
+Four-Class,0.23756906077348067,Randomized
+Controller/Progressor,0.7292817679558011,Alter et al
+Viremic/Non-Viremic,0.7734806629834254,Alter et al
+Four-Class,0.5524861878453039,Alter et al
+Controller/Progressor,0.7292817679558011,CMTF
+Viremic/Non-Viremic,0.7624309392265194,CMTF
+Four-Class,0.5248618784530387,CMTF
+Controller/Progressor,0.5359116022099447,Randomized
+Viremic/Non-Viremic,0.5911602209944752,Randomized
+Four-Class,0.281767955801105,Randomized
+Controller/Progressor,0.712707182320442,Alter et al
+Viremic/Non-Viremic,0.7403314917127072,Alter et al
+Four-Class,0.580110497237569,Alter et al
+Controller/Progressor,0.7071823204419889,CMTF
+Viremic/Non-Viremic,0.7458563535911602,CMTF
+Four-Class,0.5193370165745856,CMTF
+Controller/Progressor,0.4972375690607735,Randomized
+Viremic/Non-Viremic,0.5138121546961326,Randomized
+Four-Class,0.2154696132596685,Randomized
+Controller/Progressor,0.7182320441988951,Alter et al
+Viremic/Non-Viremic,0.7679558011049724,Alter et al
+Four-Class,0.574585635359116,Alter et al
+Controller/Progressor,0.7292817679558011,CMTF
+Viremic/Non-Viremic,0.7292817679558011,CMTF
+Four-Class,0.5359116022099447,CMTF
+Controller/Progressor,0.5303867403314917,Randomized
+Viremic/Non-Viremic,0.5138121546961326,Randomized
+Four-Class,0.2430939226519337,Randomized

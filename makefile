@@ -1,4 +1,4 @@
-flist = 2 3 4 5 5e 6 EV1 EV3 EV4
+flist = 2 3 4 5 6 EV1 EV3
 
 all: $(patsubst %, output/figure%.svg, $(flist))
 
@@ -9,7 +9,7 @@ venv/bin/activate: requirements.txt
 	. venv/bin/activate && pip install --prefer-binary -Uqr requirements.txt
 	touch venv/bin/activate
 
-output/figure%.svg: venv genFigure.py
+output/figure%.svg: venv genFigure.py syserol/figures/figure%.py
 	mkdir -p output
 	. venv/bin/activate && ./genFigure.py $*
 
