@@ -159,7 +159,15 @@ def createCube():
         cube[i, -1, k] = row["value"]
 
     # Clip to 0 as there are a few strongly negative outliers
-    cube = np.clip(cube, 0, None)
+    cube = np.clip(cube, 1.0, None)
+    glyCube = np.clip(glyCube, 0.1, None)
+
+    cube = np.log10(cube)
+    glyCube = np.log10(glyCube)
+
+    # Mean center each measurement
+    cube -= np.nanmean(cube, axis=0)
+    glyCube -= np.nanmean(glyCube, axis=0)
 
     # Check that there are no slices with completely missing data
     assert ~np.any(np.all(np.isnan(cube), axis=(0, 1)))
