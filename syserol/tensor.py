@@ -146,7 +146,7 @@ def cp_normalize(tFac):
     return tFac
 
 
-def initialize_cp(tensor, matrix, rank):
+def initialize_cp(tensor: np.ndarray, matrix: np.ndarray, rank: int):
     r"""Initialize factors used in `parafac`.
     Parameters
     ----------
@@ -260,6 +260,37 @@ def buildTensors(pIn, tensor, matrix, r):
     return tFac
 
 
+def unfolding_dot_khatri_rao(tensor, cp_tensor, mode):
+    """mode-n unfolding times khatri-rao product of factors
+    
+    Parameters
+    ----------
+    tensor : tl.tensor
+        tensor to unfold
+    factors : tl.tensor list
+        list of matrices of which to the khatri-rao product
+    mode : int
+        mode on which to unfold `tensor`
+    
+    Returns
+    -------
+    mttkrp
+        dot(unfold(tensor, mode), khatri-rao(factors))
+    """
+    ndims = tl.ndim(tensor)
+    tensor_idx = ''.join(chr(ord('a') + i) for i in range(ndims))
+    rank = chr(ord('a') + ndims + 1)
+    op = tensor_idx
+    for i in range(ndims):
+        if i != mode:
+            op += ',' + ''.join([tensor_idx[i], rank])
+        else:
+            result = ''.join([tensor_idx[i], rank])
+    op += '->' + result
+    factors = [f for (i, f) in enumerate(cp_tensor.factors) if i != mode]
+    return np.einsum(op, tensor, *factors)
+
+
 def fit_refine(tFac, tOrig, mOrig):
     """ Refine the factorization with direct optimization. """
     r = tFac.rank
@@ -278,7 +309,7 @@ def fit_refine(tFac, tOrig, mOrig):
         f = 0.5 * normZsqr - tl.tenalg.inner(Z, B) + 0.5 * np.square(np.linalg.norm(B))
         T = Z - B
 
-        Gfactors = [-tl.unfolding_dot_khatri_rao(T, tFac, ii) for ii in range(tOrig.ndim)]
+        Gfactors = [-unfolding_dot_khatri_rao(T, tFac, ii) for ii in range(tOrig.ndim)]
         tFacG = tl.cp_tensor.CPTensor((None, Gfactors))
 
         # Matrix
@@ -287,14 +318,13 @@ def fit_refine(tFac, tOrig, mOrig):
             f += 0.5 * normZsqrM - tl.tenalg.inner(ZM, BM) + 0.5 * np.square(np.linalg.norm(BM))
             TM = ZM - BM
 
-            Mcp = tl.cp_tensor.CPTensor((None, [tFac.factors[0], tFac.mFactor]))
-            tFacG.factors[0] -= tl.unfolding_dot_khatri_rao(TM, Mcp, 0)
-            tFacG.mFactor = -tl.unfolding_dot_khatri_rao(TM, Mcp, 1)
+            tFacG.factors[0] -= np.einsum("ab,bd->ad", TM, tFac.mFactor)
+            tFacG.mFactor = -np.einsum("ab,ad->bd", TM, tFac.factors[0])
 
         grad = cp_to_vec(tFacG)
         return f / 2.0e4, grad / 2.0e4
 
-    res = minimize(gradF, x0, method="L-BFGS-B", jac=True, args=(tOrig, mOrig, r), options={"maxiter": 1e3})
+    res = minimize(gradF, x0, method="L-BFGS-B", jac=True, args=(tOrig, mOrig, r), options={"maxiter": 1e4})
 
     tFac = buildTensors(res.x, tOrig, mOrig, r)
     tFac.R2X = calcR2X(tFac, tOrig, mOrig)
