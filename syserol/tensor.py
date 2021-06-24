@@ -49,17 +49,15 @@ def tensor_degFreedom(tFac) -> int:
 def reorient_factors(tFac):
     """ This function ensures that factors are negative on at most one direction. """
     # Flip the subjects to be positive
-    subjMeans = np.sign(np.mean(tFac.factors[0], axis=0))
-    tFac.factors[0] *= subjMeans[np.newaxis, :]
-    tFac.factors[1] *= subjMeans[np.newaxis, :]
+    rMeans = np.sign(np.mean(tFac.factors[1], axis=0))
+    agMeans = np.sign(np.mean(tFac.factors[2], axis=0))
+    tFac.factors[0] *= rMeans[np.newaxis, :] * agMeans[np.newaxis, :]
+    tFac.factors[1] *= rMeans[np.newaxis, :]
+    tFac.factors[2] *= agMeans[np.newaxis, :]
 
     if hasattr(tFac, 'mFactor'):
-        tFac.mFactor *= subjMeans[np.newaxis, :]
+        tFac.mFactor *= rMeans[np.newaxis, :] * agMeans[np.newaxis, :]
 
-    # Flip the receptors to be positive
-    rMeans = np.sign(np.mean(tFac.factors[1], axis=0))
-    tFac.factors[1] *= rMeans[np.newaxis, :]
-    tFac.factors[2] *= rMeans[np.newaxis, :]
     return tFac
 
 
@@ -168,7 +166,7 @@ def initialize_cp(tensor: np.ndarray, matrix: np.ndarray, rank: int):
         unfold = unfold[:, np.sum(np.isfinite(unfold), axis=0) > 2]
 
         # Impute by PCA
-        outt = PCA(unfold, ncomp=2, method="nipals", missing="fill-em", standardize=False, demean=False, normalize=False)
+        outt = PCA(unfold, ncomp=1, method="nipals", missing="fill-em", standardize=False, demean=False, normalize=False, max_em_iter=1000)
         recon_pca = outt.scores @ outt.loadings.T
         unfold[np.isnan(unfold)] = recon_pca[np.isnan(unfold)]
 
@@ -236,5 +234,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=6):
 
     if r > 1:
         tFac = sort_factors(tFac)
+
+    print(tFac.R2X)
 
     return tFac
