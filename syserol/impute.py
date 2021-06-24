@@ -17,15 +17,6 @@ def flatten_to_mat(tensor, matrix=None):
     return tMat
 
 
-def missingness(c):
-    """ Calculate the missingness (NaN) in an array"""
-    vTop, vBot = 0.0, 0.0
-    for cc in c:
-        vTop += np.sum(np.isfinite(cc))
-        vBot += np.prod(cc.shape)
-    return 1.0 - vTop / vBot
-
-
 def gen_missing(cube, missing_num, emin=6):
     """ Generate a cube with missing values """
     choose_cube = np.isfinite(cube)
@@ -74,28 +65,6 @@ def gen_missing(cube, missing_num, emin=6):
     gen_cube = np.copy(cube)
     gen_cube[fill_cube == 0] = np.nan
     return gen_cube
-
-
-def increase_missing(comp):
-    """ Generate excessive missing values and impute for Fig 3c  """
-    cube, glyCube = createCube()
-    samples = np.array([8000, 20000, 28000, 36000, 44000, 52000, 60000, 68000,
-                        72000, 76000, 80000, 82000, 84000, 86000, 88000, 89000])
-    CMTFR2Xs = np.zeros(samples.shape)
-    PCAR2Xs = np.zeros(samples.shape)
-    missing = np.zeros(samples.shape)
-
-    for ii, sample in enumerate(samples):
-        print("Running sample: ", sample)
-        missCube = gen_missing(cube, int(sample * 0.979))
-        missGlyCube = gen_missing(glyCube, int(sample * 0.021))
-
-        CMTFR2X, PCAR2X = impute_accuracy(missCube, missGlyCube, np.array([comp]))
-        CMTFR2Xs[ii] = CMTFR2X[-1]
-        PCAR2Xs[ii] = PCAR2X[-1]
-        missing[ii] = missingness([missCube, missGlyCube])
-
-    return CMTFR2Xs, PCAR2Xs, missing
 
 
 def evaluate_missing(comps, numSample=15, chords=True):
