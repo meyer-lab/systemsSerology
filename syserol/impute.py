@@ -1,7 +1,6 @@
 """ Evaluate the ability of CMTF to impute data. """
 
 import numpy as np
-import tensorly as tl
 from statsmodels.multivariate.pca import PCA
 from .dataImport import createCube
 from .tensor import perform_CMTF, calcR2X
