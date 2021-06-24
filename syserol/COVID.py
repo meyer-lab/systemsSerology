@@ -14,6 +14,7 @@ def pbsSubtractOriginal():
     Serology -= Serology.loc["PBS"].values.squeeze()
     df = pd.concat([Demographics, Serology], axis=1)
     df = df.loc[np.isfinite(df["patient_ID"]), :]
+    df["patient_ID"] = df["patient_ID"].astype('int32')
     df["week"] = np.array(df["days"] // 7 + 1.0, dtype=int)
     return df.set_index("patient_ID")
 
@@ -52,6 +53,24 @@ def Tensor4D():
     idxs = np.any(np.isfinite(tensor), axis=(1, 2, 3))
 
     return tensor[idxs, :], subjects[idxs]
+
+def Tensor3D():
+    """ Create a 3D Tensor (Antigen, Receptor, Sample in time) """
+    df = pbsSubtractOriginal()
+    _, Rlabels, AgLabels = dimensionLabel4D()
+
+    tensor = np.full((len(df), len(AgLabels), len(Rlabels)), np.nan)
+    missing = 0
+
+    for rii, recp in enumerate(Rlabels):
+        for aii, anti in enumerate(AgLabels):
+            try:
+                dfAR = df[recp + "_" + anti]
+                tensor[:, aii, rii] = dfAR.values
+            except KeyError:
+                # print(recp + "_" + anti)
+                missing += 1
+    return tensor, np.array(df.index)
 
 
 def dimensionLabel4D():
