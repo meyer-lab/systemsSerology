@@ -15,8 +15,7 @@ def makeFigure(boot=False):
     cube, glyCube = createCube()
     subjinfo = load_file("meta-subjects")
     if boot:
-        sel = np.random.choice(cube.shape[0], cube.shape[0], replace=True)
-        sel = np.sort(sel)
+        sel = np.sort(np.random.choice(cube.shape[0], cube.shape[0], replace=True))
         subjinfo = subjinfo.iloc[sel, :]
     else:
         sel = np.arange(cube.shape[0])
