@@ -1,4 +1,4 @@
-""" Evaluate the ability of CP to impute data. """
+""" Evaluate the ability of CMTF to impute data. """
 
 import numpy as np
 import tensorly as tl
@@ -67,7 +67,7 @@ def gen_missing(cube, missing_num, emin=6):
     return gen_cube
 
 
-def evaluate_missing(comps, numSample=15, chords=True):
+def evaluate_missing(comps, numSample=15, chords=True, CMTFimpute=True):
     """ Wrapper for chord loss or individual loss """
     cube, glyCube = createCube()
     if chords:
@@ -78,10 +78,13 @@ def evaluate_missing(comps, numSample=15, chords=True):
             missingCube[:, j, k] = np.nan
     else:
         missingCube = gen_missing(np.copy(cube), numSample)
-    return impute_accuracy(missingCube, glyCube, comps, PCAcompare=(not chords))
+    if CMTFimpute:
+        return impute_accuracy(missingCube, glyCube, comps, PCAcompare=(not chords))
+    else:
+        return average_impute(missingCube, glyCube)
 
 
-def impute_accuracy(missingCube, missingGlyCube, comps, PCAcompare=True, ALS=True):
+def impute_accuracy(missingCube, missingGlyCube, comps, PCAcompare=True):
     """ Calculate the imputation R2X """
     cube, glyCube = createCube()
     CMTFR2X = np.zeros(comps.shape)
@@ -111,42 +114,33 @@ def impute_accuracy(missingCube, missingGlyCube, comps, PCAcompare=True, ALS=Tru
     return CMTFR2X, PCAR2X
 
 
-
-def impute_R2X(imputed, origT=None, origM=None, missT=None, missM=None):
-    """ Calculate imputed R2X with imputed value only. """
-    assert ((origT is not None) and (missT is not None)) or ((origM is not None) and (missM is not None))
-    imputeT, imputeM = None, None
-    if origT is not None:
-        imputeT = np.copy(origT)
-        imputeT[np.isfinite(missT)] = np.nan
-    if origM is not None:
-        imputeM = np.copy(origM)
-        imputeM[np.isfinite(missM)] = np.nan
-        pass
-
-
-    imputeTensor = np.copy(origTensor)
-    imputeTensor[np.isfinite(missingCube)] = np.nan
-
-    return calcR2X(imputed, tIn=imputeT, mIn=imputeM)
-
-
-
 def average_impute(missingCube, missingGlyCube):
+    cube, glyCube = createCube()
+    # compare artificially introduced missingness only
+    tIn = np.copy(cube)
+    tIn[np.isfinite(missingCube)] = np.nan
+    mIn = np.copy(glyCube)
+    mIn[np.isfinite(missingGlyCube)] = np.nan
 
     antigen_impute = np.copy(missingCube)
     receptor_impute = np.copy(missingCube)
     impute_glyCube = np.copy(missingGlyCube)
 
-    antigen_avg = np.nanmean(missingCube, axis=(0, 1))
-    receptor_avg = np.nanmean(missingCube, axis=(0, 2))
-    glycan_avg = np.nanmean(missingGlyCube, axis=0)
-
     inds_glyCube = np.where(np.isnan(missingGlyCube))
-    impute_glyCube[inds_glyCube] = np.take(glycan_avg, inds_glyCube[1])
+    impute_glyCube[inds_glyCube] = np.take(np.nanmean(missingGlyCube, axis=0), inds_glyCube[1])
     inds_cube = np.where(np.isnan(missingCube))
-    receptor_impute[inds_cube] = np.take(receptor_avg, inds_cube[1])
-    antigen_avg[inds_cube] = np.take(antigen_avg, inds_cube[2])
+    receptor_impute[inds_cube] = np.take(np.nanmean(missingCube, axis=(0, 2)), inds_cube[1])
+    antigen_impute[inds_cube] = np.take(np.nanmean(missingCube, axis=(0, 1)), inds_cube[2])
 
+    def Q2X(tImp):
+        """ Calculate Q2X. For average imputation purpose only. """
+        tMask = np.isfinite(tIn)
+        mMask = np.isfinite(mIn)
 
-    pass
+        vTop = np.sum(np.square(tImp * tMask - np.nan_to_num(tIn))) + \
+               np.sum(np.square(impute_glyCube * mMask - np.nan_to_num(mIn)))
+        vBottom = np.sum(np.square(np.nan_to_num(tIn))) + np.sum(np.square(np.nan_to_num(mIn)))
+
+        return 1.0 - vTop / vBottom
+
+    return Q2X(receptor_impute), Q2X(antigen_impute)
