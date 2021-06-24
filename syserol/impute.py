@@ -140,3 +140,44 @@ def impute_accuracy(missingCube, missingGlyCube, comps, PCAcompare=True, ALS=Tru
             PCAR2X[ii] = calcR2X(recon_pca, mIn=imputeMat)
 
     return CMTFR2X, PCAR2X
+
+
+
+def impute_R2X(imputed, origT=None, origM=None, missT=None, missM=None):
+    """ Calculate imputed R2X with imputed value only. """
+    assert ((origT is not None) and (missT is not None)) or ((origM is not None) and (missM is not None))
+    imputeT, imputeM = None, None
+    if origT is not None:
+        imputeT = np.copy(origT)
+        imputeT[np.isfinite(missT)] = np.nan
+    if origM is not None:
+        imputeM = np.copy(origM)
+        imputeM[np.isfinite(missM)] = np.nan
+        pass
+
+
+    imputeTensor = np.copy(origTensor)
+    imputeTensor[np.isfinite(missingCube)] = np.nan
+
+    return calcR2X(imputed, tIn=imputeT, mIn=imputeM)
+
+
+
+def average_impute(missingCube, missingGlyCube):
+
+    antigen_impute = np.copy(missingCube)
+    receptor_impute = np.copy(missingCube)
+    impute_glyCube = np.copy(missingGlyCube)
+
+    antigen_avg = np.nanmean(missingCube, axis=(0, 1))
+    receptor_avg = np.nanmean(missingCube, axis=(0, 2))
+    glycan_avg = np.nanmean(missingGlyCube, axis=0)
+
+    inds_glyCube = np.where(np.isnan(missingGlyCube))
+    impute_glyCube[inds_glyCube] = np.take(glycan_avg, inds_glyCube[1])
+    inds_cube = np.where(np.isnan(missingCube))
+    receptor_impute[inds_cube] = np.take(receptor_avg, inds_cube[1])
+    antigen_avg[inds_cube] = np.take(antigen_avg, inds_cube[2])
+
+
+    pass
