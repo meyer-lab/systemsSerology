@@ -66,7 +66,7 @@ def gen_missing(cube, missing_num, emin=6):
     return gen_cube
 
 
-def evaluate_missing(comps, numSample=15, chords=True, CMTFimpute=True):
+def evaluate_missing(comps, numSample=15, chords=True, avgImpute=False):
     """ Wrapper for chord loss or individual loss """
     cube, glyCube = createCube()
     if chords:
@@ -77,10 +77,10 @@ def evaluate_missing(comps, numSample=15, chords=True, CMTFimpute=True):
             missingCube[:, j, k] = np.nan
     else:
         missingCube = gen_missing(np.copy(cube), numSample)
-    if CMTFimpute:
-        return impute_accuracy(missingCube, glyCube, comps, PCAcompare=(not chords))
-    else:
+    if avgImpute:
         return average_impute(missingCube, glyCube)
+    else:
+        return impute_accuracy(missingCube, glyCube, comps, PCAcompare=(not chords))
 
 
 def impute_accuracy(missingCube, missingGlyCube, comps, PCAcompare=True):
