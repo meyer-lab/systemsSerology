@@ -84,6 +84,7 @@ def RegressionHelper(X, Y, randomize=False, resample=False):
         est = LogisticRegression(C=estCV.C_[0], penalty="elasticnet", solver="saga", l1_ratio=0.8, max_iter=1000000)
     else:
         assert Y.dtype == float
+        Y = scale(Y)
         estCV = ElasticNetCV(normalize=True, l1_ratio=0.8, cv=cv, n_jobs=-1, max_iter=1000000)
         estCV.fit(X, Y)
         est = ElasticNet(normalize=True, alpha=estCV.alpha_, l1_ratio=0.8, max_iter=1000000)
