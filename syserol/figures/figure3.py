@@ -46,7 +46,6 @@ def makeFigure():
     ax[0].set_xticklabels([x for x in comps])
     ax[0].set_ylim(0, 1)
 
-
     CMTFR2X = single_df['CMTF']['mean']
     CMTFErr = single_df['CMTF']['sem']
     PCAR2X = single_df['PCA']['mean']
