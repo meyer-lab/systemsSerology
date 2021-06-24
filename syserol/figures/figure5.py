@@ -6,21 +6,24 @@ import pandas as pd
 import seaborn as sns
 from string import ascii_lowercase
 from ..tensor import perform_CMTF
-from ..dataImport import getAxes, load_file
+from ..dataImport import getAxes, load_file, createCube
 from matplotlib import gridspec, pyplot as plt
 
 
 def makeFigure(boot=False):
     """ Generate Figure 5 for Paper"""
+    cube, glyCube = createCube()
+    subjinfo = load_file("meta-subjects")
     if boot:
-        from ..dataImport import createCube
-        cube, glyCube = createCube()
         sel = np.random.choice(cube.shape[0], cube.shape[0], replace=True)
-        newcube = cube[sel, :, :]
-        newglyCube = glyCube[sel, :]
-        tensorFac = perform_CMTF(tOrig=newcube, mOrig=newglyCube)
+        sel = np.sort(sel)
+        subjinfo = subjinfo.iloc[sel, :]
     else:
-        tensorFac = perform_CMTF()
+        sel = np.arange(cube.shape[0])
+
+    newcube = cube[sel, :, :]
+    newglyCube = glyCube[sel, :]
+    tensorFac = perform_CMTF(tOrig=newcube, mOrig=newglyCube)
 
     # Gather grouping info
     glycaninf = load_file("meta-glycans")
@@ -36,7 +39,6 @@ def makeFigure(boot=False):
     glycaninf.loc[19:24, "GS"] = glycaninf.loc[19:24, "glycan"]
     _, detections, antigen = getAxes()
     detections = [x[:2] + "γ" + x[3:] if x[:2] == "Fc" else x for x in detections]
-    subjinfo = load_file("meta-subjects")
 
     f = plt.figure(figsize=(21, 7))
     gs = gridspec.GridSpec(1, 10, width_ratios=[3, 25, 3, 2, 16, 25, 18, 25, 10, 25], wspace=0)
