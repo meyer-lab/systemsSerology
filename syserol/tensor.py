@@ -165,7 +165,7 @@ def initialize_cp(tensor: np.ndarray, matrix: np.ndarray, rank: int):
             unfold = np.hstack((unfold, matrix))
 
         # Remove completely missing columns
-        unfold = unfold[:, ~np.all(np.isnan(unfold), axis=0)]
+        unfold = unfold[:, np.sum(np.isfinite(unfold), axis=0) > 2]
 
         # Impute by PCA
         outt = PCA(unfold, ncomp=2, method="nipals", missing="fill-em", standardize=False, demean=False, normalize=False)
