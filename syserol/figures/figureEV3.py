@@ -16,7 +16,7 @@ def makeFigure():
     df = importAlterDF(subjects=True)
     gp120 = df.loc[:, df.columns.str.contains("IgG") & df.columns.str.contains("gp120")]
     p24 = df.loc[:, df.columns.str.contains("IgG") & df.columns.str.contains("p24")]
-    IgGs = ["IgG1", "IgG2", "IgG3", "IgG4"]
+    IgGs = ["IgG1", "IgG2", "IgG3", "IgG4", "IgG"]
 
     test = pd.DataFrame(columns=["Class", "IgG", "gp120/p24 Ratio", "Gp120", "P24", "Progression"])
     accuracies = pd.DataFrame(columns=["IgG", "Accuracy"])
