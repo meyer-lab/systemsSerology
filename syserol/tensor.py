@@ -1,19 +1,15 @@
 """
 Tensor decomposition methods
 """
-import os
-from os.path import join, dirname
-import pickle
 import numpy as np
-from scipy.optimize import minimize
 import tensorly as tl
 from tensorly.tenalg import khatri_rao
+from statsmodels.multivariate.pca import PCA
 from copy import deepcopy
 from .dataImport import createCube
 
 
 tl.set_backend('numpy')
-path_here = dirname(dirname(__file__))
 
 
 def buildGlycan(tFac):
@@ -171,7 +167,12 @@ def initialize_cp(tensor: np.ndarray, matrix: np.ndarray, rank: int):
         # Remove completely missing columns
         unfold = unfold[:, ~np.all(np.isnan(unfold), axis=0)]
 
-        U = np.linalg.svd(np.nan_to_num(unfold))[0]
+        # Impute by PCA
+        outt = PCA(unfold, ncomp=2, method="nipals", missing="fill-em", standardize=False, demean=False, normalize=False)
+        recon_pca = outt.scores @ outt.loadings.T
+        unfold[np.isnan(unfold)] = recon_pca[np.isnan(unfold)]
+
+        U = np.linalg.svd(unfold)[0]
 
         if U.shape[1] < rank:
             # This is a hack but it seems to do the job for now
@@ -183,26 +184,12 @@ def initialize_cp(tensor: np.ndarray, matrix: np.ndarray, rank: int):
     return tl.cp_tensor.CPTensor((None, factors))
 
 
-def perform_CMTF(tOrig=None, mOrig=None, r=8):
+def perform_CMTF(tOrig=None, mOrig=None, r=6):
     """ Perform CMTF decomposition. """
-    fillFile = join(path_here, "syserol/data/1.pkl")
-
     if tOrig is None:
         tOrig, mOrig = createCube()
 
-    if (tOrig is None) or (mOrig is not None):
-        with open(fillFile, "rb") as p:
-            tfacFill = pickle.load(p)
-        
-        tFill = np.copy(tOrig)
-        mFill = np.copy(mOrig)
-
-        tFill[np.isnan(tOrig)] = tl.cp_to_tensor(tfacFill)[np.isnan(tOrig)]
-        mFill[np.isnan(mOrig)] = buildGlycan(tfacFill)[np.isnan(mOrig)]
-
-        tFac = initialize_cp(tFill, mFill, r)
-    else:
-        tFac = initialize_cp(tOrig, mOrig, r)
+    tFac = initialize_cp(tOrig, mOrig, r)
 
     # Pre-unfold
     unfolded = [tl.unfold(tOrig, i) for i in range(tOrig.ndim)]
@@ -244,112 +231,10 @@ def perform_CMTF(tOrig=None, mOrig=None, r=8):
         if tFac.R2X - R2X_last < 1e-5:
             break
 
-    # Refine with direct optimization
-    # tFac = fit_refine(tFac, tOrig, mOrig)
-
     tFac = cp_normalize(tFac)
     tFac = reorient_factors(tFac)
 
     if r > 1:
         tFac = sort_factors(tFac)
-    #else:
-    #    # Use rank 1 factorization for initialization
-    #    with open(fillFile, "wb") as p:
-    #        pickle.dump(tFac, p)
-
-    return tFac
-
-
-def cp_to_vec(tFac):
-    vec = np.concatenate([f.flatten() for f in tFac.factors])
-
-    # Add matrix if present
-    if hasattr(tFac, 'mFactor'):
-        vec = np.concatenate((vec, tFac.mFactor.flatten()))
-
-    return vec
-
-
-def buildTensors(pIn, tensor, matrix, r):
-    """ Use parameter vector to build kruskal tensors. """
-    nN = np.cumsum(np.array(tensor.shape) * r)
-    nN = np.insert(nN, 0, 0)
-    factorList = [np.reshape(pIn[nN[i]:nN[i+1]], (tensor.shape[i], r)) for i in range(tensor.ndim)]
-    tFac = tl.cp_tensor.CPTensor((None, factorList))
-
-    if matrix is not None:
-        assert tensor.shape[0] == matrix.shape[0]
-        tFac.mFactor = np.reshape(pIn[nN[3]:], (matrix.shape[1], r))
-    return tFac
-
-
-def unfolding_dot_khatri_rao(tensor, cp_tensor, mode):
-    """mode-n unfolding times khatri-rao product of factors
-    
-    Parameters
-    ----------
-    tensor : tl.tensor
-        tensor to unfold
-    factors : tl.tensor list
-        list of matrices of which to the khatri-rao product
-    mode : int
-        mode on which to unfold `tensor`
-    
-    Returns
-    -------
-    mttkrp
-        dot(unfold(tensor, mode), khatri-rao(factors))
-    """
-    ndims = tl.ndim(tensor)
-    tensor_idx = ''.join(chr(ord('a') + i) for i in range(ndims))
-    rank = chr(ord('a') + ndims + 1)
-    op = tensor_idx
-    for i in range(ndims):
-        if i != mode:
-            op += ',' + ''.join([tensor_idx[i], rank])
-        else:
-            result = ''.join([tensor_idx[i], rank])
-    op += '->' + result
-    factors = [f for (i, f) in enumerate(cp_tensor.factors) if i != mode]
-    return np.einsum(op, tensor, *factors)
-
-
-def fit_refine(tFac, tOrig, mOrig):
-    """ Refine the factorization with direct optimization. """
-    r = tFac.rank
-    x0 = cp_to_vec(tFac)
-
-    Z = np.nan_to_num(tOrig)
-    normZsqr = np.square(np.linalg.norm(Z))
-    if mOrig is not None:
-        ZM = np.nan_to_num(mOrig)
-        normZsqrM = np.square(np.linalg.norm(ZM))
-
-    def gradF(pIn, tOrig, mOrig, r):
-        # Tensor
-        tFac = buildTensors(pIn, tOrig, mOrig, r)
-        B = np.isfinite(tOrig) * tl.cp_to_tensor(tFac)
-        f = 0.5 * normZsqr - tl.tenalg.inner(Z, B) + 0.5 * np.square(np.linalg.norm(B))
-        T = Z - B
-
-        Gfactors = [-unfolding_dot_khatri_rao(T, tFac, ii) for ii in range(tOrig.ndim)]
-        tFacG = tl.cp_tensor.CPTensor((None, Gfactors))
-
-        # Matrix
-        if mOrig is not None:
-            BM = np.isfinite(mOrig) * buildGlycan(tFac)
-            f += 0.5 * normZsqrM - tl.tenalg.inner(ZM, BM) + 0.5 * np.square(np.linalg.norm(BM))
-            TM = ZM - BM
-
-            tFacG.factors[0] -= np.einsum("ab,bd->ad", TM, tFac.mFactor)
-            tFacG.mFactor = -np.einsum("ab,ad->bd", TM, tFac.factors[0])
-
-        grad = cp_to_vec(tFacG)
-        return f / 2.0e4, grad / 2.0e4
-
-    res = minimize(gradF, x0, method="L-BFGS-B", jac=True, args=(tOrig, mOrig, r), options={"maxiter": 1e4})
-
-    tFac = buildTensors(res.x, tOrig, mOrig, r)
-    tFac.R2X = calcR2X(tFac, tOrig, mOrig)
 
     return tFac
