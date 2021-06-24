@@ -49,7 +49,7 @@ def makeFigure():
     comps = np.arange(1, 11)
     Q2Xchord = chords_df['R2X']['mean']
     Q2Xerrors = chords_df['R2X']['std']
-    ax[0].scatter(comps, Q2Xchord)
+    ax[0].scatter(comps, Q2Xchord, s=10)
     ax[0].errorbar(comps, Q2Xchord, yerr=Q2Xerrors, fmt='none')
     ax[0].set_ylabel("Q2X of Imputation")
     ax[0].set_xlabel("Number of Components")
