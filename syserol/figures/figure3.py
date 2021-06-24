@@ -44,10 +44,7 @@ def makeFigure():
     ax[0].set_xlabel("Number of Components")
     ax[0].set_xticks([x for x in comps])
     ax[0].set_xticklabels([x for x in comps])
-    ax[0].set_ylim(-0.2, 1)
-    rcpQ2X, agQ2X = evaluate_missing(comps, 15, chords=True, CMTFimpute=False)
-    ax[0].hlines(rcpQ2X, comps[0], comps[-1])
-    ax[0].hlines(agQ2X, comps[0], comps[-1])
+    ax[0].set_ylim(0, 1)
 
 
     CMTFR2X = single_df['CMTF']['mean']
@@ -62,11 +59,8 @@ def makeFigure():
     ax[1].set_xlabel("Number of Components")
     ax[1].set_xticks([x for x in comps])
     ax[1].set_xticklabels([x for x in comps])
-    ax[1].set_ylim(-0.1, 1)
+    ax[1].set_ylim(0, 1)
     ax[1].legend(loc=4)
-    rcpQ2X, agQ2X = evaluate_missing(comps, 15, chords=False, CMTFimpute=False)
-    ax[1].hlines(rcpQ2X, comps[0], comps[-1])
-    ax[1].hlines(agQ2X, comps[0], comps[-1])
 
     # Add subplot labels
     subplotLabel(ax)
