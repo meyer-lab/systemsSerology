@@ -1,6 +1,9 @@
 """
 Tensor decomposition methods
 """
+import os
+from os.path import join, dirname
+import pickle
 import numpy as np
 from scipy.optimize import minimize
 import tensorly as tl
@@ -10,6 +13,7 @@ from .dataImport import createCube
 
 
 tl.set_backend('numpy')
+path_here = dirname(dirname(__file__))
 
 
 def buildGlycan(tFac):
@@ -179,12 +183,26 @@ def initialize_cp(tensor: np.ndarray, matrix: np.ndarray, rank: int):
     return tl.cp_tensor.CPTensor((None, factors))
 
 
-def perform_CMTF(tOrig=None, mOrig=None, r=7):
+def perform_CMTF(tOrig=None, mOrig=None, r=8):
     """ Perform CMTF decomposition. """
+    fillFile = join(path_here, "syserol/data/1.pkl")
+
     if tOrig is None:
         tOrig, mOrig = createCube()
 
-    tFac = initialize_cp(tOrig, mOrig, r)
+    if (tOrig is None) or (mOrig is not None):
+        with open(fillFile, "rb") as p:
+            tfacFill = pickle.load(p)
+        
+        tFill = np.copy(tOrig)
+        mFill = np.copy(mOrig)
+
+        tFill[np.isnan(tOrig)] = tl.cp_to_tensor(tfacFill)[np.isnan(tOrig)]
+        mFill[np.isnan(mOrig)] = buildGlycan(tfacFill)[np.isnan(mOrig)]
+
+        tFac = initialize_cp(tFill, mFill, r)
+    else:
+        tFac = initialize_cp(tOrig, mOrig, r)
 
     # Pre-unfold
     unfolded = [tl.unfold(tOrig, i) for i in range(tOrig.ndim)]
@@ -194,12 +212,13 @@ def perform_CMTF(tOrig=None, mOrig=None, r=7):
         tFac.mFactor = censored_lstsq(tFac.factors[0], mOrig, uniqueInfoM)
         unfolded[0] = np.hstack((unfolded[0], mOrig))
 
+    R2X_last = -np.inf
     tFac.R2X = calcR2X(tFac, tOrig, mOrig)
 
     # Precalculate the missingness patterns
     uniqueInfo = [np.unique(np.isfinite(B.T), axis=1, return_inverse=True) for B in unfolded]
 
-    for ii in range(200):
+    for ii in range(2000):
         # Solve for the subject matrix
         kr = khatri_rao(tFac.factors, skip_matrix=0)
 
@@ -222,17 +241,21 @@ def perform_CMTF(tOrig=None, mOrig=None, r=7):
             tFac.R2X = calcR2X(tFac, tOrig, mOrig)
             assert tFac.R2X > 0.0
 
-        if tFac.R2X - R2X_last < 1e-6:
+        if tFac.R2X - R2X_last < 1e-5:
             break
 
     # Refine with direct optimization
-    tFac = fit_refine(tFac, tOrig, mOrig)
+    # tFac = fit_refine(tFac, tOrig, mOrig)
 
     tFac = cp_normalize(tFac)
     tFac = reorient_factors(tFac)
 
     if r > 1:
         tFac = sort_factors(tFac)
+    #else:
+    #    # Use rank 1 factorization for initialization
+    #    with open(fillFile, "wb") as p:
+    #        pickle.dump(tFac, p)
 
     return tFac
 
