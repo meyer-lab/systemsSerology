@@ -1,7 +1,5 @@
-import numpy as np
 import pandas as pd
 import seaborn as sns
-from scipy.stats import gmean
 from sklearn.metrics import accuracy_score
 from .common import getSetup, subplotLabel
 from ..dataImport import importAlterDF
@@ -31,7 +29,7 @@ def makeFigure():
         df_pred = test.loc[test["IgG"] == ig, :]
         X = df_pred[["Gp120", "P24"]]
         Y = (df_pred["Progression"] == "controller").astype(int)
-        Y_pred, coef, X, Y = RegressionHelper(X, Y)
+        Y_pred, _, X, Y = RegressionHelper(X, Y)
         acc = accuracy_score(Y, Y_pred)
         data = {"IgG": ig, "Accuracy": acc}
         accuracies = accuracies.append(data, ignore_index=True)
