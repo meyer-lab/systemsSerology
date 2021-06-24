@@ -174,8 +174,6 @@ def makeFigure():
                 hue="Function", data=funcs_df, errwidth=1, ax=ax[2])
     sns.barplot(x="Component", y="Component Weight", ci="sd", hue="Class", data=class_df,
                 errwidth=2, ax=ax[5], palette=sns.color_palette('magma', n_colors=3))
-    # plt.legend(bbox_to_anchor=(1.04, 1), loc='upper left', ncol=1)
-    ax[5].set_ylim(-0.75, 1.5)
 
     # Formatting
     shades = np.arange(-0.5, ncomp - 1, step=2.0)
