@@ -1,4 +1,4 @@
-""" Evaluate the ability of CP to impute data. """
+""" Evaluate the ability of CMTF to impute data. """
 
 import numpy as np
 from statsmodels.multivariate.pca import PCA
@@ -66,7 +66,7 @@ def gen_missing(cube, missing_num, emin=6):
     return gen_cube
 
 
-def evaluate_missing(comps, numSample=15, chords=True):
+def evaluate_missing(comps, numSample=15, chords=True, avgImpute=False):
     """ Wrapper for chord loss or individual loss """
     cube, glyCube = createCube()
     if chords:
@@ -77,10 +77,13 @@ def evaluate_missing(comps, numSample=15, chords=True):
             missingCube[:, j, k] = np.nan
     else:
         missingCube = gen_missing(np.copy(cube), numSample)
-    return impute_accuracy(missingCube, glyCube, comps, PCAcompare=(not chords))
+    if avgImpute:
+        return average_impute(missingCube, glyCube)
+    else:
+        return impute_accuracy(missingCube, glyCube, comps, PCAcompare=(not chords))
 
 
-def impute_accuracy(missingCube, missingGlyCube, comps, PCAcompare=True, ALS=True):
+def impute_accuracy(missingCube, missingGlyCube, comps, PCAcompare=True):
     """ Calculate the imputation R2X """
     cube, glyCube = createCube()
     CMTFR2X = np.zeros(comps.shape)
@@ -108,3 +111,35 @@ def impute_accuracy(missingCube, missingGlyCube, comps, PCAcompare=True, ALS=Tru
             PCAR2X[ii] = calcR2X(recon_pca, mIn=imputeMat)
 
     return CMTFR2X, PCAR2X
+
+
+def average_impute(missingCube, missingGlyCube):
+    cube, glyCube = createCube()
+    # compare artificially introduced missingness only
+    tIn = np.copy(cube)
+    tIn[np.isfinite(missingCube)] = np.nan
+    mIn = np.copy(glyCube)
+    mIn[np.isfinite(missingGlyCube)] = np.nan
+
+    antigen_impute = np.copy(missingCube)
+    receptor_impute = np.copy(missingCube)
+    impute_glyCube = np.copy(missingGlyCube)
+
+    inds_glyCube = np.where(np.isnan(missingGlyCube))
+    impute_glyCube[inds_glyCube] = np.take(np.nanmean(missingGlyCube, axis=0), inds_glyCube[1])
+    inds_cube = np.where(np.isnan(missingCube))
+    receptor_impute[inds_cube] = np.take(np.nanmean(missingCube, axis=(0, 2)), inds_cube[1])
+    antigen_impute[inds_cube] = np.take(np.nanmean(missingCube, axis=(0, 1)), inds_cube[2])
+
+    def Q2X(tImp):
+        """ Calculate Q2X. For average imputation purpose only. """
+        tMask = np.isfinite(tIn)
+        mMask = np.isfinite(mIn)
+
+        vTop = np.sum(np.square(tImp * tMask - np.nan_to_num(tIn))) + \
+               np.sum(np.square(impute_glyCube * mMask - np.nan_to_num(mIn)))
+        vBottom = np.sum(np.square(np.nan_to_num(tIn))) + np.sum(np.square(np.nan_to_num(mIn)))
+
+        return 1.0 - vTop / vBottom
+
+    return Q2X(receptor_impute), Q2X(antigen_impute)
