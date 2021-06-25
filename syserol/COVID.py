@@ -59,7 +59,6 @@ def Tensor3D():
 
 def dimensionLabel4D():
     """Returns labels for receptor and antigens, included in the 4D tensor"""
-    weekLabel = ["Week 1", "Week 2", "Week 3", "Week 4"]
     receptorLabel = [
         "IgG1",
         "IgG2",
@@ -74,7 +73,7 @@ def dimensionLabel4D():
         "FcR3B"
     ]
     antigenLabel = ["S", "RBD", "N", "S1", "S2", "S1 Trimer", "flu_mix", "NL63", "HKU1"]
-    return weekLabel, receptorLabel, antigenLabel
+    return None, receptorLabel, antigenLabel
 
 
 def COVIDpredict(item):
