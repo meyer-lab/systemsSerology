@@ -38,22 +38,6 @@ def to_slice(subjects, df):
     return tensor
 
 
-def Tensor4D():
-    """ Create a 4D Tensor (Time (Weeks), Antigen, Receptor, Sample) """
-    df = pbsSubtractOriginal()
-    subjects = pd.unique(df.index)
-
-    # 3D Tensor for Week 1, 2, 3
-    tensors = [to_slice(subjects, df.loc[df["week"] == ii, :]) for ii in range(1, 5)]
-
-    # Create Tensor 4
-    tensor = np.stack(tensors, axis=3)
-    tensor = np.clip(tensor, a_min=1.0, a_max=np.inf)
-    tensor = np.log10(tensor)
-    idxs = np.any(np.isfinite(tensor), axis=(1, 2, 3))
-
-    return tensor[idxs, :], subjects[idxs]
-
 def Tensor3D():
     """ Create a 3D Tensor (Antigen, Receptor, Sample in time) """
     df = pbsSubtractOriginal()
