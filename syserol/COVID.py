@@ -14,6 +14,7 @@ def pbsSubtractOriginal():
     Serology -= Serology.loc["PBS"].values.squeeze()
     df = pd.concat([Demographics, Serology], axis=1)
     df = df.loc[np.isfinite(df["patient_ID"]), :]
+    df["patient_ID"] = df["patient_ID"].astype('int32')
     df["week"] = np.array(df["days"] // 7 + 1.0, dtype=int)
     return df.set_index("patient_ID")
 
@@ -37,26 +38,34 @@ def to_slice(subjects, df):
     return tensor
 
 
-def Tensor4D():
-    """ Create a 4D Tensor (Time (Weeks), Antigen, Receptor, Sample) """
+def Tensor3D():
+    """ Create a 3D Tensor (Antigen, Receptor, Sample in time) """
     df = pbsSubtractOriginal()
-    subjects = pd.unique(df.index)
+    Rlabels, AgLabels = dimensionLabel3D()
 
-    # 3D Tensor for Week 1, 2, 3
-    tensors = [to_slice(subjects, df.loc[df["week"] == ii, :]) for ii in range(1, 5)]
+    tensor = np.full((len(df), len(AgLabels), len(Rlabels)), np.nan)
+    missing = 0
 
-    # Create Tensor 4
-    tensor = np.stack(tensors, axis=3)
-    tensor = np.clip(tensor, a_min=1.0, a_max=np.inf)
+    for rii, recp in enumerate(Rlabels):
+        for aii, anti in enumerate(AgLabels):
+            try:
+                dfAR = df[recp + "_" + anti]
+                tensor[:, aii, rii] = dfAR.values
+            except KeyError:
+                # print(recp + "_" + anti)
+                missing += 1
+
+    tensor = np.clip(tensor, 1.0, None)
     tensor = np.log10(tensor)
-    idxs = np.any(np.isfinite(tensor), axis=(1, 2, 3))
 
-    return tensor[idxs, :], subjects[idxs]
+    # Mean center each measurement
+    tensor -= np.nanmean(tensor)
+
+    return tensor, np.array(df.index)
 
 
-def dimensionLabel4D():
+def dimensionLabel3D():
     """Returns labels for receptor and antigens, included in the 4D tensor"""
-    weekLabel = ["Week 1", "Week 2", "Week 3", "Week 4"]
     receptorLabel = [
         "IgG1",
         "IgG2",
@@ -71,11 +80,11 @@ def dimensionLabel4D():
         "FcR3B"
     ]
     antigenLabel = ["S", "RBD", "N", "S1", "S2", "S1 Trimer", "flu_mix", "NL63", "HKU1"]
-    return weekLabel, receptorLabel, antigenLabel
+    return receptorLabel, antigenLabel
 
 
 def COVIDpredict(item):
-    tensor, subjects = Tensor4D()
+    tensor, subjects = Tensor3D()
     tfac = perform_CMTF(tensor, r=6)
     X = tfac[1][0]
 
