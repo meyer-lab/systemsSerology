@@ -1,7 +1,7 @@
 """ This makes Figure 6. Plot of R2X values"""
 import numpy as np
 import seaborn as sns
-from ..COVID import Tensor3D, dimensionLabel3D
+from ..COVID import Tensor3D, dimensionLabel3D, time_components_df
 from ..tensor import perform_CMTF, calcR2X, tensor_degFreedom
 from .common import getSetup, subplotLabel
 from ..impute import flatten_to_mat
@@ -50,12 +50,14 @@ def makeFigure():
     ## Colormap
 
     Rlabels, agLabels = dimensionLabel3D()
-    tfac = CMTFfacs[1]
+    tfac = CMTFfacs[4]
 
     components = [str(ii + 1) for ii in range(tfac.rank)]
-    comp_plot(tfac.factors[0], components, False, "Subjects", ax[4])
+    comp_plot(tfac.factors[0], components, False, "Samples", ax[4])
     comp_plot(tfac.factors[1], components, agLabels, "Antigens", ax[5])
     comp_plot(tfac.factors[2], components, Rlabels, "Receptors", ax[6])
+
+    sns.lineplot(data=time_components_df(tfac), x="Days", y="Value", hue="Factors", ax=ax[7])
 
     subplotLabel(ax)
     return f
