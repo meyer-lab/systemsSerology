@@ -41,7 +41,7 @@ def to_slice(subjects, df):
 def Tensor3D():
     """ Create a 3D Tensor (Antigen, Receptor, Sample in time) """
     df = pbsSubtractOriginal()
-    _, Rlabels, AgLabels = dimensionLabel4D()
+    Rlabels, AgLabels = dimensionLabel3D()
 
     tensor = np.full((len(df), len(AgLabels), len(Rlabels)), np.nan)
     missing = 0
@@ -54,10 +54,17 @@ def Tensor3D():
             except KeyError:
                 # print(recp + "_" + anti)
                 missing += 1
+
+    tensor = np.clip(tensor, 1.0, None)
+    tensor = np.log10(tensor)
+
+    # Mean center each measurement
+    tensor -= np.nanmean(tensor)
+
     return tensor, np.array(df.index)
 
 
-def dimensionLabel4D():
+def dimensionLabel3D():
     """Returns labels for receptor and antigens, included in the 4D tensor"""
     receptorLabel = [
         "IgG1",
@@ -73,11 +80,11 @@ def dimensionLabel4D():
         "FcR3B"
     ]
     antigenLabel = ["S", "RBD", "N", "S1", "S2", "S1 Trimer", "flu_mix", "NL63", "HKU1"]
-    return None, receptorLabel, antigenLabel
+    return receptorLabel, antigenLabel
 
 
 def COVIDpredict(item):
-    tensor, subjects = Tensor4D()
+    tensor, subjects = Tensor3D()
     tfac = perform_CMTF(tensor, r=6)
     X = tfac[1][0]
 
