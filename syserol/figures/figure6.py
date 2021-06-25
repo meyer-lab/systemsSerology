@@ -56,7 +56,6 @@ def makeFigure():
     comp_plot(tfac.factors[0], components, False, "Subjects", ax[4])
     comp_plot(tfac.factors[1], components, agLabels, "Antigens", ax[5])
     comp_plot(tfac.factors[2], components, Rlabels, "Receptors", ax[6])
-    #comp_plot(tfac.factors[3], components, weeklabels, "Weeks", ax[7])
 
     subplotLabel(ax)
     return f
