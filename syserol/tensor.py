@@ -5,6 +5,7 @@ import numpy as np
 import tensorly as tl
 from tensorly.tenalg import khatri_rao
 from statsmodels.multivariate.pca import PCA
+from sklearn.linear_model import Ridge
 from copy import deepcopy
 from .dataImport import createCube
 
@@ -118,6 +119,8 @@ def censored_lstsq(A: np.ndarray, B: np.ndarray, uniqueInfo) -> np.ndarray:
     -------
     X (ndarray) : r x n matrix that minimizes norm(M*(AX - B))
     """
+    rr = Ridge(fit_intercept=False)
+
     X = np.empty((A.shape[1], B.shape[1]))
     # Missingness patterns
     unique, uIDX = uniqueInfo
@@ -127,7 +130,8 @@ def censored_lstsq(A: np.ndarray, B: np.ndarray, uniqueInfo) -> np.ndarray:
         uu = np.squeeze(unique[:, i])
 
         Bx = B[uu, :]
-        X[:, uI] = np.linalg.lstsq(A[uu, :], Bx[:, uI], rcond=None)[0]
+        rr.fit(A[uu, :], Bx[:, uI])
+        X[:, uI] = rr.coef_.T
     return X.T
 
 
