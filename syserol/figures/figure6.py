@@ -50,14 +50,18 @@ def makeFigure():
     ## Colormap
 
     Rlabels, agLabels = dimensionLabel3D()
-    tfac = CMTFfacs[4]
+    tfac = CMTFfacs[3]
 
     components = [str(ii + 1) for ii in range(tfac.rank)]
     comp_plot(tfac.factors[0], components, False, "Samples", ax[4])
     comp_plot(tfac.factors[1], components, agLabels, "Antigens", ax[5])
     comp_plot(tfac.factors[2], components, Rlabels, "Receptors", ax[6])
 
-    sns.lineplot(data=time_components_df(tfac), x="Days", y="Value", hue="Factors", ax=ax[7])
+    df = time_components_df(tfac)
+    sns.regplot(data=df.loc[df["Factors"] == "Comp. 1", :], x="Days", y="Value", ax=ax[7], lowess=True, color="r", marker='.')
+    sns.regplot(data=df.loc[df["Factors"] == "Comp. 2", :], x="Days", y="Value", ax=ax[7], lowess=True, color="g", marker='.')
+    sns.regplot(data=df.loc[df["Factors"] == "Comp. 3", :], x="Days", y="Value", ax=ax[7], lowess=True, color="b", marker='.')
+    sns.regplot(data=df.loc[df["Factors"] == "Comp. 4", :], x="Days", y="Value", ax=ax[7], lowess=True, color="k", marker='.')
 
     subplotLabel(ax)
     return f

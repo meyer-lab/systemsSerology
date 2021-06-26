@@ -59,7 +59,7 @@ def Tensor3D():
     tensor = np.log10(tensor)
 
     # Mean center each measurement
-    tensor -= np.nanmean(tensor)
+    tensor -= np.nanmean(tensor, axis=0)
 
     return tensor, np.array(df.index)
 
@@ -79,7 +79,7 @@ def dimensionLabel3D():
         "FcR3A",
         "FcR3B"
     ]
-    antigenLabel = ["S", "RBD", "N", "S1", "S2", "S1 Trimer", "flu_mix", "NL63", "HKU1"]
+    antigenLabel = ["S", "RBD", "N", "S1", "S2", "S1 Trimer"]
     return receptorLabel, antigenLabel
 
 
