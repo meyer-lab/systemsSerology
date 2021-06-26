@@ -3,7 +3,7 @@ Unit test file.
 """
 import numpy as np
 from ..dataImport import load_file, importLuminex, createCube
-from ..COVID import pbsSubtractOriginal, Tensor4D
+from ..COVID import pbsSubtractOriginal, Tensor3D
 
 
 def test_files():
@@ -16,10 +16,6 @@ def test_files():
 def test_COVID_import():
     """ Test COVID import functions. """
     pbsSubtractOriginal()
-    tensor, subjects = Tensor4D()
-    assert tensor.shape[0] == len(subjects)
+    tensor, _ = Tensor3D()
 
-    # assert np.all(np.mean(np.isfinite(tensor), axis=(1, 2, 3))) > 0.1)
-    assert np.all(np.mean(np.isfinite(tensor), axis=(0, 2, 3)) > 0.1)
-    assert np.all(np.mean(np.isfinite(tensor), axis=(0, 1, 3)) > 0.1)
-    assert np.all(np.mean(np.isfinite(tensor), axis=(0, 1, 2)) > 0.1)
+    assert np.all(np.isfinite(tensor))
