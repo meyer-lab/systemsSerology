@@ -11,7 +11,7 @@ from ..tensor import perform_CMTF, delete_component, calcR2X, buildGlycan, sort_
 from ..regression import make_regression_df
 from ..classify import class_predictions_df
 from ..dataImport import createCube
-from ..COVID import Tensor4D
+from ..COVID import Tensor3D
 
 
 def test_R2X():
@@ -33,7 +33,7 @@ def test_R2X():
 
 def test_cp():
     """ Test that the CP decomposition code works. """
-    tensor, _ = Tensor4D()
+    tensor, _ = Tensor3D()
     facT = perform_CMTF(tensor, r=6)
 
 
