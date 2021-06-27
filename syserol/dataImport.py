@@ -12,12 +12,9 @@ def load_file(name):
     return pd.read_csv(join(path_here, "syserol/data/" + name + ".csv"), delimiter=",", comment="#")
 
 
-def importLuminex(antigen=None, delete=True):
+def importLuminex(antigen=None):
     """ Import the Luminex measurements. Subset if only a specific antigen is needed. """
     df = load_file("data-luminex")
-    # Delete HIV1.Gag and gp140.HXBc2 antigens
-    if delete:
-        df = df.loc[:, ~df.columns.str.contains("HIV1.Gag") & ~df.columns.str.contains("gp140.HXBc2")]
     df = pd.melt(df, id_vars=["subject"])
 
     if antigen is not None:
@@ -93,7 +90,7 @@ def importFunction():
 @cache
 def importAlterDF(function=True, subjects=False):
     """ Recreate Alter DF, Import Luminex, Luminex-IGG, Subject group pairs, and Glycan into DF"""
-    df = importLuminex(delete=False)
+    df = importLuminex()
     lum = df.pivot(index="subject", columns="variable", values="value")
 
     # Should we import functions or classes?
