@@ -15,7 +15,6 @@ def pbsSubtractOriginal():
     df = pd.concat([Demographics, Serology], axis=1)
     df = df.loc[np.isfinite(df["patient_ID"]), :]
     df["patient_ID"] = df["patient_ID"].astype('int32')
-    df["week"] = np.array(df["days"] // 7 + 1.0, dtype=int)
     return df.set_index("patient_ID")
 
 
@@ -52,10 +51,9 @@ def Tensor3D():
                 dfAR = df[recp + "_" + anti]
                 tensor[:, aii, rii] = dfAR.values
             except KeyError:
-                # print(recp + "_" + anti)
                 missing += 1
 
-    tensor = np.clip(tensor, 1.0, None)
+    tensor = np.clip(tensor, 10.0, None)
     tensor = np.log10(tensor)
 
     # Mean center each measurement
