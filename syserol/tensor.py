@@ -102,6 +102,7 @@ def delete_component(tFac, compNum):
 
     if hasattr(tFac, 'mFactor'):
         tensor.mFactor = np.delete(tensor.mFactor, compNum, axis=1)
+        tensor.mScale = np.delete(tensor.mScale, compNum)
 
     tensor.factors = [np.delete(fac, compNum, axis=1) for fac in tensor.factors]
     return tensor
