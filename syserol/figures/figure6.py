@@ -43,7 +43,7 @@ def makeFigure():
     ax[2].set_ylabel("Normalized Unexplained Variance")
     ax[2].set_xlabel("Size of Reduced Data")
     ax[2].set_ylim(bottom=0.0)
-    ax[2].set_xlim(2 ** 7, 2 ** 12)
+    ax[2].set_xlim(2 ** 8, 2 ** 12)
     ax[2].xaxis.set_major_formatter(ScalarFormatter())
     ax[2].legend()
 

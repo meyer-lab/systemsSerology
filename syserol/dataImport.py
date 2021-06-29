@@ -1,4 +1,5 @@
 """ Data import and processing. """
+import warnings
 from functools import reduce, cache
 from os.path import join, dirname
 import numpy as np
@@ -163,8 +164,10 @@ def createCube():
     glyCube = np.log10(glyCube)
 
     # Mean center each measurement
-    cube -= np.nanmean(cube, axis=0)
-    glyCube -= np.nanmean(glyCube, axis=0)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=RuntimeWarning)
+        cube -= np.nanmean(cube, axis=0)
+        glyCube -= np.nanmean(glyCube, axis=0)
 
     # Check that there are no slices with completely missing data
     assert ~np.any(np.all(np.isnan(cube), axis=(0, 1)))
