@@ -35,7 +35,6 @@ def makeFigure():
         single_df.to_csv('syserol/data/fig3_single_df.csv', index=False)
     single_df = single_df.groupby(['Components']).agg(['mean', 'sem'])
 
-
     Q2Xchord = chords_df['R2X']['mean']
     Q2Xerrors = chords_df['R2X']['sem']
     ax[0].scatter(comps, Q2Xchord, s=10)

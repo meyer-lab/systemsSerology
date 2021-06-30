@@ -5,6 +5,7 @@ import pandas as pd
 from .tensor import perform_CMTF
 from .regression import RegressionHelper
 
+
 def pbsSubtractOriginal():
     """ Paper Background subtract, will keep all rows for any confusing result. """
     Cov = pd.read_csv("syserol/data/ZoharCovData.csv", index_col=0)
@@ -89,7 +90,7 @@ def COVIDpredict(item):
     df = pbsSubtractOriginal()
     y = df[~df.index.duplicated(keep='first')][item].loc[subjects]
     Y_pred, coef, XX, YY = RegressionHelper(X, pd.factorize(y)[0])
-    return np.sum(Y_pred == YY)/len(y)
+    return np.sum(Y_pred == YY) / len(y)
 
 
 def time_components_df(tfac, condition=None):

@@ -8,6 +8,7 @@ from ..impute import flatten_to_mat
 from statsmodels.multivariate.pca import PCA
 from matplotlib.ticker import ScalarFormatter
 
+
 def makeFigure():
     ax, f = getSetup((14, 7), (2, 4))
     comps = np.arange(1, 9)
@@ -47,7 +48,7 @@ def makeFigure():
     ax[2].xaxis.set_major_formatter(ScalarFormatter())
     ax[2].legend()
 
-    ## Colormap
+    # Colormap
 
     Rlabels, agLabels = dimensionLabel3D()
     tfac = CMTFfacs[3]
