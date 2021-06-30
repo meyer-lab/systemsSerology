@@ -1,4 +1,5 @@
 """ Data import and processing. """
+import warnings
 from functools import reduce, cache
 from os.path import join, dirname
 import numpy as np
@@ -12,12 +13,9 @@ def load_file(name):
     return pd.read_csv(join(path_here, "syserol/data/" + name + ".csv"), delimiter=",", comment="#")
 
 
-def importLuminex(antigen=None, delete=True):
+def importLuminex(antigen=None):
     """ Import the Luminex measurements. Subset if only a specific antigen is needed. """
     df = load_file("data-luminex")
-    # Delete HIV1.Gag and gp140.HXBc2 antigens
-    if delete:
-        df = df.loc[:, ~df.columns.str.contains("HIV1.Gag") & ~df.columns.str.contains("gp140.HXBc2")]
     df = pd.melt(df, id_vars=["subject"])
 
     if antigen is not None:
@@ -93,7 +91,7 @@ def importFunction():
 @cache
 def importAlterDF(function=True, subjects=False):
     """ Recreate Alter DF, Import Luminex, Luminex-IGG, Subject group pairs, and Glycan into DF"""
-    df = importLuminex(delete=False)
+    df = importLuminex()
     lum = df.pivot(index="subject", columns="variable", values="value")
 
     # Should we import functions or classes?
@@ -166,8 +164,10 @@ def createCube():
     glyCube = np.log10(glyCube)
 
     # Mean center each measurement
-    cube -= np.nanmean(cube, axis=0)
-    glyCube -= np.nanmean(glyCube, axis=0)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=RuntimeWarning)
+        cube -= np.nanmean(cube, axis=0)
+        glyCube -= np.nanmean(glyCube, axis=0)
 
     # Check that there are no slices with completely missing data
     assert ~np.any(np.all(np.isnan(cube), axis=(0, 1)))

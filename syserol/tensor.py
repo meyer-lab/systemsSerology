@@ -15,7 +15,7 @@ tl.set_backend('numpy')
 
 def buildGlycan(tFac):
     """ Build the glycan matrix from the factors. """
-    return tFac.factors[0] @ tFac.mFactor.T
+    return tFac.factors[0] @ (tFac.mFactor * tFac.mScale).T
 
 
 def calcR2X(tFac, tIn=None, mIn=None):
@@ -83,6 +83,7 @@ def sort_factors(tFac):
 
     if hasattr(tFac, 'mFactor'):
         tensor.mFactor = tensor.mFactor[:, order]
+        tensor.mScale = tensor.mScale[order]
         np.testing.assert_allclose(buildGlycan(tFac), buildGlycan(tensor))
 
     return tensor
@@ -102,6 +103,7 @@ def delete_component(tFac, compNum):
 
     if hasattr(tFac, 'mFactor'):
         tensor.mFactor = np.delete(tensor.mFactor, compNum, axis=1)
+        tensor.mScale = np.delete(tensor.mScale, compNum)
 
     tensor.factors = [np.delete(fac, compNum, axis=1) for fac in tensor.factors]
     return tensor
@@ -144,6 +146,10 @@ def cp_normalize(tFac):
             tFac.mFactor *= scales
 
         tFac.factors[i] /= scales
+
+    if hasattr(tFac, 'mFactor'):
+        tFac.mScale = np.linalg.norm(tFac.mFactor, ord=np.inf, axis=0)
+        tFac.mFactor /= tFac.mScale
 
     return tFac
 
@@ -200,6 +206,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=6):
         uniqueInfoM = np.unique(np.isfinite(mOrig), axis=1, return_inverse=True)
         tFac.mFactor = censored_lstsq(tFac.factors[0], mOrig, uniqueInfoM)
         unfolded[0] = np.hstack((unfolded[0], mOrig))
+        tFac.mScale = np.ones(r)
 
     R2X_last = -np.inf
     tFac.R2X = calcR2X(tFac, tOrig, mOrig)
@@ -230,7 +237,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=6):
             tFac.R2X = calcR2X(tFac, tOrig, mOrig)
             assert tFac.R2X > 0.0
 
-        if tFac.R2X - R2X_last < 1e-5:
+        if tFac.R2X - R2X_last < 1e-6:
             break
 
     tFac = cp_normalize(tFac)

@@ -1,7 +1,7 @@
 """ This makes Figure 6. Plot of R2X values"""
 import numpy as np
 import seaborn as sns
-from ..COVID import Tensor3D, dimensionLabel3D
+from ..COVID import Tensor3D, dimensionLabel3D, time_components_df
 from ..tensor import perform_CMTF, calcR2X, tensor_degFreedom
 from .common import getSetup, subplotLabel
 from ..impute import flatten_to_mat
@@ -43,19 +43,25 @@ def makeFigure():
     ax[2].set_ylabel("Normalized Unexplained Variance")
     ax[2].set_xlabel("Size of Reduced Data")
     ax[2].set_ylim(bottom=0.0)
-    ax[2].set_xlim(2 ** 7, 2 ** 12)
+    ax[2].set_xlim(2 ** 8, 2 ** 12)
     ax[2].xaxis.set_major_formatter(ScalarFormatter())
     ax[2].legend()
 
     ## Colormap
 
     Rlabels, agLabels = dimensionLabel3D()
-    tfac = CMTFfacs[1]
+    tfac = CMTFfacs[3]
 
     components = [str(ii + 1) for ii in range(tfac.rank)]
-    comp_plot(tfac.factors[0], components, False, "Subjects", ax[4])
+    comp_plot(tfac.factors[0], components, False, "Samples", ax[4])
     comp_plot(tfac.factors[1], components, agLabels, "Antigens", ax[5])
     comp_plot(tfac.factors[2], components, Rlabels, "Receptors", ax[6])
+
+    df = time_components_df(tfac)
+    sns.regplot(data=df.loc[df["Factors"] == "Comp. 1", :], x="Days", y="Value", ax=ax[7], lowess=True, color="r", marker='.')
+    sns.regplot(data=df.loc[df["Factors"] == "Comp. 2", :], x="Days", y="Value", ax=ax[7], lowess=True, color="g", marker='.')
+    sns.regplot(data=df.loc[df["Factors"] == "Comp. 3", :], x="Days", y="Value", ax=ax[7], lowess=True, color="b", marker='.')
+    sns.regplot(data=df.loc[df["Factors"] == "Comp. 4", :], x="Days", y="Value", ax=ax[7], lowess=True, color="k", marker='.')
 
     subplotLabel(ax)
     return f

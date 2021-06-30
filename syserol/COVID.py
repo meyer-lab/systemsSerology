@@ -15,12 +15,11 @@ def pbsSubtractOriginal():
     df = pd.concat([Demographics, Serology], axis=1)
     df = df.loc[np.isfinite(df["patient_ID"]), :]
     df["patient_ID"] = df["patient_ID"].astype('int32')
-    df["week"] = np.array(df["days"] // 7 + 1.0, dtype=int)
     return df.set_index("patient_ID")
 
 
 def to_slice(subjects, df):
-    _, Rlabels, AgLabels = dimensionLabel4D()
+    Rlabels, AgLabels = dimensionLabel3D()
     tensor = np.full((len(subjects), len(AgLabels), len(Rlabels)), np.nan)
     missing = 0
 
@@ -52,14 +51,13 @@ def Tensor3D():
                 dfAR = df[recp + "_" + anti]
                 tensor[:, aii, rii] = dfAR.values
             except KeyError:
-                # print(recp + "_" + anti)
                 missing += 1
 
-    tensor = np.clip(tensor, 1.0, None)
+    tensor = np.clip(tensor, 10.0, None)
     tensor = np.log10(tensor)
 
     # Mean center each measurement
-    tensor -= np.nanmean(tensor)
+    tensor -= np.nanmean(tensor, axis=0)
 
     return tensor, np.array(df.index)
 
@@ -79,7 +77,7 @@ def dimensionLabel3D():
         "FcR3A",
         "FcR3B"
     ]
-    antigenLabel = ["S", "RBD", "N", "S1", "S2", "S1 Trimer", "flu_mix", "NL63", "HKU1"]
+    antigenLabel = ["S", "RBD", "N", "S1", "S2", "S1 Trimer"]
     return receptorLabel, antigenLabel
 
 
@@ -92,3 +90,16 @@ def COVIDpredict(item):
     y = df[~df.index.duplicated(keep='first')][item].loc[subjects]
     Y_pred, coef, XX, YY = RegressionHelper(X, pd.factorize(y)[0])
     return np.sum(Y_pred == YY)/len(y)
+
+
+def time_components_df(tfac, condition=None):
+    subj = pbsSubtractOriginal()
+    df = pd.DataFrame(tfac.factors[0])
+    df.columns = ["Comp. " + str((i + 1)) for i in range(tfac.factors[0].shape[1])]
+    df['days'] = subj['days'].values
+    if condition is not None:
+        df = df.loc[(subj["group"] == condition).values, :]
+    df = df.dropna()
+    df = pd.melt(df, ['days'])
+    df.columns = ["Days", "Factors", "Value"]
+    return df
