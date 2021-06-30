@@ -78,12 +78,12 @@ def comp_plot(factors, xlabel, ylabel, plotLabel, ax):
 def time_plot(tfac, ax, condition=None):
     df = time_components_df(tfac, condition=condition)
     sns.regplot(data=df.loc[df["Factors"] == "Comp. 1", :], x="Days", y="Value", ax=ax, lowess=True, color="r",
-                marker='.')
+                marker='.', scatter_kws={"s": 10})
     sns.regplot(data=df.loc[df["Factors"] == "Comp. 2", :], x="Days", y="Value", ax=ax, lowess=True, color="g",
-                marker='.')
+                marker='.', scatter_kws={"s": 10})
     sns.regplot(data=df.loc[df["Factors"] == "Comp. 3", :], x="Days", y="Value", ax=ax, lowess=True, color="b",
-                marker='.')
+                marker='.', scatter_kws={"s": 10})
     sns.regplot(data=df.loc[df["Factors"] == "Comp. 4", :], x="Days", y="Value", ax=ax, lowess=True, color="k",
-                marker='.')
+                marker='.', scatter_kws={"s": 10})
     if condition is not None:
         ax.set_title(condition + " only")
