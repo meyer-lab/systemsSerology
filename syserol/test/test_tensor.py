@@ -59,7 +59,6 @@ def test_sort():
 
     tFac = random_cp(tOrig.shape, 3)
     tFac.mFactor = np.random.randn(mOrig.shape[1], 3)
-    tFac.mScale = np.ones(3)
 
     R2X = calcR2X(tFac, tOrig, mOrig)
     tRec = tl.cp_to_tensor(tFac)

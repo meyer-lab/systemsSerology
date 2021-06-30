@@ -137,7 +137,7 @@ def average_impute(missingCube, missingGlyCube):
         mMask = np.isfinite(mIn)
 
         vTop = np.sum(np.square(tImp * tMask - np.nan_to_num(tIn))) + \
-               np.sum(np.square(impute_glyCube * mMask - np.nan_to_num(mIn)))
+            np.sum(np.square(impute_glyCube * mMask - np.nan_to_num(mIn)))
         vBottom = np.sum(np.square(np.nan_to_num(tIn))) + np.sum(np.square(np.nan_to_num(mIn)))
 
         return 1.0 - vTop / vBottom
