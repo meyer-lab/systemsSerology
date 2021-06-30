@@ -119,7 +119,7 @@ def censored_lstsq(A: np.ndarray, B: np.ndarray, uniqueInfo) -> np.ndarray:
     -------
     X (ndarray) : r x n matrix that minimizes norm(M*(AX - B))
     """
-    rr = Ridge(fit_intercept=False)
+    rr = Ridge(fit_intercept=False, alpha=10.0)
 
     X = np.empty((A.shape[1], B.shape[1]))
     # Missingness patterns
