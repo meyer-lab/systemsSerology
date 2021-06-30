@@ -59,6 +59,8 @@ def getAxes():
     subjects = load_file("meta-subjects")
     detections = load_file("meta-detections")
     antigens = load_file("meta-antigens")
+    # Delete HIV1.Gag and gp140.HXBc2 antigens
+    antigens = antigens[(antigens.antigen != "HIV1.Gag") & (antigens.antigen != "gp140.HXBc2")]
 
     subjects = subjects["subject"].to_list()
     detections = detections["detection"].to_list()
