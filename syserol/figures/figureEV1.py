@@ -15,10 +15,10 @@ def makeFigure():
     Y1 = (df["class.cp"] == "controller").astype(int)  # control 1, progress 0
     Y2 = (df["class.nv"] == "viremic").astype(int)  # viremic 1, nonviremic 0
 
-    make_decision_plot(ax[0], X[:, np.array([0, 3])], Y2, title="Viremic/Nonviremic", black="Nonviremic",
-                       white="Viremic", xaxis=2, yaxis=4)
-    make_decision_plot(ax[1], X[:, np.array([2, 4])], Y1, title="Controller/Progressor", black="Progressor",
-                       white="Controller", xaxis=3, yaxis=5)
+    make_decision_plot(ax[0], X, Y2, title="Viremic/Nonviremic", black="Nonviremic",
+                       white="Viremic", xaxis=1, yaxis=2)
+    make_decision_plot(ax[1], X, Y1, title="Controller/Progressor", black="Progressor",
+                       white="Controller", xaxis=1, yaxis=4)
 
     # Add subplot labels
     subplotLabel(ax)
@@ -26,8 +26,9 @@ def makeFigure():
     return f
 
 
-def make_decision_plot(ax, X, y, title="", black="", white="", xaxis="", yaxis=""):
+def make_decision_plot(ax, X, y, title, black, white, xaxis, yaxis):
     """ Make one decision plot. Only works with 2D data. """
+    X = X[:, np.array([xaxis-1, yaxis-1])]
     xx = np.linspace(-1.05, 1.05, 100)
     xx, yy = np.meshgrid(xx, xx.T)
     Xfull = np.c_[xx.ravel(), yy.ravel()]
