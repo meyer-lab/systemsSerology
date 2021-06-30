@@ -53,7 +53,7 @@ def makeFigure():
     ax[1].legend()
 
     # Scaling matrix
-    rats = np.arange(-8, 9)
+    rats = np.arange(-8, 9, step=0.25)
     tOrig, mOrig = createCube()
     totalR2X = np.zeros(rats.shape)
     CMTFR2X = np.zeros(rats.shape)
@@ -65,9 +65,9 @@ def makeFigure():
         CMTFR2X[ii] = calcR2X(tFac, tIn=tOrig)
         PCAR2X[ii] = calcR2X(tFac, mIn=mScaled)
 
-    ax[2].plot(rats, totalR2X, "o", label="Total")
-    ax[2].plot(rats, PCAR2X, "+", label="Matrix")
-    ax[2].plot(rats, CMTFR2X, "x", label="Tensor")
+    ax[2].plot(rats, totalR2X, label="Total")
+    ax[2].plot(rats, PCAR2X, label="Matrix")
+    ax[2].plot(rats, CMTFR2X, label="Tensor")
     ax[2].set_ylabel("R2X")
     ax[2].set_xlabel("Matrix scaled")
 
@@ -78,8 +78,8 @@ def makeFigure():
             return '1/' + rat2frac(-rat)
     ax[2].set_xlim(-7.5, 7.5)
     # ax[2].set_ylim(0.8, 1.0)
-    ax[2].set_xticks(rats[::2])
-    ax[2].set_xticklabels([rat2frac(r) for r in rats[::2]])
+    ax[2].set_xticks(rats[::8])
+    ax[2].set_xticklabels([rat2frac(r) for r in rats[::8]])
     ax[2].legend()
 
     # Add subplot labels
