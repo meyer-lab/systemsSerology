@@ -10,7 +10,7 @@ from matplotlib.ticker import ScalarFormatter
 
 
 def makeFigure():
-    ax, f = getSetup((14, 7), (2, 4))
+    ax, f = getSetup((14, 10), (3, 4))
     comps = np.arange(1, 9)
 
     tensor, _ = Tensor3D()
@@ -51,18 +51,18 @@ def makeFigure():
     # Colormap
 
     Rlabels, agLabels = dimensionLabel3D()
-    tfac = CMTFfacs[3]
+    tfac = CMTFfacs[2]
 
     components = [str(ii + 1) for ii in range(tfac.rank)]
     comp_plot(tfac.factors[0], components, False, "Samples", ax[4])
     comp_plot(tfac.factors[1], components, agLabels, "Antigens", ax[5])
     comp_plot(tfac.factors[2], components, Rlabels, "Receptors", ax[6])
 
-    df = time_components_df(tfac)
-    sns.regplot(data=df.loc[df["Factors"] == "Comp. 1", :], x="Days", y="Value", ax=ax[7], lowess=True, color="r", marker='.')
-    sns.regplot(data=df.loc[df["Factors"] == "Comp. 2", :], x="Days", y="Value", ax=ax[7], lowess=True, color="g", marker='.')
-    sns.regplot(data=df.loc[df["Factors"] == "Comp. 3", :], x="Days", y="Value", ax=ax[7], lowess=True, color="b", marker='.')
-    sns.regplot(data=df.loc[df["Factors"] == "Comp. 4", :], x="Days", y="Value", ax=ax[7], lowess=True, color="k", marker='.')
+    time_plot(tfac, ax[7])
+    time_plot(tfac, ax[8], condition="Negative")
+    time_plot(tfac, ax[9], condition="Moderate")
+    time_plot(tfac, ax[10], condition="Severe")
+    time_plot(tfac, ax[11], condition="Deceased")
 
     subplotLabel(ax)
     return f
@@ -73,3 +73,17 @@ def comp_plot(factors, xlabel, ylabel, plotLabel, ax):
     sns.heatmap(factors, cmap="PiYG", center=0, xticklabels=xlabel, yticklabels=ylabel, ax=ax)
     ax.set_xlabel("Components")
     ax.set_ylabel(plotLabel)
+
+
+def time_plot(tfac, ax, condition=None):
+    df = time_components_df(tfac, condition=condition)
+    sns.regplot(data=df.loc[df["Factors"] == "Comp. 1", :], x="Days", y="Value", ax=ax, lowess=True, color="r",
+                marker='.')
+    sns.regplot(data=df.loc[df["Factors"] == "Comp. 2", :], x="Days", y="Value", ax=ax, lowess=True, color="g",
+                marker='.')
+    sns.regplot(data=df.loc[df["Factors"] == "Comp. 3", :], x="Days", y="Value", ax=ax, lowess=True, color="b",
+                marker='.')
+    sns.regplot(data=df.loc[df["Factors"] == "Comp. 4", :], x="Days", y="Value", ax=ax, lowess=True, color="k",
+                marker='.')
+    if condition is not None:
+        ax.set_title(condition + " only")
