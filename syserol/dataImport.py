@@ -172,5 +172,5 @@ def createCube():
     assert ~np.any(np.all(np.isnan(cube), axis=(0, 2)))
     assert ~np.any(np.all(np.isnan(cube), axis=(1, 2)))
 
-    glyCube *= np.sqrt(np.nanvar(cube) / np.nanvar(glyCube)) * 2.0
+    glyCube *= np.sqrt(np.nanvar(cube) / np.nanvar(glyCube))
     return cube, glyCube
