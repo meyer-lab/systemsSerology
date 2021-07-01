@@ -15,6 +15,7 @@ def pbsSubtractOriginal():
     Serology -= Serology.loc["PBS"].values.squeeze()
     df = pd.concat([Demographics, Serology], axis=1)
     df = df.loc[np.isfinite(df["patient_ID"]), :]
+    df["week"] = np.array(df["days"] // 7 + 1.0, dtype=int)
     df["patient_ID"] = df["patient_ID"].astype('int32')
     return df.set_index("patient_ID")
 
@@ -96,11 +97,13 @@ def COVIDpredict(item):
 def time_components_df(tfac, condition=None):
     subj = pbsSubtractOriginal()
     df = pd.DataFrame(tfac.factors[0])
-    df.columns = ["Comp. " + str((i + 1)) for i in range(tfac.factors[0].shape[1])]
+    comp_names = ["Comp. " + str((i + 1)) for i in range(tfac.factors[0].shape[1])]
+    df.columns = comp_names
     df['days'] = subj['days'].values
+    df['group'] = subj['group'].values
+    df['week'] = subj['week'].values
     if condition is not None:
         df = df.loc[(subj["group"] == condition).values, :]
     df = df.dropna()
-    df = pd.melt(df, ['days'])
-    df.columns = ["Days", "Factors", "Value"]
+    df = pd.melt(df, id_vars=['days', 'group', 'week'], value_vars=comp_names)
     return df
