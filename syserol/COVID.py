@@ -106,4 +106,5 @@ def time_components_df(tfac, condition=None):
         df = df.loc[(subj["group"] == condition).values, :]
     df = df.dropna()
     df = pd.melt(df, id_vars=['days', 'group', 'week'], value_vars=comp_names)
+    df.rename(columns={'variable': 'Factors'}, inplace=True)
     return df
