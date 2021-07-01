@@ -82,6 +82,8 @@ def makeFigure():
     df = time_components_df(tfac)
     sns.boxplot(data=df.loc[df["week"] == 1, :], x="Factors", y="value", hue="group", ax=ax[11])
 
+    #sns.boxplot(data=df.loc[df["week"] == 3, :], x="variable", y="value", hue="group")
+
     subplotLabel(ax)
     return f
 
