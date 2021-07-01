@@ -8,10 +8,11 @@ from .common import getSetup, subplotLabel
 from ..impute import flatten_to_mat
 from statsmodels.multivariate.pca import PCA
 from matplotlib.ticker import ScalarFormatter
+from scipy.optimize import curve_fit
 
 
 def makeFigure():
-    ax, f = getSetup((14, 10), (3, 4))
+    ax, f = getSetup((11, 14), (4, 3))
     comps = np.arange(1, 7)
 
     tensor, _ = Tensor3D()
@@ -72,13 +73,14 @@ def makeFigure():
     comp_plot(tfac.factors[1], components, agLabels, "Antigens", ax[4])
     comp_plot(tfac.factors[2], components, Rlabels, "Receptors", ax[5])
 
-    time_plot(tfac, ax[7])
-    time_plot(tfac, ax[8], condition="Negative")
-    time_plot(tfac, ax[9], condition="Moderate")
-    time_plot(tfac, ax[10], condition="Severe")
-    time_plot(tfac, ax[11], condition="Deceased")
+    time_plot(tfac, ax[6])
+    time_plot(tfac, ax[7], condition="Negative")
+    time_plot(tfac, ax[8], condition="Moderate")
+    time_plot(tfac, ax[9], condition="Severe")
+    time_plot(tfac, ax[10], condition="Deceased")
 
-    #sns.boxplot(data=df.loc[df["week"] == 3, :], x="variable", y="value", hue="group")
+    df = time_components_df(tfac)
+    sns.boxplot(data=df.loc[df["week"] == 1, :], x="Factors", y="value", hue="group", ax=ax[11])
 
     subplotLabel(ax)
     return f
@@ -93,11 +95,27 @@ def comp_plot(factors, xlabel, ylabel, plotLabel, ax):
 
 def time_plot(tfac, ax, condition=None):
     df = time_components_df(tfac, condition=condition)
-    sns.regplot(data=df.loc[df["Factors"] == "Comp. 1", :], x="days", y="value", ax=ax, lowess=True, color="r",
-                marker='.', scatter_kws={"s": 10})
-    sns.regplot(data=df.loc[df["Factors"] == "Comp. 2", :], x="days", y="value", ax=ax, lowess=True, color="g",
-                marker='.', scatter_kws={"s": 10})
-    sns.regplot(data=df.loc[df["Factors"] == "Comp. 3", :], x="days", y="value", ax=ax, lowess=True, color="b",
-                marker='.', scatter_kws={"s": 10})
+    colors = ["r", "g", "b", "c", "m", "y"]
+    for ii, comp in enumerate(np.unique(df["Factors"])):
+        ndf = df.loc[df["Factors"] == comp, :]
+        #sns.regplot(data=df.loc[df["Factors"] == comp, :], x="days", y="value", ax=ax, logistic=True, color=colors[ii],
+        #            marker='.', scatter_kws={"s": 10})
+        sns.scatterplot(data=ndf, x="days", y="value", ax=ax, palette=[colors[ii]], s=5)
+        xs, ys = fit_logsitic(ndf)
+        sns.lineplot(x=xs, y=ys, ax=ax, palette=[colors[ii]])
     if condition is not None:
         ax.set_title(condition + " only")
+
+
+def logistic(x, A, x0, k, C):
+    return A / (1 + np.exp(-k * (x - x0))) + C
+
+def fit_logsitic(df):
+    xx, yy = df["days"].values, df["value"].values
+    initA = (np.max(yy)-np.min(yy)) * 0.6
+    initC = np.min(yy)
+    initx0 = np.median(xx)
+    initk = 0.5 if np.mean(yy[xx<initx0]) < np.mean(yy[xx>initx0]) else -0.5
+    popt, _ = curve_fit(logistic, xx, yy, p0=[initA, initx0, initk, initC], ftol=1e-5, maxfev=5000)
+    xs = np.arange(0, np.max(xx)+1, step = 0.1)
+    return xs, logistic(xs, *popt)
