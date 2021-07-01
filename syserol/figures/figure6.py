@@ -1,8 +1,9 @@
 """ This makes Figure 6. Plot of R2X values"""
 import numpy as np
 import seaborn as sns
+from tensorly.decomposition import parafac
 from ..COVID import Tensor3D, dimensionLabel3D, time_components_df
-from ..tensor import perform_CMTF, calcR2X, tensor_degFreedom
+from ..tensor import calcR2X, tensor_degFreedom, cp_normalize, reorient_factors, sort_factors
 from .common import getSetup, subplotLabel
 from ..impute import flatten_to_mat
 from statsmodels.multivariate.pca import PCA
@@ -11,11 +12,20 @@ from matplotlib.ticker import ScalarFormatter
 
 def makeFigure():
     ax, f = getSetup((14, 10), (3, 4))
-    comps = np.arange(1, 9)
+    comps = np.arange(1, 7)
 
     tensor, _ = Tensor3D()
-    CMTFfacs = [perform_CMTF(tensor, r=cc) for cc in comps]
-    CMTFR2X = np.array([f.R2X for f in CMTFfacs])
+
+    CMTFfacs = [parafac(tensor, cc, tol=1e-12, n_iter_max=4000, linesearch=True, orthogonalise=2) for cc in comps]
+
+    # Normalize factors
+    CMTFfacs = [cp_normalize(f) for f in CMTFfacs]
+    CMTFfacs = [reorient_factors(f) for f in CMTFfacs]
+    CMTFfacs = [sort_factors(f) if i > 0 else f for i, f in enumerate(CMTFfacs)]
+
+    # Calculate R2X
+    CMTFR2X = np.array([calcR2X(f, tensor) for f in CMTFfacs])
+    print(CMTFR2X)
 
     ax[0].axis("off")
     ax[1].scatter(comps, CMTFR2X, color="b")
@@ -53,10 +63,14 @@ def makeFigure():
     Rlabels, agLabels = dimensionLabel3D()
     tfac = CMTFfacs[2]
 
+    # Flip comp. 2
+    tfac.factors[0][:, 1] *= -1
+    tfac.factors[2][:, 1] *= -1
+
     components = [str(ii + 1) for ii in range(tfac.rank)]
-    comp_plot(tfac.factors[0], components, False, "Samples", ax[4])
-    comp_plot(tfac.factors[1], components, agLabels, "Antigens", ax[5])
-    comp_plot(tfac.factors[2], components, Rlabels, "Receptors", ax[6])
+    comp_plot(tfac.factors[0], components, False, "Samples", ax[3])
+    comp_plot(tfac.factors[1], components, agLabels, "Antigens", ax[4])
+    comp_plot(tfac.factors[2], components, Rlabels, "Receptors", ax[5])
 
     time_plot(tfac, ax[7])
     time_plot(tfac, ax[8], condition="Negative")
@@ -82,8 +96,6 @@ def time_plot(tfac, ax, condition=None):
     sns.regplot(data=df.loc[df["Factors"] == "Comp. 2", :], x="Days", y="Value", ax=ax, lowess=True, color="g",
                 marker='.', scatter_kws={"s": 10})
     sns.regplot(data=df.loc[df["Factors"] == "Comp. 3", :], x="Days", y="Value", ax=ax, lowess=True, color="b",
-                marker='.', scatter_kws={"s": 10})
-    sns.regplot(data=df.loc[df["Factors"] == "Comp. 4", :], x="Days", y="Value", ax=ax, lowess=True, color="k",
                 marker='.', scatter_kws={"s": 10})
     if condition is not None:
         ax.set_title(condition + " only")
