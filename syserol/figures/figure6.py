@@ -64,6 +64,8 @@ def makeFigure():
     time_plot(tfac, ax[10], condition="Severe")
     time_plot(tfac, ax[11], condition="Deceased")
 
+    #sns.boxplot(data=df.loc[df["week"] == 3, :], x="variable", y="value", hue="group")
+
     subplotLabel(ax)
     return f
 
@@ -77,13 +79,13 @@ def comp_plot(factors, xlabel, ylabel, plotLabel, ax):
 
 def time_plot(tfac, ax, condition=None):
     df = time_components_df(tfac, condition=condition)
-    sns.regplot(data=df.loc[df["Factors"] == "Comp. 1", :], x="Days", y="Value", ax=ax, lowess=True, color="r",
+    sns.regplot(data=df.loc[df["Factors"] == "Comp. 1", :], x="days", y="value", ax=ax, lowess=True, color="r",
                 marker='.', scatter_kws={"s": 10})
-    sns.regplot(data=df.loc[df["Factors"] == "Comp. 2", :], x="Days", y="Value", ax=ax, lowess=True, color="g",
+    sns.regplot(data=df.loc[df["Factors"] == "Comp. 2", :], x="days", y="value", ax=ax, lowess=True, color="g",
                 marker='.', scatter_kws={"s": 10})
-    sns.regplot(data=df.loc[df["Factors"] == "Comp. 3", :], x="Days", y="Value", ax=ax, lowess=True, color="b",
+    sns.regplot(data=df.loc[df["Factors"] == "Comp. 3", :], x="days", y="value", ax=ax, lowess=True, color="b",
                 marker='.', scatter_kws={"s": 10})
-    sns.regplot(data=df.loc[df["Factors"] == "Comp. 4", :], x="Days", y="Value", ax=ax, lowess=True, color="k",
+    sns.regplot(data=df.loc[df["Factors"] == "Comp. 4", :], x="days", y="value", ax=ax, lowess=True, color="k",
                 marker='.', scatter_kws={"s": 10})
     if condition is not None:
         ax.set_title(condition + " only")
