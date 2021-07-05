@@ -52,3 +52,5 @@ def make_decision_plot(ax, X, y, title, black, white, xaxis, yaxis):
     ax.set_ylabel("Component " + str(yaxis))
     ax.legend([Patch(facecolor='black', edgecolor='grey'), Patch(
         facecolor='w', edgecolor='grey')], [black, white], framealpha=0.99)
+    leg = plt.legend(loc=(1.03, 0), title="Year")
+    ax.add_artist(leg)
