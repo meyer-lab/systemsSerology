@@ -17,7 +17,7 @@ def makeFigure():
 
     tensor, _ = Tensor3D()
 
-    CMTFfacs = [parafac(tensor, cc, tol=1e-12, n_iter_max=4000, linesearch=True, orthogonalise=2) for cc in comps]
+    CMTFfacs = [parafac(tensor, cc, tol=1e-10, n_iter_max=1000, linesearch=True, orthogonalise=2) for cc in comps]
 
     # Normalize factors
     CMTFfacs = [cp_normalize(f) for f in CMTFfacs]
@@ -62,11 +62,7 @@ def makeFigure():
     # Colormap
 
     Rlabels, agLabels = dimensionLabel3D()
-    tfac = CMTFfacs[2]
-
-    # Flip comp. 2
-    tfac.factors[0][:, 1] *= -1
-    tfac.factors[2][:, 1] *= -1
+    tfac = CMTFfacs[1]
 
     components = [str(ii + 1) for ii in range(tfac.rank)]
     comp_plot(tfac.factors[0], components, False, "Samples", ax[3])
@@ -81,8 +77,6 @@ def makeFigure():
 
     df = time_components_df(tfac)
     sns.boxplot(data=df.loc[df["week"] == 1, :], x="Factors", y="value", hue="group", ax=ax[11])
-
-    #sns.boxplot(data=df.loc[df["week"] == 3, :], x="variable", y="value", hue="group")
 
     subplotLabel(ax)
     return f
@@ -100,8 +94,6 @@ def time_plot(tfac, ax, condition=None):
     colors = ["r", "g", "b", "c", "m", "y"]
     for ii, comp in enumerate(np.unique(df["Factors"])):
         ndf = df.loc[df["Factors"] == comp, :]
-        #sns.regplot(data=df.loc[df["Factors"] == comp, :], x="days", y="value", ax=ax, logistic=True, color=colors[ii],
-        #            marker='.', scatter_kws={"s": 10})
         sns.scatterplot(data=ndf, x="days", y="value", ax=ax, palette=[colors[ii]], s=5)
         xs, ys = fit_logsitic(ndf)
         sns.lineplot(x=xs, y=ys, ax=ax, palette=[colors[ii]])
