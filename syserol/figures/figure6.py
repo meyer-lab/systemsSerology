@@ -15,7 +15,7 @@ def makeFigure():
 
     tensor, _ = Tensor3D()
 
-    CMTFfacs = [parafac(tensor, cc, tol=1e-12, n_iter_max=4000, linesearch=True, orthogonalise=2) for cc in comps]
+    CMTFfacs = [parafac(tensor, cc, tol=1e-10, n_iter_max=1000, linesearch=True, orthogonalise=2) for cc in comps]
 
     # Normalize factors
     CMTFfacs = [cp_normalize(f) for f in CMTFfacs]
