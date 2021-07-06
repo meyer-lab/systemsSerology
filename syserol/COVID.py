@@ -17,7 +17,9 @@ def pbsSubtractOriginal():
     df = df.loc[np.isfinite(df["patient_ID"]), :]
     df["week"] = np.array(df["days"] // 7 + 1.0, dtype=int)
     df["patient_ID"] = df["patient_ID"].astype('int32')
-    return df.set_index("patient_ID")
+    df["group"] = pd.Categorical(df["group"], ["Negative", "Mild", "Moderate", "Severe", "Deceased"])
+    df = df.sort_values(by=["group", "days", "patient_ID"])
+    return df.reset_index()
 
 
 def to_slice(subjects, df):
@@ -29,7 +31,7 @@ def to_slice(subjects, df):
         for aii, anti in enumerate(AgLabels):
             try:
                 dfAR = df[recp + "_" + anti]
-                dfAR = dfAR.groupby(by="patient_ID").mean()
+                dfAR = dfAR.groupby(by="patient").mean()
                 dfAR = dfAR.reindex(subjects)
                 tensor[:, aii, rii] = dfAR.values
             except KeyError:
