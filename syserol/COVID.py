@@ -2,7 +2,7 @@
 import numpy as np
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import roc_curve
+from sklearn.metrics import roc_curve, roc_auc_score
 from sklearn.model_selection import KFold
 
 
@@ -91,6 +91,7 @@ def COVIDpredict(tfac):
 
     X = tfac.factors[0][subjj, :]
     y = pd.factorize(df.loc[subjj, "group"])[0]
+    aucs = []
 
     kf = KFold(n_splits=5, shuffle=True)
     outt = pd.DataFrame(columns=["fold", "FPR", "TPR"])
@@ -98,9 +99,9 @@ def COVIDpredict(tfac):
         model = LogisticRegression().fit(X[train], y[train])
         y_score = model.predict_proba(X[test])
         fpr, tpr, _ = roc_curve(y[test], y_score[:, 1])
+        aucs.append(roc_auc_score(y[test], y_score[:, 1]))
         outt = pd.concat([outt, pd.DataFrame(data={"fold": [ii+1] * len(fpr), "FPR": fpr, "TPR": tpr})])
-
-    return outt
+    return outt, np.mean(aucs)
 
 
 def time_components_df(tfac, condition=None):

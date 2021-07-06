@@ -10,7 +10,7 @@ from scipy.optimize import curve_fit
 
 
 def makeFigure():
-    ax, f = getSetup((11, 12), (4, 3))
+    ax, f = getSetup((13, 9), (3, 4))
     comps = np.arange(1, 7)
 
     tensor, _ = Tensor3D()
@@ -40,12 +40,12 @@ def makeFigure():
     tfac = CMTFfacs[1]
 
     # ROC curve
-    roc_df = COVIDpredict(tfac)
+    roc_df, auc = COVIDpredict(tfac)
     sns.lineplot(data=roc_df, x="FPR", y="TPR", hue="fold", ci=None, ax=ax[2],
                  palette={c: "grey" for c in roc_df["fold"]})
     sns.lineplot(x=[0, 1], y=[0, 1], palette=["black"], ax=ax[2])
     ax[2].get_legend().remove()
-    ax[2].set_title("Severe vs. Deceased ROC")
+    ax[2].set_title("Severe vs. Deceased ROC (AUC={})".format(np.around(auc, decimals=3)))
 
     components = [str(ii + 1) for ii in range(tfac.rank)]
     comp_plot(tfac.factors[0], components, False, "Samples", ax[3])
