@@ -10,7 +10,7 @@ from scipy.optimize import curve_fit
 
 
 def makeFigure():
-    ax, f = getSetup((8, 10), (4, 3))
+    ax, f = getSetup((11, 12), (4, 3))
     comps = np.arange(1, 7)
 
     tensor, _ = Tensor3D()
@@ -60,6 +60,8 @@ def makeFigure():
 
     df = time_components_df(tfac)
     sns.boxplot(data=df.loc[df["week"] == 1, :], x="Factors", y="value", hue="group", ax=ax[11])
+    ax[11].set_title("Components of Week 1")
+    ax[11].legend(loc='upper left')
 
     subplotLabel(ax)
     return f
@@ -69,19 +71,21 @@ def comp_plot(factors, xlabel, ylabel, plotLabel, ax):
     """ Creates heatmap plots for each input dimension by component. """
     sns.heatmap(factors, cmap="PiYG", center=0, xticklabels=xlabel, yticklabels=ylabel, ax=ax)
     ax.set_xlabel("Components")
-    ax.set_ylabel(plotLabel)
+    ax.set_title(plotLabel)
 
 
 def time_plot(tfac, ax, condition=None):
     df = time_components_df(tfac, condition=condition)
-    colors = ["r", "g", "b", "c", "m", "y"]
+    colors = sns.color_palette("tab10")
     for ii, comp in enumerate(np.unique(df["Factors"])):
         ndf = df.loc[df["Factors"] == comp, :]
-        sns.scatterplot(data=ndf, x="days", y="value", ax=ax, palette=[colors[ii]], s=5)
+        sns.scatterplot(data=ndf, x="days", y="value", ax=ax, palette=[colors[ii]], s=5, hue="Factors")
         xs, ys = fit_logsitic(ndf)
         sns.lineplot(x=xs, y=ys, ax=ax, palette=[colors[ii]])
     if condition is not None:
         ax.set_title(condition + " only")
+    else:
+        ax.set_title("All samples")
 
 
 def logistic(x, A, x0, k, C):
