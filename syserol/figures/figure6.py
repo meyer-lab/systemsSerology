@@ -2,17 +2,15 @@
 import numpy as np
 import seaborn as sns
 from tensorly.decomposition import parafac
-from ..COVID import Tensor3D, dimensionLabel3D, time_components_df
-from ..tensor import calcR2X, tensor_degFreedom, cp_normalize, reorient_factors, sort_factors
+from ..COVID import Tensor3D, dimensionLabel3D, time_components_df, COVIDpredict
+from ..tensor import calcR2X, cp_normalize, reorient_factors, sort_factors
 from .common import getSetup, subplotLabel
-from ..impute import flatten_to_mat
-from statsmodels.multivariate.pca import PCA
-from matplotlib.ticker import ScalarFormatter
 from scipy.optimize import curve_fit
 
 
+
 def makeFigure():
-    ax, f = getSetup((11, 14), (4, 3))
+    ax, f = getSetup((8, 10), (4, 3))
     comps = np.arange(1, 7)
 
     tensor, _ = Tensor3D()
@@ -37,36 +35,17 @@ def makeFigure():
     ax[1].set_ylim(0, 1)
     ax[1].set_xlim(0.0, np.amax(comps) + 0.5)
 
-    PCAR2X = np.zeros(comps.shape)
-    sizeTfac = np.zeros(comps.shape)
-
-    tMat = flatten_to_mat(tensor)
-    sizePCA = comps * np.sum(tMat.shape)
-
-    for i, cc in enumerate(comps):
-        outt = PCA(tMat, ncomp=cc, missing="fill-em", standardize=False, demean=False, normalize=False)
-        recon = outt.scores @ outt.loadings.T
-        PCAR2X[i] = calcR2X(recon, mIn=tMat)
-        sizeTfac[i] = tensor_degFreedom(CMTFfacs[i])
-
-    ax[2].set_xscale("log", base=2)
-    ax[2].plot(sizeTfac, 1.0 - CMTFR2X, ".", label="CMTF")
-    ax[2].plot(sizePCA, 1.0 - PCAR2X, ".", label="PCA")
-    ax[2].set_ylabel("Normalized Unexplained Variance")
-    ax[2].set_xlabel("Size of Reduced Data")
-    ax[2].set_ylim(bottom=0.0)
-    ax[2].set_xlim(2 ** 8, 2 ** 12)
-    ax[2].xaxis.set_major_formatter(ScalarFormatter())
-    ax[2].legend()
-
     # Colormap
-
     Rlabels, agLabels = dimensionLabel3D()
-    tfac = CMTFfacs[2]
+    tfac = CMTFfacs[1]
 
-    # Flip comp. 2
-    tfac.factors[0][:, 1] *= -1
-    tfac.factors[2][:, 1] *= -1
+    # ROC curve
+    roc_df = COVIDpredict(tfac)
+    sns.lineplot(data=roc_df, x="FPR", y="TPR", hue="fold", ci=None, ax=ax[2],
+                 palette={c: "grey" for c in roc_df["fold"]})
+    sns.lineplot(x=[0, 1], y=[0, 1], palette=["black"], ax=ax[2])
+    ax[2].get_legend().remove()
+    ax[2].set_title("Severe vs. Deceased ROC")
 
     components = [str(ii + 1) for ii in range(tfac.rank)]
     comp_plot(tfac.factors[0], components, False, "Samples", ax[3])
@@ -81,8 +60,6 @@ def makeFigure():
 
     df = time_components_df(tfac)
     sns.boxplot(data=df.loc[df["week"] == 1, :], x="Factors", y="value", hue="group", ax=ax[11])
-
-    #sns.boxplot(data=df.loc[df["week"] == 3, :], x="variable", y="value", hue="group")
 
     subplotLabel(ax)
     return f
@@ -100,8 +77,6 @@ def time_plot(tfac, ax, condition=None):
     colors = ["r", "g", "b", "c", "m", "y"]
     for ii, comp in enumerate(np.unique(df["Factors"])):
         ndf = df.loc[df["Factors"] == comp, :]
-        #sns.regplot(data=df.loc[df["Factors"] == comp, :], x="days", y="value", ax=ax, logistic=True, color=colors[ii],
-        #            marker='.', scatter_kws={"s": 10})
         sns.scatterplot(data=ndf, x="days", y="value", ax=ax, palette=[colors[ii]], s=5)
         xs, ys = fit_logsitic(ndf)
         sns.lineplot(x=xs, y=ys, ax=ax, palette=[colors[ii]])
