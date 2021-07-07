@@ -5,6 +5,7 @@ from syserol.dataImport import load_file
 from syserol.figures.common import getSetup, subplotLabel
 from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
+import seaborn as sns
 
 
 def makeFigure():
@@ -51,6 +52,6 @@ def make_decision_plot(ax, X, y, title, black, white, xaxis, yaxis):
     ax.set_xlabel("Component " + str(xaxis))
     ax.set_ylabel("Component " + str(yaxis))
     ax.legend([Patch(facecolor='black', edgecolor='grey'), Patch(
-        facecolor='w', edgecolor='grey')], [black, white], framealpha=0.99)
-    leg = plt.legend(loc=(1.03, 0), title="Year")
-    ax.add_artist(leg)
+        facecolor='w', edgecolor='grey'), Patch(
+        facecolor=sns.color_palette('crest'), edgecolor='grey'), Patch(
+        facecolor='w', edgecolor='grey'), ], [black, white], framealpha=0.99)
