@@ -148,6 +148,7 @@ venv
 manuscript/images/thumbnail.svg
 
 output
+!output/figureEV1.svg
 !output/figureEV2.svg
 !output/figure2.svg
 !output/figure3.svg
