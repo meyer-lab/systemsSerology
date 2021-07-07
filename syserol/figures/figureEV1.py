@@ -6,10 +6,12 @@ from syserol.figures.common import getSetup, subplotLabel
 from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
 import seaborn as sns
+import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 
 def makeFigure():
-    ax, f = getSetup((6, 3), (1, 2))
+    ax, f = getSetup((7, 3), (1, 2))
 
     tFac = perform_CMTF()
     X = tFac.factors[0]
@@ -52,6 +54,10 @@ def make_decision_plot(ax, X, y, title, black, white, xaxis, yaxis):
     ax.set_xlabel("Component " + str(xaxis))
     ax.set_ylabel("Component " + str(yaxis))
     ax.legend([Patch(facecolor='black', edgecolor='grey'), Patch(
-        facecolor='w', edgecolor='grey'), Patch(
-        facecolor=sns.color_palette('crest'), edgecolor='grey'), Patch(
-        facecolor='w', edgecolor='grey'), ], [black, white], framealpha=0.99)
+        facecolor='w', edgecolor='grey')], [black, white], framealpha=0.99)
+
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes("right", size="5%", pad=0.05)
+
+    sm = plt.cm.ScalarMappable(cmap="crest")
+    ax.figure.colorbar(sm, ax=ax, cax=cax)
