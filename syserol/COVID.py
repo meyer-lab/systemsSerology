@@ -93,7 +93,7 @@ def COVIDpredict(tfac):
     y = pd.factorize(df.loc[subjj, "group"])[0]
     aucs = []
 
-    kf = KFold(n_splits=5, shuffle=True)
+    kf = KFold(n_splits=10, shuffle=True)
     outt = pd.DataFrame(columns=["fold", "FPR", "TPR"])
     for ii, (train, test) in enumerate(kf.split(X)):
         model = LogisticRegression().fit(X[train], y[train])
