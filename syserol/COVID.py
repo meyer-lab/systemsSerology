@@ -1,9 +1,9 @@
 """Import Zohar data, tensor formation, plotting raw data."""
 import numpy as np
 import pandas as pd
-
-from .tensor import perform_CMTF
-from .regression import RegressionHelper
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import roc_curve, roc_auc_score
+from sklearn.model_selection import KFold
 
 
 def pbsSubtractOriginal():
@@ -17,7 +17,9 @@ def pbsSubtractOriginal():
     df = df.loc[np.isfinite(df["patient_ID"]), :]
     df["week"] = np.array(df["days"] // 7 + 1.0, dtype=int)
     df["patient_ID"] = df["patient_ID"].astype('int32')
-    return df.set_index("patient_ID")
+    df["group"] = pd.Categorical(df["group"], ["Negative", "Mild", "Moderate", "Severe", "Deceased"])
+    df = df.sort_values(by=["group", "days", "patient_ID"])
+    return df.reset_index()
 
 
 def to_slice(subjects, df):
@@ -29,7 +31,7 @@ def to_slice(subjects, df):
         for aii, anti in enumerate(AgLabels):
             try:
                 dfAR = df[recp + "_" + anti]
-                dfAR = dfAR.groupby(by="patient_ID").mean()
+                dfAR = dfAR.groupby(by="patient").mean()
                 dfAR = dfAR.reindex(subjects)
                 tensor[:, aii, rii] = dfAR.values
             except KeyError:
@@ -83,15 +85,23 @@ def dimensionLabel3D():
     return receptorLabel, antigenLabel
 
 
-def COVIDpredict(item):
-    tensor, subjects = Tensor3D()
-    tfac = perform_CMTF(tensor, r=6)
-    X = tfac[1][0]
-
+def COVIDpredict(tfac):
     df = pbsSubtractOriginal()
-    y = df[~df.index.duplicated(keep='first')][item].loc[subjects]
-    Y_pred, coef, XX, YY = RegressionHelper(X, pd.factorize(y)[0])
-    return np.sum(Y_pred == YY) / len(y)
+    subjj = df["group"].isin(["Severe", "Deceased"])
+
+    X = tfac.factors[0][subjj, :]
+    y = pd.factorize(df.loc[subjj, "group"])[0]
+    aucs = []
+
+    kf = KFold(n_splits=5, shuffle=True)
+    outt = pd.DataFrame(columns=["fold", "FPR", "TPR"])
+    for ii, (train, test) in enumerate(kf.split(X)):
+        model = LogisticRegression().fit(X[train], y[train])
+        y_score = model.predict_proba(X[test])
+        fpr, tpr, _ = roc_curve(y[test], y_score[:, 1])
+        aucs.append(roc_auc_score(y[test], y_score[:, 1]))
+        outt = pd.concat([outt, pd.DataFrame(data={"fold": [ii+1] * len(fpr), "FPR": fpr, "TPR": tpr})])
+    return outt, np.mean(aucs)
 
 
 def time_components_df(tfac, condition=None):
