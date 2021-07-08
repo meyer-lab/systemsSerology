@@ -101,7 +101,15 @@ def COVIDpredict(tfac):
         fpr, tpr, _ = roc_curve(y[test], y_score[:, 1])
         aucs.append(roc_auc_score(y[test], y_score[:, 1]))
         outt = pd.concat([outt, pd.DataFrame(data={"fold": [ii+1] * len(fpr), "FPR": fpr, "TPR": tpr})])
-    return outt, np.mean(aucs)
+
+    xs = pd.unique(outt["FPR"])
+    ipl = pd.DataFrame(columns=["fold", "FPR", "TPR"])
+    for ii in range(kf.n_splits):
+        ys = np.interp(xs, outt.loc[outt["fold"]==(ii+1), "FPR"], outt.loc[outt["fold"]==(ii+1), "TPR"])
+        ys[0] = 0
+        ipl = pd.concat([ipl, pd.DataFrame(data={"fold": [(ii+1)] * len(xs), "FPR": xs, "TPR": ys})])
+
+    return ipl, aucs
 
 
 def time_components_df(tfac, condition=None):
