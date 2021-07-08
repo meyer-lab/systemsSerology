@@ -41,11 +41,16 @@ def makeFigure():
 
     # ROC curve
     roc_df, auc = COVIDpredict(tfac)
-    sns.lineplot(data=roc_df, x="FPR", y="TPR", hue="fold", ci=None, ax=ax[2],
-                 palette={c: "grey" for c in roc_df["fold"]})
-    sns.lineplot(x=[0, 1], y=[0, 1], palette=["black"], ax=ax[2])
-    ax[2].get_legend().remove()
-    ax[2].set_title("Severe vs. Deceased ROC (AUC={})".format(np.around(auc, decimals=3)))
+    roc_sum = roc_df.groupby(['FPR'], as_index=False).agg({'TPR':['mean','std']})
+
+    sns.lineplot(x=roc_sum["FPR"], y=roc_sum["TPR"]["mean"], color='b', ax=ax[2])
+    sns.lineplot(x=[0, 1], y=[0, 1], color="black", ax=ax[2])
+
+    tprs_upper = np.minimum(roc_sum["TPR"]["mean"] + roc_sum["TPR"]["std"], 1)
+    tprs_lower = np.maximum(roc_sum["TPR"]["mean"] - roc_sum["TPR"]["std"], 0)
+    ax[2].fill_between(roc_sum["FPR"], tprs_lower, tprs_upper, color='grey', alpha=.2)
+    ax[2].set_title("Severe vs. Deceased ROC (AUC={}±{})".format(np.around(np.mean(auc), decimals=3),
+                                                                 np.around(np.std(auc), decimals=3)))
 
     components = [str(ii + 1) for ii in range(tfac.rank)]
     comp_plot(tfac.factors[0], components, False, "Samples", ax[3])
