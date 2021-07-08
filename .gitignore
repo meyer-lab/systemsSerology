@@ -152,5 +152,7 @@ output
 !output/figureEV2.svg
 !output/figure2.svg
 !output/figure3.svg
+!output/figure6.svg
+!output/figure6.ai
 
 *.ipynb
