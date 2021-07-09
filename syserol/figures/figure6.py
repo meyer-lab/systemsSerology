@@ -44,14 +44,17 @@ def makeFigure():
 
     # ROC curve
     roc_df, auc = COVIDpredict(tfac)
-    roc_sum = roc_df.groupby(['FPR'], as_index=False).agg({'TPR':['mean','std']})
+    roc_sum = roc_df.groupby(['FPR'], as_index=False).agg(
+        {'TPR': ['mean', 'std']})
 
-    sns.lineplot(x=roc_sum["FPR"], y=roc_sum["TPR"]["mean"], color='b', ax=ax[2])
+    sns.lineplot(x=roc_sum["FPR"], y=roc_sum["TPR"]
+                 ["mean"], color='b', ax=ax[2])
     sns.lineplot(x=[0, 1], y=[0, 1], color="black", ax=ax[2])
 
     tprs_upper = np.minimum(roc_sum["TPR"]["mean"] + roc_sum["TPR"]["std"], 1)
     tprs_lower = np.maximum(roc_sum["TPR"]["mean"] - roc_sum["TPR"]["std"], 0)
-    ax[2].fill_between(roc_sum["FPR"], tprs_lower, tprs_upper, color='grey', alpha=.2)
+    ax[2].fill_between(roc_sum["FPR"], tprs_lower,
+                       tprs_upper, color='grey', alpha=.2)
     ax[2].set_title("Severe vs. Deceased ROC (AUC={}±{})".format(np.around(np.mean(auc), decimals=3),
                                                                  np.around(np.std(auc), decimals=3)))
 
@@ -86,10 +89,10 @@ def comp_plot(factors, xlabel, ylabel, plotLabel, ax, d=False):
             newLabels.append([x + "  " if i == len(c)//2 else "–" if i ==
                               0 or i == len(c) - 1 else "·" for (i, x) in enumerate(c)])
 
-        newLabels = [item for sublist in d for item in sublist]
+        newLabels = [item for sublist in newLabels for item in sublist]
 
         sns.heatmap(factors, cmap="PiYG", center=0,
-                    xticklabels=xlabel, yticklabels=d, ax=ax)
+                    xticklabels=xlabel, yticklabels=newLabels, ax=ax)
     else:
         sns.heatmap(factors, cmap="PiYG", center=0,
                     xticklabels=xlabel, yticklabels=ylabel, ax=ax)
