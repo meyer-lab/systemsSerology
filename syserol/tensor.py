@@ -211,9 +211,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=6):
 
     tFac = cp_normalize(tFac)
     tFac = reorient_factors(tFac)
-
-    if r > 1:
-        tFac = sort_factors(tFac)
+    tFac = sort_factors(tFac)
 
     print(tFac.R2X)
 
