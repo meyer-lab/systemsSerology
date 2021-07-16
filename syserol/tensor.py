@@ -61,21 +61,20 @@ def reorient_factors(tFac):
     return tFac
 
 
-def totalVar(tFac):
-    """ Total variance of a factorization on reconstruction. """
-    varr = tl.cp_norm(tFac)
-    if hasattr(tFac, 'mFactor'):
-        varr += tl.cp_norm((None, [tFac.factors[0], tFac.mFactor]))
-    return varr
-
-
 def sort_factors(tFac):
     """ Sort the components from the largest variance to the smallest. """
-    rr = tFac.rank
     tensor = deepcopy(tFac)
-    vars = np.array([totalVar(delete_component(tFac, np.delete(np.arange(rr), i))) for i in np.arange(rr)])
-    order = np.flip(np.argsort(vars))
 
+    # Variance separated by component
+    norm = np.copy(tFac.weights)
+    for factor in tFac.factors:
+        norm *= np.sum(np.square(factor), axis=0)
+
+    # Add the variance of the matrix
+    if hasattr(tFac, 'mFactor'):
+        norm += np.sum(np.square(tFac.factors[0]), axis=0) * np.sum(np.square(tFac.mFactor), axis=0)
+
+    order = np.flip(np.argsort(norm))
     tensor.weights = tensor.weights[order]
     tensor.factors = [fac[:, order] for fac in tensor.factors]
     np.testing.assert_allclose(tl.cp_to_tensor(tFac), tl.cp_to_tensor(tensor))
@@ -84,25 +83,6 @@ def sort_factors(tFac):
         tensor.mFactor = tensor.mFactor[:, order]
         np.testing.assert_allclose(buildGlycan(tFac), buildGlycan(tensor))
 
-    return tensor
-
-
-def delete_component(tFac, compNum):
-    """ Delete the indicated component. """
-    tensor = deepcopy(tFac)
-    compNum = np.array(compNum, dtype=int)
-
-    # Assert that component # don't exceed range, and are unique
-    assert np.amax(compNum) < tensor.rank
-    assert np.unique(compNum).size == compNum.size
-
-    tensor.rank -= compNum.size
-    tensor.weights = np.delete(tensor.weights, compNum)
-
-    if hasattr(tFac, 'mFactor'):
-        tensor.mFactor = np.delete(tensor.mFactor, compNum, axis=1)
-
-    tensor.factors = [np.delete(fac, compNum, axis=1) for fac in tensor.factors]
     return tensor
 
 
@@ -231,9 +211,7 @@ def perform_CMTF(tOrig=None, mOrig=None, r=6):
 
     tFac = cp_normalize(tFac)
     tFac = reorient_factors(tFac)
-
-    if r > 1:
-        tFac = sort_factors(tFac)
+    tFac = sort_factors(tFac)
 
     print(tFac.R2X)
 
