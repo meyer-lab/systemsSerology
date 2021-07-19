@@ -1,0 +1,131 @@
+{
+  "pandoc": {
+    "title": "Structured decomposition improves systems serology prediction and interpretation",
+    "keywords": [
+      "tensor factorization",
+      "systems serology",
+      "HIV",
+      "immunology"
+    ],
+    "lang": "en-US",
+    "date-meta": "2021-07-19",
+    "author-meta": [
+      "Madeleine Murphy",
+      "Scott D. Taylor",
+      "Zhixin Cyrillus Tan",
+      "Aaron S. Meyer"
+    ],
+    "header-includes": "<!--\nManubot generated metadata rendered from header-includes-template.html.\nSuggest improvements at https://github.com/manubot/manubot/blob/main/manubot/process/header-includes-template.html\n-->\n<meta name=\"dc.format\" content=\"text/html\" />\n<meta name=\"dc.title\" content=\"Structured decomposition improves systems serology prediction and interpretation\" />\n<meta name=\"citation_title\" content=\"Structured decomposition improves systems serology prediction and interpretation\" />\n<meta property=\"og:title\" content=\"Structured decomposition improves systems serology prediction and interpretation\" />\n<meta property=\"twitter:title\" content=\"Structured decomposition improves systems serology prediction and interpretation\" />\n<meta name=\"dc.date\" content=\"2021-07-19\" />\n<meta name=\"citation_publication_date\" content=\"2021-07-19\" />\n<meta name=\"dc.language\" content=\"en-US\" />\n<meta name=\"citation_language\" content=\"en-US\" />\n<meta name=\"dc.relation.ispartof\" content=\"Manubot\" />\n<meta name=\"dc.publisher\" content=\"Manubot\" />\n<meta name=\"citation_journal_title\" content=\"Manubot\" />\n<meta name=\"citation_technical_report_institution\" content=\"Manubot\" />\n<meta name=\"citation_author\" content=\"Madeleine Murphy\" />\n<meta name=\"citation_author_institution\" content=\"Computational and Systems Biology, University of California, Los Angeles\" />\n<meta name=\"citation_author\" content=\"Scott D. Taylor\" />\n<meta name=\"citation_author_institution\" content=\"Department of Bioengineering, University of California, Los Angeles\" />\n<meta name=\"citation_author\" content=\"Zhixin Cyrillus Tan\" />\n<meta name=\"citation_author_institution\" content=\"Bioinformatics Interdepartmental Program, University of California, Los Angeles\" />\n<meta name=\"citation_author_orcid\" content=\"0000-0002-5498-5509\" />\n<meta name=\"citation_author\" content=\"Aaron S. Meyer\" />\n<meta name=\"citation_author_institution\" content=\"Department of Bioengineering, University of California, Los Angeles\" />\n<meta name=\"citation_author_institution\" content=\"Department of Bioinformatics, University of California, Los Angeles\" />\n<meta name=\"citation_author_institution\" content=\"Jonsson Comprehensive Cancer Center, University of California, Los Angeles\" />\n<meta name=\"citation_author_institution\" content=\"Eli and Edythe Broad Center of Regenerative Medicine and Stem Cell Research, University of California, Los Angeles\" />\n<meta name=\"citation_author_orcid\" content=\"0000-0003-4513-1840\" />\n<meta name=\"twitter:creator\" content=\"@aarmey\" />\n<link rel=\"canonical\" href=\"https://meyer-lab.github.io/systemsSerology/\" />\n<meta property=\"og:url\" content=\"https://meyer-lab.github.io/systemsSerology/\" />\n<meta property=\"twitter:url\" content=\"https://meyer-lab.github.io/systemsSerology/\" />\n<meta name=\"citation_fulltext_html_url\" content=\"https://meyer-lab.github.io/systemsSerology/\" />\n<meta name=\"citation_pdf_url\" content=\"https://meyer-lab.github.io/systemsSerology/manuscript.pdf\" />\n<link rel=\"alternate\" type=\"application/pdf\" href=\"https://meyer-lab.github.io/systemsSerology/manuscript.pdf\" />\n<link rel=\"alternate\" type=\"text/html\" href=\"https://meyer-lab.github.io/systemsSerology/v/d265e381ece1541629ea1f08d165568dc782fa07/\" />\n<meta name=\"manubot_html_url_versioned\" content=\"https://meyer-lab.github.io/systemsSerology/v/d265e381ece1541629ea1f08d165568dc782fa07/\" />\n<meta name=\"manubot_pdf_url_versioned\" content=\"https://meyer-lab.github.io/systemsSerology/v/d265e381ece1541629ea1f08d165568dc782fa07/manuscript.pdf\" />\n<meta property=\"og:type\" content=\"article\" />\n<meta property=\"twitter:card\" content=\"summary_large_image\" />\n<link rel=\"icon\" type=\"image/png\" sizes=\"192x192\" href=\"https://manubot.org/favicon-192x192.png\" />\n<link rel=\"mask-icon\" href=\"https://manubot.org/safari-pinned-tab.svg\" color=\"#ad1457\" />\n<meta name=\"theme-color\" content=\"#ad1457\" />\n<!-- end Manubot generated metadata -->",
+    "bibliography": [
+      "manuscript/manual-references.json"
+    ],
+    "manubot-output-bibliography": "output/references.json",
+    "manubot-output-citekeys": "output/citations.tsv",
+    "manubot-requests-cache-path": "cache/requests-cache",
+    "manubot-clear-requests-cache": false
+  },
+  "manubot": {
+    "date": "July 19, 2021",
+    "authors": [
+      {
+        "name": "Madeleine Murphy",
+        "github": "murphymadeleine21",
+        "initials": "MM",
+        "affiliations": [
+          "Computational and Systems Biology, University of California, Los Angeles"
+        ],
+        "affiliation_numbers": [
+          1
+        ]
+      },
+      {
+        "name": "Scott D. Taylor",
+        "github": "scottdtaylor95",
+        "initials": "SDT",
+        "affiliations": [
+          "Department of Bioengineering, University of California, Los Angeles"
+        ],
+        "affiliation_numbers": [
+          2
+        ]
+      },
+      {
+        "github": "cyrillustan",
+        "name": "Zhixin Cyrillus Tan",
+        "initials": "CT",
+        "orcid": "0000-0002-5498-5509",
+        "affiliations": [
+          "Bioinformatics Interdepartmental Program, University of California, Los Angeles"
+        ],
+        "affiliation_numbers": [
+          3
+        ]
+      },
+      {
+        "github": "aarmey",
+        "name": "Aaron S. Meyer",
+        "initials": "ASM",
+        "orcid": "0000-0003-4513-1840",
+        "twitter": "aarmey",
+        "email": "ameyer@asmlab.org",
+        "affiliations": [
+          "Department of Bioengineering, University of California, Los Angeles",
+          "Department of Bioinformatics, University of California, Los Angeles",
+          "Jonsson Comprehensive Cancer Center, University of California, Los Angeles",
+          "Eli and Edythe Broad Center of Regenerative Medicine and Stem Cell Research, University of California, Los Angeles"
+        ],
+        "affiliation_numbers": [
+          2,
+          4,
+          5,
+          6
+        ]
+      }
+    ],
+    "affiliations": [
+      {
+        "affiliation": "Computational and Systems Biology, University of California, Los Angeles",
+        "affiliation_number": 1
+      },
+      {
+        "affiliation": "Department of Bioengineering, University of California, Los Angeles",
+        "affiliation_number": 2
+      },
+      {
+        "affiliation": "Bioinformatics Interdepartmental Program, University of California, Los Angeles",
+        "affiliation_number": 3
+      },
+      {
+        "affiliation": "Department of Bioinformatics, University of California, Los Angeles",
+        "affiliation_number": 4
+      },
+      {
+        "affiliation": "Jonsson Comprehensive Cancer Center, University of California, Los Angeles",
+        "affiliation_number": 5
+      },
+      {
+        "affiliation": "Eli and Edythe Broad Center of Regenerative Medicine and Stem Cell Research, University of California, Los Angeles",
+        "affiliation_number": 6
+      }
+    ],
+    "ci_source": {
+      "provider": "github",
+      "repo_slug": "meyer-lab/systemsSerology",
+      "repo_owner": "meyer-lab",
+      "repo_name": "systemsSerology",
+      "commit": "d265e381ece1541629ea1f08d165568dc782fa07",
+      "triggering_commit": "d265e381ece1541629ea1f08d165568dc782fa07",
+      "build_url": "https://github.com/meyer-lab/systemsSerology/commit/d265e381ece1541629ea1f08d165568dc782fa07/checks",
+      "job_url": "https://github.com/meyer-lab/systemsSerology/runs/__run_3"
+    },
+    "html_url": "https://meyer-lab.github.io/systemsSerology/",
+    "pdf_url": "https://meyer-lab.github.io/systemsSerology/manuscript.pdf",
+    "html_url_versioned": "https://meyer-lab.github.io/systemsSerology/v/d265e381ece1541629ea1f08d165568dc782fa07/",
+    "pdf_url_versioned": "https://meyer-lab.github.io/systemsSerology/v/d265e381ece1541629ea1f08d165568dc782fa07/manuscript.pdf",
+    "manubot_version": "0.5.1",
+    "rootstock_commit": null,
+    "manuscript_stats": {
+      "word_count": 1019
+    }
+  }
+}
