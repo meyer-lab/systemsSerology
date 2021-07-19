@@ -60,10 +60,10 @@ def makeFigure():
 
     for i in np.arange(0.5, 14.5, 2):
         aa.axvspan(i, i + 1, alpha=0.1, color="grey")
-    aa.set_ylim(0, 1)
+    aa.set_ylim(0.38, 1)
     aa.set_xlim(0.5, 14.5)
     aa.grid(False)
-    aa.legend(fontsize=8, title="Function", title_fontsize=9, handlelength=2)
+    aa.legend(fontsize=8, title="Function", ncol=2, title_fontsize=9, handlelength=2)
     aa.set_xticks(range(1, 15))
 
     # Classification plot
@@ -71,7 +71,7 @@ def makeFigure():
                       ax=ax[1], palette=sns.color_palette('magma', n_colors=3))
     for i in np.arange(0.5, 14.5, 2):
         bb.axvspan(i, i + 1, alpha=0.1, color="grey")
-    bb.set_ylim(0.2, 1)
+    bb.set_ylim(0.38, 1)
     bb.grid(False)
     bb.legend(fontsize=8, title="Class", title_fontsize=9, handlelength=2)
     bb.set_xticks(range(1, 15))
