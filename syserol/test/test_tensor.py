@@ -5,8 +5,9 @@ import numpy as np
 import pandas as pd
 import pytest
 import tensorly as tl
+from tensorly.cp_tensor import _validate_cp_tensor
 from tensorly.random import random_cp
-from ..tensor import perform_CMTF, calcR2X, buildGlycan, sort_factors
+from ..tensor import perform_CMTF, delete_component, calcR2X, buildGlycan, sort_factors
 from ..regression import make_regression_df
 from ..classify import class_predictions_df
 from ..dataImport import createCube
@@ -34,6 +35,22 @@ def test_cp():
     """ Test that the CP decomposition code works. """
     tensor, _ = Tensor3D()
     facT = perform_CMTF(tensor, r=6)
+
+
+def test_delete():
+    """ Test deleting a component results in a valid tensor. """
+    tOrig, mOrig = createCube()
+    facT = perform_CMTF(r=4)
+
+    fullR2X = calcR2X(facT, tOrig, mOrig)
+
+    for ii in range(facT.rank):
+        facTdel = delete_component(facT, ii)
+        _validate_cp_tensor(facTdel)
+
+        delR2X = calcR2X(facTdel, tOrig, mOrig)
+
+        assert delR2X < fullR2X
 
 
 def test_sort():
