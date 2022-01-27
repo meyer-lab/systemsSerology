@@ -7,7 +7,6 @@ from ..COVID import Tensor3D, dimensionLabel3D, time_components_df, COVIDpredict
 from ..tensor import calcR2X, cp_normalize, reorient_factors, sort_factors
 from .common import getSetup, subplotLabel
 from scipy.optimize import curve_fit
-from matplotlib.ticker import MaxNLocator
 from itertools import groupby
 
 
