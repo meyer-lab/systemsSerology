@@ -5,7 +5,8 @@ This creates Figure 2.
 import numpy as np
 from statsmodels.multivariate.pca import PCA
 from .common import subplotLabel, getSetup
-from ..tensor import perform_CMTF, calcR2X, tensor_degFreedom
+from ..tensor import perform_CMTF, calcR2X
+from tensorpack import tensor_degFreedom
 from ..dataImport import createCube
 from ..impute import flatten_to_mat
 from matplotlib.ticker import ScalarFormatter

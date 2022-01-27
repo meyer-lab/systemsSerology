@@ -94,20 +94,21 @@ def COVIDpredict(tfac):
     aucs = []
 
     kf = KFold(n_splits=10, shuffle=True)
-    outt = pd.DataFrame(columns=["fold", "FPR", "TPR"])
+    outt = pd.DataFrame(columns=["fold", "FPR", "TPR"], dtype=float)
     for ii, (train, test) in enumerate(kf.split(X)):
         model = LogisticRegression().fit(X[train], y[train])
         y_score = model.predict_proba(X[test])
         fpr, tpr, _ = roc_curve(y[test], y_score[:, 1])
         aucs.append(roc_auc_score(y[test], y_score[:, 1]))
-        outt = pd.concat([outt, pd.DataFrame(data={"fold": [ii+1] * len(fpr), "FPR": fpr, "TPR": tpr})])
+        addd = pd.DataFrame(data={"fold": [ii+1] * len(fpr), "FPR": fpr, "TPR": tpr}, dtype=float)
+        outt = pd.concat([outt, addd])
 
     xs = pd.unique(outt["FPR"])
-    ipl = pd.DataFrame(columns=["fold", "FPR", "TPR"])
+    ipl = pd.DataFrame(columns=["fold", "FPR", "TPR"], dtype=float)
     for ii in range(kf.n_splits):
         ys = np.interp(xs, outt.loc[outt["fold"]==(ii+1), "FPR"], outt.loc[outt["fold"]==(ii+1), "TPR"])
         ys[0] = 0
-        ipl = pd.concat([ipl, pd.DataFrame(data={"fold": [(ii+1)] * len(xs), "FPR": xs, "TPR": ys})])
+        ipl = pd.concat([ipl, pd.DataFrame(data={"fold": [(ii+1)] * len(xs), "FPR": xs, "TPR": ys}, dtype=float)])
 
     return ipl, aucs
 
