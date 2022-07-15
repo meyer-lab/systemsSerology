@@ -3,7 +3,8 @@
 import numpy as np
 from statsmodels.multivariate.pca import PCA
 from .dataImport import createCube
-from .tensor import perform_CMTF, calcR2X
+from .tensor import perform_CMTF
+from tensorpack import calcR2X
 
 
 def flatten_to_mat(tensor, matrix=None):

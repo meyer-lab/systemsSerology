@@ -5,7 +5,7 @@ all: $(patsubst %, output/figure%.svg, $(flist))
 venv: venv/bin/activate
 
 venv/bin/activate: requirements.txt
-	test -d venv || virtualenv venv
+	test -d venv || python3 -m venv venv
 	. venv/bin/activate && pip install --prefer-binary -Uqr requirements.txt
 	touch venv/bin/activate
 
