@@ -8,31 +8,15 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Cache references
-      uses: actions/cache@v2
-      with:
-        path: ~/cache
-        key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
     - name: Install dependencies
       run: |
         git submodule update --init --recursive
         make venv
     - name: Build figures
       run: make all -j 3
-    - name: Build manuscript
-      run: make output/manuscript.html output/manuscript.docx
     - name: Upload files
       uses: actions/upload-artifact@v2
       with:
         name: files
         path: |
           output/*.svg
-          output/*.docx
-    - name: Deploy 🚀
-      uses: JamesIves/github-pages-deploy-action@3.6.2
-      if: github.ref == 'refs/heads/master'
-      with:
-        ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        BRANCH: gh-pages # The branch the action should deploy to.
-        FOLDER: output # The folder the action should deploy.
-        SINGLE_COMMIT: true

@@ -6,7 +6,7 @@ venv: venv/local/bin/activate
 
 venv/local/bin/activate: requirements.txt
 	test -d venv || virtualenv venv
-	. venv/local/bin/activate && pip install --prefer-binary -Uqr requirements.txt
+	. venv/local/bin/activate && pip install --prefer-binary -Ur requirements.txt
 	touch venv/local/bin/activate
 
 output/figure%.svg: venv genFigure.py syserol/figures/figure%.py
